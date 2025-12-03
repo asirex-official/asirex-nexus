@@ -1,0 +1,304 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, ArrowRight, X, Bell, ExternalLink, Clock } from "lucide-react";
+import { Layout } from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const projects = [
+  {
+    id: 1,
+    name: "Project ASTRA",
+    tagline: "Autonomous Satellite Technology for Rural Access",
+    description: "A revolutionary satellite-based internet system designed to bring high-speed connectivity to remote areas of India. Using AI-powered mesh networking and solar-powered ground stations.",
+    launchQuarter: "Q2 2025",
+    status: "In Development",
+    image: "🛰️",
+    impact: "Connect 50M+ rural users",
+    features: ["AI Mesh Networking", "Solar Powered", "Low Latency", "Affordable Access"],
+    progress: 65,
+  },
+  {
+    id: 2,
+    name: "RoboFarm Initiative",
+    tagline: "AI-Powered Agricultural Automation",
+    description: "Bringing precision agriculture to Indian farmers with autonomous crop monitoring drones, smart irrigation systems, and AI-based pest detection. Empowering farmers with technology.",
+    launchQuarter: "Q3 2025",
+    status: "Prototype Phase",
+    image: "🌾",
+    impact: "Help 10M+ farmers",
+    features: ["Crop Monitoring Drones", "Smart Irrigation", "Pest Detection AI", "Mobile App"],
+    progress: 45,
+  },
+  {
+    id: 3,
+    name: "EcoCity Blueprint",
+    tagline: "Smart Sustainable Urban Solutions",
+    description: "A comprehensive smart city solution featuring renewable energy grids, AI traffic management, and IoT-based waste management. Partnering with 5 major Indian cities.",
+    launchQuarter: "Q4 2025",
+    status: "Planning",
+    image: "🏙️",
+    impact: "Transform 5 cities",
+    features: ["Renewable Energy Grid", "AI Traffic", "Smart Waste", "Clean Air"],
+    progress: 25,
+  },
+  {
+    id: 4,
+    name: "MedAssist AI",
+    tagline: "Democratizing Healthcare with AI",
+    description: "AI-powered diagnostic tool that helps rural health workers identify diseases from symptoms and basic tests. Integrating with government health programs for maximum reach.",
+    launchQuarter: "Q1 2025",
+    status: "Beta Testing",
+    image: "🏥",
+    impact: "Serve 100M+ patients",
+    features: ["Symptom Analysis", "Offline Mode", "Multi-language", "Doctor Connect"],
+    progress: 80,
+  },
+];
+
+export default function Projects() {
+  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [notifyEmail, setNotifyEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleNotify = () => {
+    if (notifyEmail) {
+      setIsSubscribed(true);
+      setNotifyEmail("");
+      setTimeout(() => setIsSubscribed(false), 3000);
+    }
+  };
+
+  return (
+    <Layout>
+      <section className="py-12 lg:py-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-16"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 mb-6"
+            >
+              <Clock className="w-4 h-4 text-secondary" />
+              <span className="text-sm font-medium text-secondary">
+                Building Tomorrow
+              </span>
+            </motion.div>
+            <h1 className="font-display text-4xl lg:text-5xl font-bold mb-4">
+              Future <span className="gradient-text">Projects</span>
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explore the innovations we're building to transform India and beyond. 
+              Sign up to get notified when these projects launch.
+            </p>
+          </motion.div>
+
+          {/* Projects Grid */}
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+            {projects.map((project, index) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group cursor-pointer"
+                onClick={() => setSelectedProject(project)}
+              >
+                <div className="glass-card p-6 lg:p-8 card-hover h-full">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl flex-shrink-0">
+                      {project.image}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-primary uppercase tracking-wider">
+                          {project.status}
+                        </span>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {project.launchQuarter}
+                        </span>
+                      </div>
+                      <h3 className="font-display text-xl font-semibold group-hover:text-accent transition-colors">
+                        {project.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <p className="text-accent text-sm font-medium mb-3">
+                    {project.tagline}
+                  </p>
+                  <p className="text-muted-foreground text-sm mb-6 line-clamp-3">
+                    {project.description}
+                  </p>
+
+                  {/* Progress Bar */}
+                  <div className="mb-6">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="font-medium text-accent">{project.progress}%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${project.progress}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Impact: <span className="text-foreground font-medium">{project.impact}</span>
+                    </span>
+                    <Button variant="glass" size="sm" className="group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                      Learn More
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Project Detail Modal */}
+      <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
+        <DialogContent className="max-w-3xl glass-card border-border max-h-[90vh] overflow-y-auto">
+          {selectedProject && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <DialogHeader>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-5xl">
+                    {selectedProject.image}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/20 text-primary">
+                        {selectedProject.status}
+                      </span>
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {selectedProject.launchQuarter}
+                      </span>
+                    </div>
+                    <DialogTitle className="font-display text-2xl lg:text-3xl">
+                      {selectedProject.name}
+                    </DialogTitle>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                <p className="text-lg text-accent font-medium">
+                  {selectedProject.tagline}
+                </p>
+
+                <p className="text-muted-foreground leading-relaxed">
+                  {selectedProject.description}
+                </p>
+
+                {/* Progress */}
+                <div className="glass-card p-4 bg-muted/30">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Development Progress</span>
+                    <span className="font-semibold text-accent">{selectedProject.progress}%</span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${selectedProject.progress}%` }}
+                      transition={{ duration: 1 }}
+                      className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div>
+                  <h4 className="font-display font-semibold mb-3">Key Features</h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {selectedProject.features.map((feature) => (
+                      <div
+                        key={feature}
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30"
+                      >
+                        <span className="w-2 h-2 bg-accent rounded-full" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Impact */}
+                <div className="glass-card p-6 bg-gradient-to-br from-primary/10 to-secondary/10">
+                  <h4 className="font-display font-semibold mb-2">Projected Impact</h4>
+                  <p className="text-2xl font-bold gradient-text">
+                    {selectedProject.impact}
+                  </p>
+                </div>
+
+                {/* Notify Form */}
+                <div className="border-t border-border pt-6">
+                  <h4 className="font-display font-semibold mb-4 flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-accent" />
+                    Get Notified on Launch
+                  </h4>
+                  <AnimatePresence mode="wait">
+                    {isSubscribed ? (
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="text-accent font-medium"
+                      >
+                        ✓ You're on the list! We'll notify you when {selectedProject.name} launches.
+                      </motion.p>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex gap-3"
+                      >
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={notifyEmail}
+                          onChange={(e) => setNotifyEmail(e.target.value)}
+                          className="bg-muted/50"
+                        />
+                        <Button variant="hero" onClick={handleNotify}>
+                          Notify Me
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Layout>
+  );
+}

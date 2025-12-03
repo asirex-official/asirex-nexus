@@ -1,0 +1,362 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload } from "lucide-react";
+import { Layout } from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+
+const values = [
+  {
+    icon: Target,
+    title: "Innovation First",
+    description: "We push boundaries with cutting-edge AI, robotics, and clean-tech solutions.",
+  },
+  {
+    icon: Eye,
+    title: "Vision for India",
+    description: "Building technology that transforms lives and drives national progress.",
+  },
+  {
+    icon: Heart,
+    title: "Customer Obsession",
+    description: "Every product is designed with user needs at the center of development.",
+  },
+  {
+    icon: Users,
+    title: "Collaborative Spirit",
+    description: "We believe in community, open innovation, and growing together.",
+  },
+];
+
+const team = [
+  { name: "Dr. Arjun Mehta", role: "CEO & Founder", emoji: "👨‍💼" },
+  { name: "Priya Sharma", role: "CTO", emoji: "👩‍💻" },
+  { name: "Vikram Singh", role: "Head of Robotics", emoji: "🤖" },
+  { name: "Ananya Patel", role: "Head of AI Research", emoji: "🧠" },
+];
+
+const openPositions = [
+  { title: "Senior AI Engineer", location: "Bangalore", type: "Full-time" },
+  { title: "Robotics Software Developer", location: "Bangalore", type: "Full-time" },
+  { title: "Product Designer", location: "Remote", type: "Full-time" },
+  { title: "Sales Manager - Laos", location: "Vientiane", type: "Full-time" },
+];
+
+export default function About() {
+  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate form submission
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    toast({
+      title: "Message Sent!",
+      description: "We'll get back to you within 24 hours.",
+    });
+    
+    setContactForm({ name: "", email: "", message: "" });
+    setIsSubmitting(false);
+  };
+
+  return (
+    <Layout>
+      {/* Hero */}
+      <section className="py-20 lg:py-32 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+        <div className="container mx-auto px-4 lg:px-8 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <h1 className="font-display text-4xl lg:text-6xl font-bold mb-6">
+              Pioneering India's{" "}
+              <span className="gradient-text">Tech Future</span>
+            </h1>
+            <p className="text-lg lg:text-xl text-muted-foreground mb-10">
+              ASIREX was founded with a bold vision: to make India a global leader 
+              in AI, robotics, and clean technology. We're building the products 
+              and platforms that will shape tomorrow.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Mission & Vision */}
+      <section className="py-20 bg-card/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="glass-card p-8 lg:p-10"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
+                <Target className="w-7 h-7 text-accent-foreground" />
+              </div>
+              <h2 className="font-display text-2xl font-bold mb-4">Our Mission</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                To democratize access to advanced technology across India and Southeast Asia. 
+                We create affordable, powerful tools that empower developers, businesses, 
+                and institutions to build a better future.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="glass-card p-8 lg:p-10"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-6">
+                <Eye className="w-7 h-7 text-primary-foreground" />
+              </div>
+              <h2 className="font-display text-2xl font-bold mb-4">Our Vision</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                A world where cutting-edge AI, robotics, and sustainable tech are not luxuries 
+                but everyday tools. Where Indian innovation leads global progress. 
+                Where technology serves humanity.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Values */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
+              Our <span className="gradient-text">Values</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {values.map((value, index) => (
+              <motion.div
+                key={value.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card p-6 text-center card-hover"
+              >
+                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                  <value.icon className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="font-display font-semibold mb-2">{value.title}</h3>
+                <p className="text-sm text-muted-foreground">{value.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="py-20 bg-card/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
+              Leadership <span className="gradient-text">Team</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {team.map((member, index) => (
+              <motion.div
+                key={member.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card p-6 text-center card-hover"
+              >
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-4xl">
+                  {member.emoji}
+                </div>
+                <h3 className="font-display font-semibold">{member.name}</h3>
+                <p className="text-sm text-muted-foreground">{member.role}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Careers */}
+      <section id="careers" className="py-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
+              Join Our <span className="gradient-text">Team</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Be part of building the future. We're always looking for talented 
+              individuals who share our passion for innovation.
+            </p>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {openPositions.map((position, index) => (
+              <motion.div
+                key={position.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 card-hover"
+              >
+                <div>
+                  <h3 className="font-display font-semibold mb-1">{position.title}</h3>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {position.location}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Briefcase className="w-3 h-3" />
+                      {position.type}
+                    </span>
+                  </div>
+                </div>
+                <Button variant="glass">
+                  Apply Now
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="py-20 bg-card/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
+                Get in <span className="gradient-text">Touch</span>
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                Have questions about our products or interested in partnerships? 
+                We'd love to hear from you.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Email</div>
+                    <div className="font-medium">hello@asirex.com</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Phone</div>
+                    <div className="font-medium">+91 80 1234 5678</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Headquarters</div>
+                    <div className="font-medium">Bangalore, India</div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <form onSubmit={handleContactSubmit} className="glass-card p-6 lg:p-8">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Name</label>
+                    <Input
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                      placeholder="Your name"
+                      required
+                      className="bg-muted/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Email</label>
+                    <Input
+                      type="email"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                      placeholder="your@email.com"
+                      required
+                      className="bg-muted/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Message</label>
+                    <Textarea
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      placeholder="How can we help?"
+                      required
+                      rows={4}
+                      className="bg-muted/50"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    variant="hero"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      "Sending..."
+                    ) : (
+                      <>
+                        Send Message
+                        <Send className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
+}
