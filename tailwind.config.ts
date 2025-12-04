@@ -130,9 +130,10 @@ export default {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "hero-gradient": "linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--primary)) 50%, hsl(var(--accent) / 0.3) 100%)",
-        "card-gradient": "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(216 45% 6%) 100%)",
-        "accent-gradient": "linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--secondary)) 100%)",
+        "hero-gradient": "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)",
+        "card-gradient": "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(197 100% 3%) 100%)",
+        "accent-gradient": "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)",
+        "teal-gradient": "linear-gradient(135deg, #00F0FF 0%, #0FFFE4 100%)",
       },
     },
   },
