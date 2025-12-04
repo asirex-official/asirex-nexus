@@ -3,60 +3,10 @@ import { motion } from "framer-motion";
 import { ArrowRight, ShoppingCart, Eye, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import productNeuralCore from "@/assets/product-neural-core.png";
-import productRobokit from "@/assets/product-robokit.png";
-import productSolar from "@/assets/product-solar.png";
-import productDevboard from "@/assets/product-devboard.png";
-
-const products = [
-  {
-    id: 1,
-    name: "ASIREX Neural Core X1",
-    category: "AI Hardware",
-    price: 49999,
-    rating: 4.9,
-    reviews: 128,
-    image: productNeuralCore,
-    badge: "Best Seller",
-    description: "Next-gen AI processing unit for edge computing",
-  },
-  {
-    id: 2,
-    name: "RoboKit Pro 2024",
-    category: "Robotics",
-    price: 34999,
-    rating: 4.8,
-    reviews: 89,
-    image: productRobokit,
-    badge: "New",
-    description: "Complete robotics development platform",
-  },
-  {
-    id: 3,
-    name: "CleanTech Solar Module",
-    category: "Clean Tech",
-    price: 24999,
-    rating: 4.7,
-    reviews: 156,
-    image: productSolar,
-    badge: null,
-    description: "High-efficiency solar energy harvesting system",
-  },
-  {
-    id: 4,
-    name: "Dev Board Elite",
-    category: "Developer Tools",
-    price: 12999,
-    rating: 4.9,
-    reviews: 234,
-    image: productDevboard,
-    badge: "Popular",
-    description: "Professional development board with AI acceleration",
-  },
-];
+import { useProducts } from "@/hooks/useSiteData";
 
 interface ProductCardProps {
-  product: typeof products[0];
+  product: any;
   index: number;
 }
 
@@ -84,7 +34,7 @@ function ProductCard({ product, index }: ProductCardProps) {
 
         <div className="relative aspect-square mb-6 rounded-xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center overflow-hidden">
           <motion.img
-            src={product.image}
+            src={product.image_url || "/placeholder.svg"}
             alt={product.name}
             animate={{ scale: isHovered ? 1.1 : 1 }}
             transition={{ duration: 0.3 }}
@@ -120,16 +70,13 @@ function ProductCard({ product, index }: ProductCardProps) {
         <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-accent text-accent" />
-            <span className="text-sm font-medium">{product.rating}</span>
+            <span className="text-sm font-medium">{product.rating || 0}</span>
           </div>
-          <span className="text-sm text-muted-foreground">
-            ({product.reviews} reviews)
-          </span>
         </div>
 
         <div className="flex items-center justify-between">
           <span className="font-display text-2xl font-bold">
-            ₹{product.price.toLocaleString()}
+            ₹{product.price?.toLocaleString()}
           </span>
           <Button variant="glow" size="sm">
             Add to Cart
@@ -141,6 +88,8 @@ function ProductCard({ product, index }: ProductCardProps) {
 }
 
 export function ProductsSection() {
+  const { data: products, isLoading } = useProducts(true);
+
   return (
     <section className="py-24 relative">
       <div className="container mx-auto px-4 lg:px-8">
@@ -167,11 +116,24 @@ export function ProductsSection() {
           </Button>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="glass-card p-6 animate-pulse">
+                <div className="aspect-square bg-muted rounded-xl mb-6" />
+                <div className="h-4 bg-muted rounded mb-2 w-1/3" />
+                <div className="h-6 bg-muted rounded mb-4" />
+                <div className="h-8 bg-muted rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products?.slice(0, 4).map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

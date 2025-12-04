@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-
-const stats = [
-  { value: 10000, suffix: "+", label: "Devices Shipped" },
-  { value: 25, suffix: "+", label: "Active Projects" },
-  { value: 15, suffix: "", label: "Countries Impacted" },
-  { value: 99, suffix: "%", label: "Customer Satisfaction" },
-];
+import { useSiteStats } from "@/hooks/useSiteData";
 
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
   const [count, setCount] = useState(0);
@@ -43,9 +37,18 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
 }
 
 export function StatsSection() {
+  const { data: stats, isLoading } = useSiteStats();
+
+  // Fallback data while loading
+  const displayStats = stats || [
+    { id: "1", value: 10000, suffix: "+", label: "Devices Shipped" },
+    { id: "2", value: 25, suffix: "+", label: "Active Projects" },
+    { id: "3", value: 15, suffix: "", label: "Countries Impacted" },
+    { id: "4", value: 99, suffix: "%", label: "Customer Satisfaction" },
+  ];
+
   return (
     <section className="relative py-20 bg-card/50 border-y border-border">
-      {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5" />
       
       <div className="container mx-auto px-4 lg:px-8 relative">
@@ -56,9 +59,9 @@ export function StatsSection() {
           transition={{ duration: 0.6 }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12"
         >
-          {stats.map((stat, index) => (
+          {displayStats.map((stat, index) => (
             <motion.div
-              key={stat.label}
+              key={stat.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -66,7 +69,7 @@ export function StatsSection() {
               className="text-center"
             >
               <div className="font-display text-4xl lg:text-5xl font-bold gradient-text mb-2">
-                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                <AnimatedCounter value={stat.value} suffix={stat.suffix || ""} />
               </div>
               <div className="text-muted-foreground text-sm lg:text-base">
                 {stat.label}
