@@ -40,8 +40,8 @@ const team = [{
   role: "Head of AI Research",
   emoji: "🧠"
 }, {
-  name: "Ravi Kumar",
-  role: "Head of Clean Tech",
+  name: "Vaibhav Ghatwal",
+  role: "Product Manager and Production Head",
   emoji: "🌱"
 }];
 const openPositions = [{
