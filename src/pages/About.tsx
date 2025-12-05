@@ -279,7 +279,105 @@ export default function About() {
           duration: 0.5,
           delay: 0.4
         }} className="flex justify-center mb-8 w-full">
-            
+            <svg width="400" height="80" viewBox="0 0 400 80" className="overflow-visible">
+              {/* Main vertical stem */}
+              <motion.line
+                x1="200" y1="0" x2="200" y2="30"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+              />
+              
+              {/* Left curved branch */}
+              <motion.path
+                d="M200,30 Q200,45 120,55"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+              />
+              <motion.line
+                x1="120" y1="55" x2="120" y2="75"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 0.9 }}
+              />
+              
+              {/* Middle straight branch */}
+              <motion.line
+                x1="200" y1="30" x2="200" y2="75"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+              />
+              
+              {/* Right curved branch */}
+              <motion.path
+                d="M200,30 Q200,45 280,55"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+              />
+              <motion.line
+                x1="280" y1="55" x2="280" y2="75"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 0.9 }}
+              />
+              
+              {/* Arrow heads */}
+              <motion.polygon
+                points="120,80 116,72 124,72"
+                fill="hsl(var(--accent))"
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.2, delay: 1.1 }}
+              />
+              <motion.polygon
+                points="200,80 196,72 204,72"
+                fill="hsl(var(--accent))"
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.2, delay: 1.1 }}
+              />
+              <motion.polygon
+                points="280,80 276,72 284,72"
+                fill="hsl(var(--accent))"
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.2, delay: 1.1 }}
+              />
+              
+              <defs>
+                <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" />
+                  <stop offset="50%" stopColor="hsl(var(--accent))" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                </linearGradient>
+              </defs>
+            </svg>
           </motion.div>
 
           {/* Other Pillars - Below CEO */}
