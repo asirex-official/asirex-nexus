@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Zap, Instagram, Linkedin, Github, Mail } from "lucide-react";
+import { Zap, Instagram, Linkedin, Mail } from "lucide-react";
 
 const footerLinks = {
   Products: [
@@ -30,7 +30,7 @@ const footerLinks = {
 const socialLinks = [
   { icon: Instagram, href: "#", label: "Instagram" },
   { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Github, href: "#", label: "GitHub" },
+  { icon: Instagram, href: "#", label: "Instagram" },
   { icon: Mail, href: "#", label: "Email" },
 ];
 
