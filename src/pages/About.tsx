@@ -36,9 +36,9 @@ const team = [{
   role: "Sales Manager and Head",
   emoji: "🧠+"
 }, {
-  name: "Ananya Patel",
+  name: "It can be you",
   role: "Head of AI Research",
-  emoji: "🧠"
+  emoji: "+"
 }, {
   name: "Vaibhav Ghatwal",
   role: "Product Manager and Production Head",
