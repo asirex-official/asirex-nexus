@@ -279,95 +279,92 @@ export default function About() {
           duration: 0.5,
           delay: 0.4
         }} className="flex justify-center mb-8 w-full">
-            <svg width="400" height="80" viewBox="0 0 400 80" className="overflow-visible">
-              {/* Main vertical stem */}
+            <svg width="600" height="120" viewBox="0 0 600 120" className="overflow-visible">
+              {/* Main vertical stem from top */}
               <motion.line
-                x1="200" y1="0" x2="200" y2="30"
+                x1="300" y1="0" x2="300" y2="40"
                 stroke="url(#arrowGradient2)"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.5 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
               />
               
-              {/* Left curved branch */}
-              <motion.path
-                d="M200,30 Q200,45 120,55"
+              {/* Horizontal line */}
+              <motion.line
+                x1="100" y1="40" x2="500" y2="40"
                 stroke="url(#arrowGradient2)"
-                strokeWidth="2"
+                strokeWidth="2.5"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.6 }}
+              />
+              
+              {/* Left vertical down with curve */}
+              <motion.path
+                d="M100,40 L100,40 Q100,50 100,55 L100,105"
+                stroke="url(#arrowGradient2)"
+                strokeWidth="2.5"
                 fill="none"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.7 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
               />
+              
+              {/* Middle vertical down */}
               <motion.line
-                x1="120" y1="55" x2="120" y2="75"
+                x1="300" y1="40" x2="300" y2="105"
                 stroke="url(#arrowGradient2)"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 0.9 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
               />
               
-              {/* Middle straight branch */}
-              <motion.line
-                x1="200" y1="30" x2="200" y2="75"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.7 }}
-              />
-              
-              {/* Right curved branch */}
+              {/* Right vertical down with curve */}
               <motion.path
-                d="M200,30 Q200,45 280,55"
+                d="M500,40 L500,40 Q500,50 500,55 L500,105"
                 stroke="url(#arrowGradient2)"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 fill="none"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.7 }}
-              />
-              <motion.line
-                x1="280" y1="55" x2="280" y2="75"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 0.9 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
               />
               
-              {/* Arrow heads */}
+              {/* Left arrow head */}
               <motion.polygon
-                points="120,80 116,72 124,72"
+                points="100,115 94,103 106,103"
                 fill="hsl(var(--accent))"
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: 1.1 }}
+                transition={{ duration: 0.2, delay: 1.0 }}
               />
+              
+              {/* Middle arrow head */}
               <motion.polygon
-                points="200,80 196,72 204,72"
+                points="300,115 294,103 306,103"
                 fill="hsl(var(--accent))"
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: 1.1 }}
+                transition={{ duration: 0.2, delay: 1.0 }}
               />
+              
+              {/* Right arrow head */}
               <motion.polygon
-                points="280,80 276,72 284,72"
+                points="500,115 494,103 506,103"
                 fill="hsl(var(--accent))"
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: 1.1 }}
+                transition={{ duration: 0.2, delay: 1.0 }}
               />
               
               <defs>
