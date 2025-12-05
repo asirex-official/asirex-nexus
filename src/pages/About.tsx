@@ -39,6 +39,10 @@ const team = [{
   name: "Ananya Patel",
   role: "Head of AI Research",
   emoji: "🧠"
+}, {
+  name: "Ravi Kumar",
+  role: "Head of Clean Tech",
+  emoji: "🌱"
 }];
 const openPositions = [{
   title: "Senior AI Engineer",
