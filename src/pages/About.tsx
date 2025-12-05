@@ -282,8 +282,8 @@ export default function About() {
         }} transition={{
           duration: 0.5,
           delay: 0.4
-        }} className="flex justify-center mb-4 w-full max-w-4xl mx-auto px-4">
-            <svg width="100%" height="160" viewBox="0 0 900 160" preserveAspectRatio="xMidYMid meet" className="overflow-visible">
+        }} className="flex justify-center mb-4 w-full max-w-5xl mx-auto px-4">
+            <svg width="100%" height="160" viewBox="0 0 1000 160" preserveAspectRatio="xMidYMid meet" className="overflow-visible">
               <defs>
                 <linearGradient id="arrowGradientMain" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -301,28 +301,34 @@ export default function About() {
               {/* Glow layer */}
               <g filter="url(#arrowGlow)" opacity="0.5">
                 <path
-                  d="M450,0 L450,50 C450,65 435,65 420,65 L180,65 C160,65 150,75 150,90 L150,140"
+                  d="M500,0 L500,50 C500,65 485,65 470,65 L140,65 C120,65 110,75 110,90 L110,140"
                   stroke="hsl(var(--accent))"
                   strokeWidth="3"
                   fill="none"
                 />
                 <path
-                  d="M450,50 L450,140"
+                  d="M500,50 C500,65 485,65 470,65 L360,65 C340,65 330,75 330,90 L330,140"
                   stroke="hsl(var(--accent))"
                   strokeWidth="3"
                   fill="none"
                 />
                 <path
-                  d="M450,50 C450,65 465,65 480,65 L720,65 C740,65 750,75 750,90 L750,140"
+                  d="M500,50 C500,65 515,65 530,65 L640,65 C660,65 670,75 670,90 L670,140"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth="3"
+                  fill="none"
+                />
+                <path
+                  d="M500,50 C500,65 515,65 530,65 L860,65 C880,65 890,75 890,90 L890,140"
                   stroke="hsl(var(--accent))"
                   strokeWidth="3"
                   fill="none"
                 />
               </g>
               
-              {/* Main stem + left branch with smooth cubic bezier */}
+              {/* Main stem + far left branch */}
               <path
-                d="M450,0 L450,50 C450,65 435,65 420,65 L180,65 C160,65 150,75 150,90 L150,140"
+                d="M500,0 L500,50 C500,65 485,65 470,65 L140,65 C120,65 110,75 110,90 L110,140"
                 stroke="url(#arrowGradientMain)"
                 strokeWidth="2"
                 fill="none"
@@ -330,18 +336,9 @@ export default function About() {
                 strokeLinejoin="round"
               />
               
-              {/* Middle branch - straight down from junction */}
+              {/* Left-center branch */}
               <path
-                d="M450,50 L450,140"
-                stroke="url(#arrowGradientMain)"
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-              />
-              
-              {/* Right branch with smooth cubic bezier */}
-              <path
-                d="M450,50 C450,65 465,65 480,65 L720,65 C740,65 750,75 750,90 L750,140"
+                d="M500,50 C500,65 485,65 470,65 L360,65 C340,65 330,75 330,90 L330,140"
                 stroke="url(#arrowGradientMain)"
                 strokeWidth="2"
                 fill="none"
@@ -349,28 +346,54 @@ export default function About() {
                 strokeLinejoin="round"
               />
               
-              {/* Left arrow head */}
+              {/* Right-center branch */}
               <path
-                d="M150,155 L142,140 L150,143 L158,140 Z"
+                d="M500,50 C500,65 515,65 530,65 L640,65 C660,65 670,75 670,90 L670,140"
+                stroke="url(#arrowGradientMain)"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              
+              {/* Far right branch */}
+              <path
+                d="M500,50 C500,65 515,65 530,65 L860,65 C880,65 890,75 890,90 L890,140"
+                stroke="url(#arrowGradientMain)"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              
+              {/* Arrow head 1 */}
+              <path
+                d="M110,155 L102,140 L110,143 L118,140 Z"
                 fill="hsl(var(--accent))"
               />
               
-              {/* Middle arrow head */}
+              {/* Arrow head 2 */}
               <path
-                d="M450,155 L442,140 L450,143 L458,140 Z"
+                d="M330,155 L322,140 L330,143 L338,140 Z"
                 fill="hsl(var(--accent))"
               />
               
-              {/* Right arrow head */}
+              {/* Arrow head 3 */}
               <path
-                d="M750,155 L742,140 L750,143 L758,140 Z"
+                d="M670,155 L662,140 L670,143 L678,140 Z"
+                fill="hsl(var(--accent))"
+              />
+              
+              {/* Arrow head 4 */}
+              <path
+                d="M890,155 L882,140 L890,143 L898,140 Z"
                 fill="hsl(var(--accent))"
               />
             </svg>
           </motion.div>
 
           {/* Other Pillars - Below CEO */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="flex flex-row justify-center gap-4 max-w-5xl mx-auto px-2">
             {team.slice(1).map((member, index) => <motion.div key={member.name} initial={{
             opacity: 0,
             y: 30
@@ -381,12 +404,12 @@ export default function About() {
             once: true
           }} transition={{
             delay: index * 0.1
-          }} className="glass-card p-6 text-center card-hover">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-4xl">
+          }} className="glass-card p-3 sm:p-4 lg:p-6 text-center card-hover flex-1 min-w-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-2 sm:mb-4 text-2xl sm:text-3xl lg:text-4xl">
                   {member.emoji}
                 </div>
-                <h3 className="font-display font-semibold">{member.name}</h3>
-                <p className="text-sm text-muted-foreground">{member.role}</p>
+                <h3 className="font-display font-semibold text-xs sm:text-sm lg:text-base truncate">{member.name}</h3>
+                <p className="text-xs text-muted-foreground truncate">{member.role}</p>
               </motion.div>)}
           </div>
         </div>
