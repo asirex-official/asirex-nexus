@@ -280,100 +280,66 @@ export default function About() {
           delay: 0.4
         }} className="flex justify-center mb-8 w-full">
             <svg width="600" height="120" viewBox="0 0 600 120" className="overflow-visible">
-              {/* Main vertical stem from top */}
-              <motion.line
-                x1="300" y1="0" x2="300" y2="40"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2.5"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 0.5 }}
-              />
-              
-              {/* Horizontal line */}
-              <motion.line
-                x1="100" y1="40" x2="500" y2="40"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2.5"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.6 }}
-              />
-              
-              {/* Left vertical down with curve */}
-              <motion.path
-                d="M100,40 L100,40 Q100,50 100,55 L100,105"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2.5"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.8 }}
-              />
-              
-              {/* Middle vertical down */}
-              <motion.line
-                x1="300" y1="40" x2="300" y2="105"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2.5"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.8 }}
-              />
-              
-              {/* Right vertical down with curve */}
-              <motion.path
-                d="M500,40 L500,40 Q500,50 500,55 L500,105"
-                stroke="url(#arrowGradient2)"
-                strokeWidth="2.5"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.8 }}
-              />
-              
-              {/* Left arrow head */}
-              <motion.polygon
-                points="100,115 94,103 106,103"
-                fill="hsl(var(--accent))"
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: 1.0 }}
-              />
-              
-              {/* Middle arrow head */}
-              <motion.polygon
-                points="300,115 294,103 306,103"
-                fill="hsl(var(--accent))"
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: 1.0 }}
-              />
-              
-              {/* Right arrow head */}
-              <motion.polygon
-                points="500,115 494,103 506,103"
-                fill="hsl(var(--accent))"
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: 1.0 }}
-              />
-              
               <defs>
                 <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="hsl(var(--primary))" />
                   <stop offset="50%" stopColor="hsl(var(--accent))" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.7" />
                 </linearGradient>
               </defs>
+              
+              {/* Main vertical stem from top */}
+              <line
+                x1="300" y1="0" x2="300" y2="40"
+                stroke="hsl(var(--accent))"
+                strokeWidth="2.5"
+              />
+              
+              {/* Horizontal line */}
+              <line
+                x1="100" y1="40" x2="500" y2="40"
+                stroke="hsl(var(--accent))"
+                strokeWidth="2.5"
+              />
+              
+              {/* Left vertical down */}
+              <line
+                x1="100" y1="40" x2="100" y2="105"
+                stroke="hsl(var(--accent))"
+                strokeWidth="2.5"
+              />
+              
+              {/* Middle vertical down */}
+              <line
+                x1="300" y1="40" x2="300" y2="105"
+                stroke="hsl(var(--accent))"
+                strokeWidth="2.5"
+              />
+              
+              {/* Right vertical down */}
+              <line
+                x1="500" y1="40" x2="500" y2="105"
+                stroke="hsl(var(--accent))"
+                strokeWidth="2.5"
+              />
+              
+              {/* Left arrow head */}
+              <polygon
+                points="100,115 94,103 106,103"
+                fill="hsl(var(--accent))"
+              />
+              
+              {/* Middle arrow head */}
+              <polygon
+                points="300,115 294,103 306,103"
+                fill="hsl(var(--accent))"
+              />
+              
+              {/* Right arrow head */}
+              <polygon
+                points="500,115 494,103 506,103"
+                fill="hsl(var(--accent))"
+              />
             </svg>
           </motion.div>
 
