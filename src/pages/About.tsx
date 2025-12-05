@@ -279,20 +279,48 @@ export default function About() {
           duration: 0.5,
           delay: 0.4
         }} className="flex justify-center mb-4 w-full max-w-4xl mx-auto px-4">
-            <svg width="100%" height="140" viewBox="0 0 900 140" preserveAspectRatio="xMidYMid meet" className="overflow-visible">
+            <svg width="100%" height="160" viewBox="0 0 900 160" preserveAspectRatio="xMidYMid meet" className="overflow-visible">
               <defs>
-                <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" />
-                  <stop offset="50%" stopColor="hsl(var(--accent))" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.7" />
+                <linearGradient id="arrowGradientMain" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--accent))" />
+                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.6" />
                 </linearGradient>
+                <filter id="arrowGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
               </defs>
               
-              {/* Main stem + left branch with smooth curve */}
+              {/* Glow layer */}
+              <g filter="url(#arrowGlow)" opacity="0.5">
+                <path
+                  d="M450,0 L450,50 C450,65 435,65 420,65 L180,65 C160,65 150,75 150,90 L150,140"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth="3"
+                  fill="none"
+                />
+                <path
+                  d="M450,50 L450,140"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth="3"
+                  fill="none"
+                />
+                <path
+                  d="M450,50 C450,65 465,65 480,65 L720,65 C740,65 750,75 750,90 L750,140"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth="3"
+                  fill="none"
+                />
+              </g>
+              
+              {/* Main stem + left branch with smooth cubic bezier */}
               <path
-                d="M450,0 L450,40 Q450,55 435,55 L165,55 Q150,55 150,70 L150,125"
-                stroke="hsl(var(--accent))"
-                strokeWidth="2.5"
+                d="M450,0 L450,50 C450,65 435,65 420,65 L180,65 C160,65 150,75 150,90 L150,140"
+                stroke="url(#arrowGradientMain)"
+                strokeWidth="2"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -300,38 +328,38 @@ export default function About() {
               
               {/* Middle branch - straight down from junction */}
               <path
-                d="M450,40 L450,125"
-                stroke="hsl(var(--accent))"
-                strokeWidth="2.5"
+                d="M450,50 L450,140"
+                stroke="url(#arrowGradientMain)"
+                strokeWidth="2"
                 fill="none"
                 strokeLinecap="round"
               />
               
-              {/* Right branch with smooth curve */}
+              {/* Right branch with smooth cubic bezier */}
               <path
-                d="M450,40 Q450,55 465,55 L735,55 Q750,55 750,70 L750,125"
-                stroke="hsl(var(--accent))"
-                strokeWidth="2.5"
+                d="M450,50 C450,65 465,65 480,65 L720,65 C740,65 750,75 750,90 L750,140"
+                stroke="url(#arrowGradientMain)"
+                strokeWidth="2"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               
               {/* Left arrow head */}
-              <polygon
-                points="150,140 142,125 158,125"
+              <path
+                d="M150,155 L142,140 L150,143 L158,140 Z"
                 fill="hsl(var(--accent))"
               />
               
               {/* Middle arrow head */}
-              <polygon
-                points="450,140 442,125 458,125"
+              <path
+                d="M450,155 L442,140 L450,143 L458,140 Z"
                 fill="hsl(var(--accent))"
               />
               
               {/* Right arrow head */}
-              <polygon
-                points="750,140 742,125 758,125"
+              <path
+                d="M750,155 L742,140 L750,143 L758,140 Z"
                 fill="hsl(var(--accent))"
               />
             </svg>
