@@ -174,7 +174,7 @@ export default function About() {
             className="text-center mb-12"
           >
             <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
-              Leadership <span className="gradient-text">Team</span>
+              Asirex's <span className="gradient-text">Pillars</span>
             </h2>
           </motion.div>
 
