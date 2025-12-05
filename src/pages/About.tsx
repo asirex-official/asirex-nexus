@@ -218,9 +218,9 @@ export default function About() {
             transition={{ delay: 0.3 }}
             className="text-center mb-8"
           >
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-              Core Members
-            </span>
+            <h3 className="font-display text-2xl lg:text-3xl font-bold">
+              Your <span className="gradient-text">Core Members</span>
+            </h3>
           </motion.div>
 
           {/* Other Pillars - Below CEO */}
