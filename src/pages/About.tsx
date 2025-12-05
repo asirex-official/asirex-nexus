@@ -37,7 +37,7 @@ const team = [{
   emoji: "🧠+"
 }, {
   name: "It can be you",
-  role: "Head of AI Research",
+  role: "Engineering and Research & Development Lead",
   emoji: "+"
 }, {
   name: "Vaibhav Ghatwal",
