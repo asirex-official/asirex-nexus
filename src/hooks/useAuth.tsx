@@ -2,14 +2,25 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+type AppRole = "super_admin" | "admin" | "manager" | "developer" | "employee" | "core_member" | "user";
+
+interface UserRole {
+  role: AppRole;
+  department: string | null;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  roles: UserRole[];
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  isStaff: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  hasRole: (role: AppRole) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,10 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           setTimeout(() => {
-            checkAdminRole(session.user.id);
+            fetchUserRoles(session.user.id);
           }, 0);
         } else {
-          setIsAdmin(false);
+          setRoles([]);
         }
       }
     );
@@ -41,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        fetchUserRoles(session.user.id);
       }
       setLoading(false);
     });
@@ -49,16 +60,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminRole = async (userId: string) => {
+  const fetchUserRoles = async (userId: string) => {
     const { data, error } = await supabase
       .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
+      .select("role, department")
+      .eq("user_id", userId);
 
-    setIsAdmin(!!data && !error);
+    if (!error && data) {
+      setRoles(data as UserRole[]);
+    } else {
+      setRoles([]);
+    }
   };
+
+  const hasRole = (role: AppRole): boolean => {
+    return roles.some(r => r.role === role);
+  };
+
+  const isAdmin = roles.some(r => ["admin", "super_admin"].includes(r.role));
+  const isSuperAdmin = roles.some(r => r.role === "super_admin");
+  const isStaff = roles.some(r => 
+    ["super_admin", "admin", "manager", "developer", "employee", "core_member"].includes(r.role)
+  );
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -80,11 +103,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setIsAdmin(false);
+    setRoles([]);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      roles,
+      isAdmin, 
+      isSuperAdmin,
+      isStaff,
+      loading, 
+      signIn, 
+      signUp, 
+      signOut,
+      hasRole
+    }}>
       {children}
     </AuthContext.Provider>
   );
