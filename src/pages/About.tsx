@@ -278,8 +278,8 @@ export default function About() {
         }} transition={{
           duration: 0.5,
           delay: 0.4
-        }} className="flex justify-center mb-8 w-full">
-            <svg width="600" height="120" viewBox="0 0 600 120" className="overflow-visible">
+        }} className="flex justify-center mb-4 w-full max-w-4xl mx-auto px-4">
+            <svg width="100%" height="140" viewBox="0 0 900 140" preserveAspectRatio="xMidYMid meet" className="overflow-visible">
               <defs>
                 <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="hsl(var(--primary))" />
@@ -290,7 +290,7 @@ export default function About() {
               
               {/* Main stem + left branch with smooth curve */}
               <path
-                d="M300,0 L300,30 Q300,40 290,40 L115,40 Q100,40 100,55 L100,105"
+                d="M450,0 L450,40 Q450,55 435,55 L165,55 Q150,55 150,70 L150,125"
                 stroke="hsl(var(--accent))"
                 strokeWidth="2.5"
                 fill="none"
@@ -300,7 +300,7 @@ export default function About() {
               
               {/* Middle branch - straight down from junction */}
               <path
-                d="M300,30 L300,105"
+                d="M450,40 L450,125"
                 stroke="hsl(var(--accent))"
                 strokeWidth="2.5"
                 fill="none"
@@ -309,7 +309,7 @@ export default function About() {
               
               {/* Right branch with smooth curve */}
               <path
-                d="M300,30 Q300,40 310,40 L485,40 Q500,40 500,55 L500,105"
+                d="M450,40 Q450,55 465,55 L735,55 Q750,55 750,70 L750,125"
                 stroke="hsl(var(--accent))"
                 strokeWidth="2.5"
                 fill="none"
@@ -319,19 +319,19 @@ export default function About() {
               
               {/* Left arrow head */}
               <polygon
-                points="100,115 93,102 107,102"
+                points="150,140 142,125 158,125"
                 fill="hsl(var(--accent))"
               />
               
               {/* Middle arrow head */}
               <polygon
-                points="300,115 293,102 307,102"
+                points="450,140 442,125 458,125"
                 fill="hsl(var(--accent))"
               />
               
               {/* Right arrow head */}
               <polygon
-                points="500,115 493,102 507,102"
+                points="750,140 742,125 758,125"
                 fill="hsl(var(--accent))"
               />
             </svg>
