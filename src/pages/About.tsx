@@ -469,7 +469,7 @@ export default function About() {
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Headquarters</div>
-                    <div className="font-medium">Bangalore, India</div>
+                    <div className="font-medium">Noida, India</div>
                   </div>
                 </div>
               </div>
