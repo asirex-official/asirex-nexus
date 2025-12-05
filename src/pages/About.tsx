@@ -223,56 +223,127 @@ export default function About() {
             </h3>
           </motion.div>
 
-          {/* Branching Arrow Connector */}
+          {/* Hand-drawn Branching Arrow Connector */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="flex flex-col items-center mb-8"
+            className="flex justify-center mb-8 w-full"
           >
-            {/* Main vertical arrow */}
-            <motion.div
-              initial={{ scaleY: 0 }}
-              whileInView={{ scaleY: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-              className="origin-top"
+            <svg 
+              viewBox="0 0 400 120" 
+              className="w-full max-w-2xl h-auto"
+              style={{ filter: 'drop-shadow(0 0 8px hsl(var(--accent) / 0.3))' }}
             >
-              <div className="w-1 h-12 bg-gradient-to-b from-primary via-accent to-accent rounded-full" />
-            </motion.div>
-
-            {/* Horizontal branch line */}
-            <motion.div
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.7 }}
-              className="relative w-full max-w-2xl"
-            >
-              <div className="h-1 bg-gradient-to-r from-transparent via-accent to-transparent rounded-full" />
+              <defs>
+                <linearGradient id="sketchGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" />
+                  <stop offset="50%" stopColor="hsl(var(--accent))" />
+                  <stop offset="100%" stopColor="hsl(var(--primary) / 0.5)" />
+                </linearGradient>
+                <marker 
+                  id="arrowhead" 
+                  markerWidth="10" 
+                  markerHeight="7" 
+                  refX="9" 
+                  refY="3.5" 
+                  orient="auto"
+                >
+                  <polygon 
+                    points="0 0, 10 3.5, 0 7" 
+                    fill="hsl(var(--accent))"
+                  />
+                </marker>
+              </defs>
               
-              {/* Three vertical arrows going down */}
-              <div className="flex justify-between px-8 lg:px-16">
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scaleY: 0, opacity: 0 }}
-                    whileInView={{ scaleY: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: 0.9 + i * 0.1 }}
-                    className="flex flex-col items-center origin-top"
-                  >
-                    <div className="w-1 h-10 bg-gradient-to-b from-accent to-primary/50 rounded-full" />
-                    <motion.div
-                      animate={{ y: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
-                      className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-accent"
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+              {/* Main curved stem going down */}
+              <motion.path
+                d="M200 0 Q198 15, 200 30 Q203 45, 200 55"
+                fill="none"
+                stroke="url(#sketchGradient)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              />
+              
+              {/* Left branch curve */}
+              <motion.path
+                d="M200 55 Q195 60, 180 62 Q140 65, 80 68 Q70 70, 65 85 Q62 100, 65 115"
+                fill="none"
+                stroke="url(#sketchGradient)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                markerEnd="url(#arrowhead)"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+              />
+              
+              {/* Center branch curve */}
+              <motion.path
+                d="M200 55 Q202 65, 200 75 Q198 90, 200 115"
+                fill="none"
+                stroke="url(#sketchGradient)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                markerEnd="url(#arrowhead)"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+              />
+              
+              {/* Right branch curve */}
+              <motion.path
+                d="M200 55 Q205 60, 220 62 Q260 65, 320 68 Q330 70, 335 85 Q338 100, 335 115"
+                fill="none"
+                stroke="url(#sketchGradient)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                markerEnd="url(#arrowhead)"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 1.0 }}
+              />
+              
+              {/* Sketch accent strokes for hand-drawn feel */}
+              <motion.path
+                d="M198 10 Q200 12, 202 10"
+                fill="none"
+                stroke="hsl(var(--accent) / 0.4)"
+                strokeWidth="1"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 1.1 }}
+              />
+              <motion.path
+                d="M120 66 Q125 64, 130 67"
+                fill="none"
+                stroke="hsl(var(--accent) / 0.4)"
+                strokeWidth="1"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 1.2 }}
+              />
+              <motion.path
+                d="M270 66 Q275 64, 280 67"
+                fill="none"
+                stroke="hsl(var(--accent) / 0.4)"
+                strokeWidth="1"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 1.3 }}
+              />
+            </svg>
           </motion.div>
 
           {/* Other Pillars - Below CEO */}
