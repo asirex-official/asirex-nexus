@@ -451,7 +451,7 @@ export default function About() {
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Email</div>
-                    <div className="font-medium">hello@asirex.com</div>
+                    <div className="font-medium">Asirex.official@gmail.com</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
