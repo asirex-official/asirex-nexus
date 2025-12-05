@@ -345,9 +345,15 @@ export default function About() {
           }} transition={{
             delay: index * 0.1
           }} className="glass-card p-3 sm:p-4 lg:p-6 text-center card-hover flex-1 min-w-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-2 sm:mb-4 text-2xl sm:text-3xl lg:text-4xl">
-                  {member.emoji}
-                </div>
+                {member.name === "It can be you" ? (
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full border-2 border-dashed border-primary/50 flex items-center justify-center mx-auto mb-2 sm:mb-4">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-light text-primary/70">+</span>
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-2 sm:mb-4 text-2xl sm:text-3xl lg:text-4xl">
+                    {member.emoji}
+                  </div>
+                )}
                 <h3 className="font-display font-semibold text-xs sm:text-sm lg:text-base truncate">{member.name}</h3>
                 <p className="text-xs text-muted-foreground truncate">{member.role}</p>
                 {member.name === "It can be you" && <Button variant="glass" size="sm" className="mt-2" asChild><a href="#careers">Apply Now</a></Button>}
