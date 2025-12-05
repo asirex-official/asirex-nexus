@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
 
 const partners = [
   { name: "TechVision", abbr: "TV" },
@@ -11,68 +12,98 @@ const partners = [
   { name: "AICore", abbr: "AC" },
 ];
 
+// Duplicate for seamless loop
+const allPartners = [...partners, ...partners];
+
 export const PartnersSection = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // CSS-based infinite scroll for better performance
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer || isPaused) return;
+
+    let animationId: number;
+    let scrollPosition = 0;
+    const speed = 0.5; // pixels per frame
+
+    const scroll = () => {
+      scrollPosition += speed;
+      const maxScroll = scrollContainer.scrollWidth / 2;
+      
+      if (scrollPosition >= maxScroll) {
+        scrollPosition = 0;
+      }
+      
+      scrollContainer.style.transform = `translateX(-${scrollPosition}px)`;
+      animationId = requestAnimationFrame(scroll);
+    };
+
+    animationId = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationId);
+  }, [isPaused]);
+
   return (
-    <section className="py-20 bg-muted/20 relative overflow-hidden">
-      <div className="container mx-auto px-4">
+    <section className="py-24 relative overflow-hidden bg-card/20">
+      <div className="container mx-auto px-4 lg:px-8">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.5 }}
+          className="text-center mb-14"
         >
-          <span className="text-accent font-semibold text-sm tracking-wider uppercase mb-2 block">
+          <span className="text-primary font-semibold text-sm tracking-wider uppercase mb-2 block">
             Our Partners
           </span>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            Powering Innovation Together
+          <h2 className="font-display text-3xl lg:text-4xl font-black">
+            Powering Innovation <span className="gradient-text-static">Together</span>
           </h2>
         </motion.div>
 
-        {/* Infinite scroll animation */}
-        <div className="relative">
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
+        {/* Infinite scroll marquee */}
+        <div 
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
           
-          <div className="flex overflow-hidden">
-            <motion.div
-              animate={{ x: [0, -1920] }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 30,
-                  ease: "linear",
-                },
-              }}
-              className="flex gap-12 items-center"
+          <div className="overflow-hidden">
+            <div 
+              ref={scrollRef}
+              className="flex gap-8 items-center will-change-transform"
+              style={{ width: "max-content" }}
             >
-              {[...partners, ...partners, ...partners].map((partner, index) => (
+              {allPartners.map((partner, index) => (
                 <div
                   key={`${partner.name}-${index}`}
                   className="flex-shrink-0 group"
                 >
-                  <div className="w-40 h-20 bg-card/50 backdrop-blur-sm border border-border/30 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 hover:border-primary/50 hover:bg-card/80">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <div className="w-44 h-24 glass-card rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 hover:border-primary/40 cursor-pointer">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border border-primary/20">
                       <span className="text-primary font-bold text-sm">{partner.abbr}</span>
                     </div>
-                    <span className="text-foreground/70 font-medium group-hover:text-foreground transition-colors">
+                    <span className="text-muted-foreground font-semibold group-hover:text-foreground transition-colors">
                       {partner.name}
                     </span>
                   </div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
 
-        {/* Stats below partners */}
+        {/* Partner Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto"
         >
           {[
@@ -83,14 +114,14 @@ export const PartnersSection = () => {
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.1 * index }}
-              className="text-center"
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+              className="text-center p-4"
             >
-              <p className="text-3xl md:text-4xl font-bold text-primary mb-1">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className="text-3xl lg:text-4xl font-black gradient-text-static mb-1">{stat.value}</p>
+              <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>
