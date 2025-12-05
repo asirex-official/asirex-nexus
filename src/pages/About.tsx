@@ -283,9 +283,9 @@ export default function About() {
                 transition={{ duration: 0.5, delay: 0.7 }}
               />
               
-              {/* Center branch - straight down */}
+              {/* Center branch - curves out slightly then straight down */}
               <motion.path
-                d="M200 35 L200 95"
+                d="M200 35 Q200 50, 200 55 L200 95"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
@@ -294,7 +294,7 @@ export default function About() {
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.8 }}
+                transition={{ duration: 0.4, delay: 0.75 }}
               />
               
               {/* Right branch - smooth curve then straight down */}
