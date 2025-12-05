@@ -34,7 +34,7 @@ const team = [{
 }, {
   name: "Vikram Singh",
   role: "Head of Robotics",
-  emoji: "🤖"
+  emoji: "+"
 }, {
   name: "Ananya Patel",
   role: "Head of AI Research",
