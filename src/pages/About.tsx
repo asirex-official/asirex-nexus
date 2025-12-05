@@ -47,19 +47,23 @@ const team = [{
 const openPositions = [{
   title: "Senior AI Engineer",
   location: "India",
-  type: "Full-time"
+  type: "Full-time",
+  salary: "10-30 LPA"
 }, {
   title: "Robotics Software Developer",
   location: "India",
-  type: "Full-time"
+  type: "Full-time",
+  salary: "10-20 LPA"
 }, {
   title: "Product Designer",
   location: "Remote",
-  type: "Full-time"
+  type: "Full-time",
+  salary: "5-15 LPA"
 }, {
   title: "Sales Manager - Laos",
   location: "Vientiane",
-  type: "Full-time"
+  type: "Full-time",
+  salary: "Per Sale Commission"
 }];
 export default function About() {
   const [contactForm, setContactForm] = useState({
@@ -397,7 +401,7 @@ export default function About() {
           }} className="glass-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 card-hover">
                 <div>
                   <h3 className="font-display font-semibold mb-1">{position.title}</h3>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
                       {position.location}
@@ -405,6 +409,9 @@ export default function About() {
                     <span className="flex items-center gap-1">
                       <Briefcase className="w-3 h-3" />
                       {position.type}
+                    </span>
+                    <span className="flex items-center gap-1 text-primary font-medium">
+                      ₹ {position.salary}
                     </span>
                   </div>
                 </div>
