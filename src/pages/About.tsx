@@ -283,10 +283,10 @@ export default function About() {
                 transition={{ duration: 0.5, delay: 0.7 }}
               />
               
-              {/* Center branch - curves out slightly then straight down */}
-              <motion.path
-                d="M200 35 Q200 50, 200 55 L200 95"
-                fill="none"
+              {/* Center branch - straight down */}
+              <motion.line
+                x1="200" y1="35"
+                x2="200" y2="95"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
