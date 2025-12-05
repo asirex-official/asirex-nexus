@@ -46,11 +46,11 @@ const team = [{
 }];
 const openPositions = [{
   title: "Senior AI Engineer",
-  location: "Bangalore",
+  location: "India",
   type: "Full-time"
 }, {
   title: "Robotics Software Developer",
-  location: "Bangalore",
+  location: "India",
   type: "Full-time"
 }, {
   title: "Product Designer",
