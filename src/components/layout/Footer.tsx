@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Zap, Instagram, MessageCircle, Mail } from "lucide-react";
+import { Zap, Instagram, Mail } from "lucide-react";
+import whatsappLogo from "@/assets/whatsapp-logo.avif";
 
 const footerLinks = {
   Products: [
@@ -27,8 +28,15 @@ const footerLinks = {
   ],
 };
 
-const socialLinks = [
-  { icon: MessageCircle, href: "#", label: "WhatsApp" },
+type SocialLink = {
+  icon?: React.ComponentType<{ className?: string }>;
+  image?: string;
+  href: string;
+  label: string;
+};
+
+const socialLinks: SocialLink[] = [
+  { image: whatsappLogo, href: "#", label: "WhatsApp" },
   { icon: Instagram, href: "#", label: "Instagram" },
   { icon: Mail, href: "#", label: "Email" },
 ];
@@ -62,10 +70,14 @@ export function Footer() {
                   aria-label={social.label}
                   className="w-10 h-10 rounded-lg bg-muted/50 hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:-translate-y-0.5"
                 >
-                  <social.icon className="w-4 h-4" />
+                  {social.image ? (
+                    <img src={social.image} alt={social.label} className="w-5 h-5 object-contain" />
+                  ) : social.icon ? (
+                    <social.icon className="w-4 h-4" />
+                  ) : null}
                 </a>
               ))}
-            </div>
+          </div>
           </div>
 
           {/* Link Columns */}
