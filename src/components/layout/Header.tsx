@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, Zap } from "lucide-react";
+import { Menu, X, ShoppingCart, Zap, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { name: "Shop", href: "/shop" },
@@ -16,6 +17,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, isStaff, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,9 +85,29 @@ export function Header() {
                 0
               </span>
             </Button>
-            <Button variant="hero" size="default">
-              Get Started
-            </Button>
+            
+            {user ? (
+              <>
+                {isStaff && (
+                  <Button asChild variant="glass" size="sm">
+                    <Link to="/admin">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
+                <Button variant="ghost" size="icon" onClick={() => signOut()}>
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <Button asChild variant="hero" size="default">
+                <Link to="/auth">
+                  <User className="w-4 h-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -93,11 +115,7 @@ export function Header() {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="lg:hidden p-2 rounded-lg hover:bg-muted/50 transition-colors"
           >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </nav>
       </div>
@@ -138,13 +156,29 @@ export function Header() {
                 transition={{ delay: navLinks.length * 0.1 }}
                 className="pt-4 flex gap-3"
               >
-                <Button variant="glass" className="flex-1">
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Cart (0)
-                </Button>
-                <Button variant="hero" className="flex-1">
-                  Get Started
-                </Button>
+                {user ? (
+                  <>
+                    {isStaff && (
+                      <Button asChild variant="glass" className="flex-1">
+                        <Link to="/admin">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Admin Panel
+                        </Link>
+                      </Button>
+                    )}
+                    <Button variant="hero" className="flex-1" onClick={() => signOut()}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <Button asChild variant="hero" className="flex-1">
+                    <Link to="/auth">
+                      <User className="w-4 h-4 mr-2" />
+                      Sign In
+                    </Link>
+                  </Button>
+                )}
               </motion.div>
             </div>
           </motion.div>
