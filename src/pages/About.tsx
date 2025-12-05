@@ -232,7 +232,7 @@ export default function About() {
             className="flex justify-center mb-8 w-full"
           >
             <svg 
-              viewBox="0 0 400 100" 
+              viewBox="0 0 400 130" 
               className="w-full max-w-2xl h-auto"
               style={{ filter: 'drop-shadow(0 0 10px hsl(var(--accent) / 0.4))' }}
             >
@@ -256,22 +256,22 @@ export default function About() {
                 </marker>
               </defs>
               
-              {/* Main vertical line */}
+              {/* Main vertical line - longer stem from top */}
               <motion.line
                 x1="200" y1="0"
-                x2="200" y2="35"
+                x2="200" y2="60"
                 stroke="url(#lineGradient)"
                 strokeWidth="3"
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
               />
               
               {/* Left branch - smooth curve then straight down */}
               <motion.path
-                d="M200 35 Q200 45, 180 45 L65 45 Q50 45, 50 60 L50 95"
+                d="M200 60 Q200 70, 180 70 L65 70 Q50 70, 50 85 L50 125"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
@@ -285,8 +285,8 @@ export default function About() {
               
               {/* Center branch - straight down */}
               <motion.line
-                x1="200" y1="35"
-                x2="200" y2="95"
+                x1="200" y1="60"
+                x2="200" y2="125"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
@@ -299,7 +299,7 @@ export default function About() {
               
               {/* Right branch - smooth curve then straight down */}
               <motion.path
-                d="M200 35 Q200 45, 220 45 L335 45 Q350 45, 350 60 L350 95"
+                d="M200 60 Q200 70, 220 70 L335 70 Q350 70, 350 85 L350 125"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
