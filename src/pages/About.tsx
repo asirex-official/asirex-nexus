@@ -29,7 +29,7 @@ const team = [{
   emoji: "👨‍💼"
 }, {
   name: "Ayush Soni",
-  role: "Website Manager & Head of Software Team",
+  role: "Website Admin and SWE",
   emoji: "👩‍💻"
 }, {
   name: "Vikram Singh",
