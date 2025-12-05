@@ -223,7 +223,7 @@ export default function About() {
             </h3>
           </motion.div>
 
-          {/* Hand-drawn Branching Arrow Connector */}
+          {/* Branching Arrow Connector */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -232,63 +232,76 @@ export default function About() {
             className="flex justify-center mb-8 w-full"
           >
             <svg 
-              viewBox="0 0 400 120" 
+              viewBox="0 0 400 100" 
               className="w-full max-w-2xl h-auto"
-              style={{ filter: 'drop-shadow(0 0 8px hsl(var(--accent) / 0.3))' }}
+              style={{ filter: 'drop-shadow(0 0 10px hsl(var(--accent) / 0.4))' }}
             >
               <defs>
-                <linearGradient id="sketchGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="hsl(var(--primary))" />
-                  <stop offset="50%" stopColor="hsl(var(--accent))" />
-                  <stop offset="100%" stopColor="hsl(var(--primary) / 0.5)" />
+                  <stop offset="100%" stopColor="hsl(var(--accent))" />
                 </linearGradient>
                 <marker 
                   id="arrowhead" 
-                  markerWidth="10" 
-                  markerHeight="7" 
-                  refX="9" 
-                  refY="3.5" 
+                  markerWidth="12" 
+                  markerHeight="8" 
+                  refX="10" 
+                  refY="4" 
                   orient="auto"
                 >
                   <polygon 
-                    points="0 0, 10 3.5, 0 7" 
+                    points="0 0, 12 4, 0 8" 
                     fill="hsl(var(--accent))"
                   />
                 </marker>
               </defs>
               
-              {/* Main curved stem going down */}
-              <motion.path
-                d="M200 0 Q198 15, 200 30 Q203 45, 200 55"
-                fill="none"
-                stroke="url(#sketchGradient)"
+              {/* Main vertical line */}
+              <motion.line
+                x1="200" y1="0"
+                x2="200" y2="35"
+                stroke="url(#lineGradient)"
                 strokeWidth="3"
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.5 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
               />
               
-              {/* Left branch curve */}
+              {/* Left branch - smooth curve then straight down */}
               <motion.path
-                d="M200 55 Q195 60, 180 62 Q140 65, 80 68 Q70 70, 65 85 Q62 100, 65 115"
+                d="M200 35 Q200 45, 180 45 L65 45 Q50 45, 50 60 L50 95"
                 fill="none"
-                stroke="url(#sketchGradient)"
+                stroke="url(#lineGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 markerEnd="url(#arrowhead)"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.8 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
               />
               
-              {/* Center branch curve */}
+              {/* Center branch - straight down */}
               <motion.path
-                d="M200 55 Q202 65, 200 75 Q198 90, 200 115"
+                d="M200 35 L200 95"
                 fill="none"
-                stroke="url(#sketchGradient)"
+                stroke="url(#lineGradient)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                markerEnd="url(#arrowhead)"
+                initial={{ pathLength: 0 }}
+                whileInView={{ pathLength: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.8 }}
+              />
+              
+              {/* Right branch - smooth curve then straight down */}
+              <motion.path
+                d="M200 35 Q200 45, 220 45 L335 45 Q350 45, 350 60 L350 95"
+                fill="none"
+                stroke="url(#lineGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 markerEnd="url(#arrowhead)"
@@ -296,52 +309,6 @@ export default function About() {
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.9 }}
-              />
-              
-              {/* Right branch curve */}
-              <motion.path
-                d="M200 55 Q205 60, 220 62 Q260 65, 320 68 Q330 70, 335 85 Q338 100, 335 115"
-                fill="none"
-                stroke="url(#sketchGradient)"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                markerEnd="url(#arrowhead)"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 1.0 }}
-              />
-              
-              {/* Sketch accent strokes for hand-drawn feel */}
-              <motion.path
-                d="M198 10 Q200 12, 202 10"
-                fill="none"
-                stroke="hsl(var(--accent) / 0.4)"
-                strokeWidth="1"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 1.1 }}
-              />
-              <motion.path
-                d="M120 66 Q125 64, 130 67"
-                fill="none"
-                stroke="hsl(var(--accent) / 0.4)"
-                strokeWidth="1"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 1.2 }}
-              />
-              <motion.path
-                d="M270 66 Q275 64, 280 67"
-                fill="none"
-                stroke="hsl(var(--accent) / 0.4)"
-                strokeWidth="1"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 1.3 }}
               />
             </svg>
           </motion.div>
