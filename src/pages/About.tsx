@@ -232,8 +232,8 @@ export default function About() {
             className="flex justify-center mb-8 w-full"
           >
             <svg 
-              viewBox="0 0 400 130" 
-              className="w-full max-w-2xl h-auto"
+              viewBox="0 0 400 160" 
+              className="w-full max-w-2xl h-auto -mt-8"
               style={{ filter: 'drop-shadow(0 0 10px hsl(var(--accent) / 0.4))' }}
             >
               <defs>
@@ -259,19 +259,19 @@ export default function About() {
               {/* Main vertical line - longer stem from top */}
               <motion.line
                 x1="200" y1="0"
-                x2="200" y2="60"
+                x2="200" y2="90"
                 stroke="url(#lineGradient)"
                 strokeWidth="3"
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.5 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
               />
               
               {/* Left branch - smooth curve then straight down */}
               <motion.path
-                d="M200 60 Q200 70, 180 70 L65 70 Q50 70, 50 85 L50 125"
+                d="M200 90 Q200 100, 180 100 L65 100 Q50 100, 50 115 L50 155"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
@@ -280,13 +280,13 @@ export default function About() {
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.7 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
               />
               
               {/* Center branch - straight down */}
               <motion.line
-                x1="200" y1="60"
-                x2="200" y2="125"
+                x1="200" y1="90"
+                x2="200" y2="155"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
@@ -294,12 +294,12 @@ export default function About() {
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.75 }}
+                transition={{ duration: 0.4, delay: 0.85 }}
               />
               
               {/* Right branch - smooth curve then straight down */}
               <motion.path
-                d="M200 60 Q200 70, 220 70 L335 70 Q350 70, 350 85 L350 125"
+                d="M200 90 Q200 100, 220 100 L335 100 Q350 100, 350 115 L350 155"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
