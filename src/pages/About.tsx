@@ -288,56 +288,50 @@ export default function About() {
                 </linearGradient>
               </defs>
               
-              {/* Main vertical stem from top */}
-              <line
-                x1="300" y1="0" x2="300" y2="40"
+              {/* Main stem + left branch with smooth curve */}
+              <path
+                d="M300,0 L300,30 Q300,40 290,40 L115,40 Q100,40 100,55 L100,105"
                 stroke="hsl(var(--accent))"
                 strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               
-              {/* Horizontal line */}
-              <line
-                x1="100" y1="40" x2="500" y2="40"
+              {/* Middle branch - straight down from junction */}
+              <path
+                d="M300,30 L300,105"
                 stroke="hsl(var(--accent))"
                 strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
               />
               
-              {/* Left vertical down */}
-              <line
-                x1="100" y1="40" x2="100" y2="105"
+              {/* Right branch with smooth curve */}
+              <path
+                d="M300,30 Q300,40 310,40 L485,40 Q500,40 500,55 L500,105"
                 stroke="hsl(var(--accent))"
                 strokeWidth="2.5"
-              />
-              
-              {/* Middle vertical down */}
-              <line
-                x1="300" y1="40" x2="300" y2="105"
-                stroke="hsl(var(--accent))"
-                strokeWidth="2.5"
-              />
-              
-              {/* Right vertical down */}
-              <line
-                x1="500" y1="40" x2="500" y2="105"
-                stroke="hsl(var(--accent))"
-                strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               
               {/* Left arrow head */}
               <polygon
-                points="100,115 94,103 106,103"
+                points="100,115 93,102 107,102"
                 fill="hsl(var(--accent))"
               />
               
               {/* Middle arrow head */}
               <polygon
-                points="300,115 294,103 306,103"
+                points="300,115 293,102 307,102"
                 fill="hsl(var(--accent))"
               />
               
               {/* Right arrow head */}
               <polygon
-                points="500,115 494,103 506,103"
+                points="500,115 493,102 507,102"
                 fill="hsl(var(--accent))"
               />
             </svg>
