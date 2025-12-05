@@ -194,10 +194,34 @@ export default function About() {
             </div>
           </motion.div>
 
-          {/* Connecting line */}
-          <div className="flex justify-center mb-8">
-            <div className="w-px h-12 bg-gradient-to-b from-primary/50 to-accent/50" />
-          </div>
+          {/* Animated Arrow Connector */}
+          <motion.div 
+            initial={{ opacity: 0, scaleY: 0 }}
+            whileInView={{ opacity: 1, scaleY: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col items-center mb-6 origin-top"
+          >
+            <div className="w-0.5 h-10 bg-gradient-to-b from-primary via-accent to-primary/50" />
+            <motion.div 
+              animate={{ y: [0, 4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-accent"
+            />
+          </motion.div>
+
+          {/* Core Members Label */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="text-center mb-8"
+          >
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+              Core Members
+            </span>
+          </motion.div>
 
           {/* Other Pillars - Below CEO */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
