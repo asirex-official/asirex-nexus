@@ -300,95 +300,35 @@ export default function About() {
               
               {/* Glow layer */}
               <g filter="url(#arrowGlow)" opacity="0.5">
-                <path
-                  d="M500,0 L500,50 C500,65 485,65 470,65 L140,65 C120,65 110,75 110,90 L110,140"
-                  stroke="hsl(var(--accent))"
-                  strokeWidth="3"
-                  fill="none"
-                />
-                <path
-                  d="M500,50 C500,65 485,65 470,65 L360,65 C340,65 330,75 330,90 L330,140"
-                  stroke="hsl(var(--accent))"
-                  strokeWidth="3"
-                  fill="none"
-                />
-                <path
-                  d="M500,50 C500,65 515,65 530,65 L640,65 C660,65 670,75 670,90 L670,140"
-                  stroke="hsl(var(--accent))"
-                  strokeWidth="3"
-                  fill="none"
-                />
-                <path
-                  d="M500,50 C500,65 515,65 530,65 L860,65 C880,65 890,75 890,90 L890,140"
-                  stroke="hsl(var(--accent))"
-                  strokeWidth="3"
-                  fill="none"
-                />
+                <path d="M500,0 L500,50 C500,65 485,65 470,65 L140,65 C120,65 110,75 110,90 L110,140" stroke="hsl(var(--accent))" strokeWidth="3" fill="none" />
+                <path d="M500,50 C500,65 485,65 470,65 L360,65 C340,65 330,75 330,90 L330,140" stroke="hsl(var(--accent))" strokeWidth="3" fill="none" />
+                <path d="M500,50 C500,65 515,65 530,65 L640,65 C660,65 670,75 670,90 L670,140" stroke="hsl(var(--accent))" strokeWidth="3" fill="none" />
+                <path d="M500,50 C500,65 515,65 530,65 L860,65 C880,65 890,75 890,90 L890,140" stroke="hsl(var(--accent))" strokeWidth="3" fill="none" />
               </g>
               
               {/* Main stem + far left branch */}
-              <path
-                d="M500,0 L500,50 C500,65 485,65 470,65 L140,65 C120,65 110,75 110,90 L110,140"
-                stroke="url(#arrowGradientMain)"
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M500,0 L500,50 C500,65 485,65 470,65 L140,65 C120,65 110,75 110,90 L110,140" stroke="url(#arrowGradientMain)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               
               {/* Left-center branch */}
-              <path
-                d="M500,50 C500,65 485,65 470,65 L360,65 C340,65 330,75 330,90 L330,140"
-                stroke="url(#arrowGradientMain)"
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M500,50 C500,65 485,65 470,65 L360,65 C340,65 330,75 330,90 L330,140" stroke="url(#arrowGradientMain)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               
               {/* Right-center branch */}
-              <path
-                d="M500,50 C500,65 515,65 530,65 L640,65 C660,65 670,75 670,90 L670,140"
-                stroke="url(#arrowGradientMain)"
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M500,50 C500,65 515,65 530,65 L640,65 C660,65 670,75 670,90 L670,140" stroke="url(#arrowGradientMain)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               
               {/* Far right branch */}
-              <path
-                d="M500,50 C500,65 515,65 530,65 L860,65 C880,65 890,75 890,90 L890,140"
-                stroke="url(#arrowGradientMain)"
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M500,50 C500,65 515,65 530,65 L860,65 C880,65 890,75 890,90 L890,140" stroke="url(#arrowGradientMain)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               
               {/* Arrow head 1 */}
-              <path
-                d="M110,155 L102,140 L110,143 L118,140 Z"
-                fill="hsl(var(--accent))"
-              />
+              <path d="M110,155 L102,140 L110,143 L118,140 Z" fill="hsl(var(--accent))" />
               
               {/* Arrow head 2 */}
-              <path
-                d="M330,155 L322,140 L330,143 L338,140 Z"
-                fill="hsl(var(--accent))"
-              />
+              <path d="M330,155 L322,140 L330,143 L338,140 Z" fill="hsl(var(--accent))" />
               
               {/* Arrow head 3 */}
-              <path
-                d="M670,155 L662,140 L670,143 L678,140 Z"
-                fill="hsl(var(--accent))"
-              />
+              <path d="M670,155 L662,140 L670,143 L678,140 Z" fill="hsl(var(--accent))" />
               
               {/* Arrow head 4 */}
-              <path
-                d="M890,155 L882,140 L890,143 L898,140 Z"
-                fill="hsl(var(--accent))"
-              />
+              <path d="M890,155 L882,140 L890,143 L898,140 Z" fill="hsl(var(--accent))" />
             </svg>
           </motion.div>
 
@@ -410,11 +350,7 @@ export default function About() {
                 </div>
                 <h3 className="font-display font-semibold text-xs sm:text-sm lg:text-base truncate">{member.name}</h3>
                 <p className="text-xs text-muted-foreground truncate">{member.role}</p>
-                {member.name === "It can be you" && (
-                  <a href="#careers" className="mt-2 inline-block px-3 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors">
-                    Apply Now
-                  </a>
-                )}
+                {member.name === "It can be you" && <a href="#careers" className="mt-2 inline-block px-3 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors">Apply Now</a>}
               </motion.div>)}
           </div>
         </div>
