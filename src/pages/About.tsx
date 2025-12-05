@@ -178,8 +178,30 @@ export default function About() {
             </h2>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((member, index) => (
+          {/* CEO - Top of hierarchy */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex justify-center mb-8"
+          >
+            <div className="glass-card p-6 text-center card-hover max-w-xs">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-4xl">
+                {team[0].emoji}
+              </div>
+              <h3 className="font-display font-semibold">{team[0].name}</h3>
+              <p className="text-sm text-muted-foreground">{team[0].role}</p>
+            </div>
+          </motion.div>
+
+          {/* Connecting line */}
+          <div className="flex justify-center mb-8">
+            <div className="w-px h-12 bg-gradient-to-b from-primary/50 to-accent/50" />
+          </div>
+
+          {/* Other Pillars - Below CEO */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {team.slice(1).map((member, index) => (
               <motion.div
                 key={member.name}
                 initial={{ opacity: 0, y: 30 }}
