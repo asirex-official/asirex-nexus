@@ -460,7 +460,7 @@ export default function About() {
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Phone</div>
-                    <div className="font-medium">+91 80 1234 5678</div>
+                    <div className="font-medium">Coming soon!</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
