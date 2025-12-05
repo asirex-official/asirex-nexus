@@ -350,7 +350,7 @@ export default function About() {
                 </div>
                 <h3 className="font-display font-semibold text-xs sm:text-sm lg:text-base truncate">{member.name}</h3>
                 <p className="text-xs text-muted-foreground truncate">{member.role}</p>
-                {member.name === "It can be you" && <a href="#careers" className="mt-2 inline-block px-3 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors">Apply Now</a>}
+                {member.name === "It can be you" && <Button variant="glass" size="sm" className="mt-2" asChild><a href="#careers">Apply Now</a></Button>}
               </motion.div>)}
           </div>
         </div>
