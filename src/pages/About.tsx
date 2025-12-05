@@ -223,6 +223,58 @@ export default function About() {
             </h3>
           </motion.div>
 
+          {/* Branching Arrow Connector */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-col items-center mb-8"
+          >
+            {/* Main vertical arrow */}
+            <motion.div
+              initial={{ scaleY: 0 }}
+              whileInView={{ scaleY: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+              className="origin-top"
+            >
+              <div className="w-1 h-12 bg-gradient-to-b from-primary via-accent to-accent rounded-full" />
+            </motion.div>
+
+            {/* Horizontal branch line */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.7 }}
+              className="relative w-full max-w-2xl"
+            >
+              <div className="h-1 bg-gradient-to-r from-transparent via-accent to-transparent rounded-full" />
+              
+              {/* Three vertical arrows going down */}
+              <div className="flex justify-between px-8 lg:px-16">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scaleY: 0, opacity: 0 }}
+                    whileInView={{ scaleY: 1, opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: 0.9 + i * 0.1 }}
+                    className="flex flex-col items-center origin-top"
+                  >
+                    <div className="w-1 h-10 bg-gradient-to-b from-accent to-primary/50 rounded-full" />
+                    <motion.div
+                      animate={{ y: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
+                      className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-accent"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+
           {/* Other Pillars - Below CEO */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {team.slice(1).map((member, index) => (
