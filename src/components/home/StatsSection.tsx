@@ -41,7 +41,7 @@ function StatCard({ stat, index }: { stat: { value: number; suffix: string; labe
       
       <div className="relative text-center p-8 rounded-2xl bg-card/60 border border-border/50 backdrop-blur-xl">
         {/* Number */}
-        <div className="font-display text-5xl lg:text-6xl font-black mb-3">
+        <div className="font-display text-3xl sm:text-4xl lg:text-5xl font-black mb-3">
           <span className="gradient-text">
             <AnimatedNumber value={springValue} />
             {stat.suffix}
