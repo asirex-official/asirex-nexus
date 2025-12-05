@@ -232,8 +232,8 @@ export default function About() {
             className="flex justify-center mb-8 w-full"
           >
             <svg 
-              viewBox="0 0 400 160" 
-              className="w-full max-w-2xl h-auto -mt-8"
+              viewBox="0 0 400 200" 
+              className="w-full max-w-2xl h-auto -mt-12"
               style={{ filter: 'drop-shadow(0 0 10px hsl(var(--accent) / 0.4))' }}
             >
               <defs>
@@ -259,7 +259,7 @@ export default function About() {
               {/* Main vertical line - longer stem from top */}
               <motion.line
                 x1="200" y1="0"
-                x2="200" y2="90"
+                x2="200" y2="120"
                 stroke="url(#lineGradient)"
                 strokeWidth="3"
                 strokeLinecap="round"
@@ -271,7 +271,7 @@ export default function About() {
               
               {/* Left branch - smooth curve then straight down */}
               <motion.path
-                d="M200 90 Q200 100, 180 100 L65 100 Q50 100, 50 115 L50 155"
+                d="M200 120 Q200 130, 180 130 L65 130 Q50 130, 50 145 L50 195"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
@@ -285,8 +285,8 @@ export default function About() {
               
               {/* Center branch - straight down */}
               <motion.line
-                x1="200" y1="90"
-                x2="200" y2="155"
+                x1="200" y1="120"
+                x2="200" y2="195"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
@@ -299,7 +299,7 @@ export default function About() {
               
               {/* Right branch - smooth curve then straight down */}
               <motion.path
-                d="M200 90 Q200 100, 220 100 L335 100 Q350 100, 350 115 L350 155"
+                d="M200 120 Q200 130, 220 130 L335 130 Q350 130, 350 145 L350 195"
                 fill="none"
                 stroke="url(#lineGradient)"
                 strokeWidth="2.5"
