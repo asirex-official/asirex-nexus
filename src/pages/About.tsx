@@ -32,7 +32,7 @@ const values = [
 
 const team = [
   { name: "Kapeesh Sorout", role: "CEO & Founder", emoji: "👨‍💼" },
-  { name: "Priya Sharma", role: "CTO", emoji: "👩‍💻" },
+  { name: "Ayush Soni", role: "CTO", emoji: "👩‍💻" },
   { name: "Vikram Singh", role: "Head of Robotics", emoji: "🤖" },
   { name: "Ananya Patel", role: "Head of AI Research", emoji: "🧠" },
 ];
