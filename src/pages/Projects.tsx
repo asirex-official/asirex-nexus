@@ -297,9 +297,13 @@ export default function Projects() {
                 {/* Impact */}
                 <div className="glass-card p-6 bg-gradient-to-br from-primary/10 to-secondary/10">
                   <h4 className="font-display font-semibold mb-2">Projected Impact</h4>
-                  <p className="text-2xl font-bold gradient-text">
+                  <p className="text-2xl font-bold gradient-text mb-4">
                     {selectedProject.impact}
                   </p>
+                  <Button variant="glass" size="sm">
+                    Learn More
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
                 </div>
 
                 {/* Notify Form */}
