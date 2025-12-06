@@ -151,13 +151,13 @@ export default function Projects() {
                         {project.image}
                       </div>}
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="text-xs font-medium text-primary uppercase tracking-wider">
                           {project.status}
                         </span>
                         <span className="text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                        <span className="text-sm text-muted-foreground flex items-center gap-1.5 bg-muted/50 px-3 py-1 rounded-full">
+                          <Calendar className="w-3.5 h-3.5" />
                           {project.launchQuarter}
                         </span>
                       </div>
