@@ -27,13 +27,13 @@ const projects = [
   {
     id: 2,
     name: "Aqua River Purifier",
-    tagline: "AI-Powered Water Purification System",
-    description: "Revolutionary river purification technology using AI-driven filtration, real-time water quality monitoring, and sustainable energy systems. Bringing clean water to communities across India.",
+    tagline: "AI-Powered Autonomous Water Purification System",
+    description: "India's first fully autonomous AI river cleaning ecosystem. A fleet of self-driving water-cleaning robots that roam rivers 24/7, collecting waste (plastics, metals, oil, chemicals), purifying water with multi-stage filtration & UV treatment, and protecting aquatic life. Powered by solar energy with smart docking stations for recharging, rescue bots for maintenance support, and AI drones for pollution mapping. Connected to a central intelligence network that learns pollution patterns and optimizes cleaning routes automatically.",
     launchQuarter: "Q3 2025",
     status: "Prototype Phase",
     image: "💧",
     impact: "Will Clean Polluted River in 1-5 Years Depending on Scale",
-    features: ["AI Filtration", "Real-time Monitoring", "Solar Powered", "Mobile Dashboard"],
+    features: ["AI Filtration & UV Treatment", "Smart Docking Stations", "Rescue Bots & AI Drones", "Solar Powered 24/7", "Real-time Pollution Mapping", "National Dashboard"],
     progress: 45,
   },
   {
