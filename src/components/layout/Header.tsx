@@ -62,41 +62,16 @@ export function Header() {
                 >
                   ASIRE
                 </span>
-                <span className="relative inline-block overflow-visible">
-                  {/* Top-left part of X */}
-                  <span 
-                    className="text-2xl lg:text-3xl font-bold tracking-wider absolute inset-0"
-                    style={{
-                      background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      clipPath: 'polygon(0% 0%, 100% 0%, 100% 35%, 55% 35%, 0% 58%, 0% 0%)',
-                    }}
-                  >
-                    X
-                  </span>
-                  {/* Bottom-right part of X */}
-                  <span 
-                    className="text-2xl lg:text-3xl font-bold tracking-wider"
-                    style={{
-                      background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      clipPath: 'polygon(100% 42%, 55% 65%, 100% 100%, 0% 100%, 0% 65%, 45% 65%, 100% 42%)',
-                    }}
-                  >
-                    X
-                  </span>
-                  {/* Glowing cut line */}
-                  <span 
-                    className="absolute top-[42%] left-[-10%] w-[120%] h-[3px] rotate-[-20deg]"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent 0%, rgba(200, 200, 200, 0.4) 20%, rgba(255, 255, 255, 0.6) 50%, rgba(200, 200, 200, 0.4) 80%, transparent 100%)',
-                      boxShadow: '0 0 6px rgba(255, 255, 255, 0.5)'
-                    }}
-                  />
+                <span 
+                  className="text-2xl lg:text-3xl font-bold tracking-wider"
+                  style={{
+                    background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  X
                 </span>
               </span>
             </motion.div>
