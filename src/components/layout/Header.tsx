@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, Zap, User, LogOut, Settings } from "lucide-react";
+import { Menu, X, ShoppingCart, User, LogOut, Settings } from "lucide-react";
+import asirexLogo from "@/assets/asirex-logo.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,20 +44,18 @@ export function Header() {
       <div className="container mx-auto px-4 lg:px-8">
         <nav className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center group">
             <motion.div
               className="relative"
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center">
-                <Zap className="w-5 h-5 text-accent-foreground" />
-              </div>
-              <div className="absolute inset-0 rounded-xl bg-accent/30 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <img 
+                src={asirexLogo} 
+                alt="ASIREX" 
+                className="h-8 lg:h-10 w-auto object-contain"
+              />
             </motion.div>
-            <span className="font-display text-xl lg:text-2xl font-bold tracking-tight">
-              ASIREX
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
