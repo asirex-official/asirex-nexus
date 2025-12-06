@@ -23,7 +23,7 @@ const projects = [{
   id: 2,
   name: "Aqua River Purifier",
   tagline: "India's First Fully Autonomous AI River Cleaning Ecosystem",
-  description: "A fleet of self-driving water-cleaning robots that roam rivers 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Operates using solar power, backup batteries, and AI-controlled operations without human supervision.",
+  description: "A Team of AI Powered River-cleaning robots that will work 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Charges in seconds — it just needs a battery swap which the docking station will do. In 5 years, a team of 500 Bots can make our Yamuna the Cleanest River in INDIA.",
   launchQuarter: "Expected Launch Date: August, 2026",
   status: "Prototype Phase",
   images: [aquaPurifier1, aquaPurifier2],
