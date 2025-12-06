@@ -78,7 +78,7 @@ export function HeroSection() {
             >
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-primary tracking-wide">
-                Pioneering the Future
+                Building the New Future
               </span>
             </motion.div>
 
