@@ -165,7 +165,7 @@ type Project = typeof projects[0];
                 <div className="glass-card p-6 lg:p-8 card-hover h-full">
                   <div className="flex items-start gap-4 mb-6">
                     {'images' in project && project.images ? (
-                      <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0">
+                      <div className="w-40 h-40 rounded-2xl overflow-hidden flex-shrink-0">
                         <CyclingProjectImage 
                           images={project.images} 
                           interval={4000}
@@ -245,7 +245,7 @@ type Project = typeof projects[0];
               <DialogHeader>
                 <div className="flex items-center gap-4 mb-4">
                   {'images' in selectedProject && selectedProject.images ? (
-                    <div className="w-28 h-28 rounded-2xl overflow-hidden flex-shrink-0">
+                    <div className="w-48 h-48 rounded-2xl overflow-hidden flex-shrink-0">
                       <CyclingProjectImage 
                         images={selectedProject.images} 
                         interval={4000}
