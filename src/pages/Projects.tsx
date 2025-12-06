@@ -33,7 +33,7 @@ const projects = [
     status: "Prototype Phase",
     image: "💧",
     impact: "Small Fleet: 3-5 years per river | Full National Rollout: 1-3 years | Goal: Restore Ganga, Yamuna, Godavari, Narmada, Krishna",
-    features: ["AI Vision + Sensors", "Rescue Bots (2/dock)", "AI Drones (5/dock)", "National Dashboard", "Multi-Pollution Filtration", "Central Intelligence System"],
+    features: ["AI Vision + Sensors", "AI Drones (5/dock)", "National Dashboard", "Multi-Pollution Filtration", "Central Intelligence System"],
     progress: 6,
     sections: [
       {
