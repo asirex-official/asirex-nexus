@@ -32,7 +32,7 @@ const projects = [
     launchQuarter: "Q3 2025",
     status: "Prototype Phase",
     image: "💧",
-    impact: "Purify 100M+ liters",
+    impact: "Will Clean Polluted River in 1-5 Years Depending on Scale",
     features: ["AI Filtration", "Real-time Monitoring", "Solar Powered", "Mobile Dashboard"],
     progress: 45,
   },
