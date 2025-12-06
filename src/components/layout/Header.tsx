@@ -78,16 +78,16 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center justify-center flex-1 gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                  "px-6 py-2 rounded-lg text-base font-semibold tracking-widest uppercase transition-all duration-300",
                   location.pathname === link.href
-                    ? "text-accent bg-accent/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? "text-white bg-white/10"
+                    : "text-white hover:text-white/80 hover:bg-white/5"
                 )}
               >
                 {link.name}
