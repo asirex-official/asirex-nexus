@@ -123,7 +123,7 @@ export function Header() {
                 <Link to="/auth">
                   <span className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <User className="w-4 h-4 mr-2 relative z-10" />
-                  <span className="relative z-10">Sign In</span>
+                  <span className="relative z-10">Sign up/Login</span>
                 </Link>
               </Button>
             )}
