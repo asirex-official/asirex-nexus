@@ -27,7 +27,7 @@ const projects = [{
   launchQuarter: "Q3 2025",
   status: "Prototype Phase",
   images: [aquaPurifier1, aquaPurifier2],
-  impact: "Small Fleet: 3-5 years per river | Full National Rollout: 1-3 years | Goal: Restore Ganga, Yamuna, Godavari, Narmada, Krishna",
+  impact: "In 5 Years our polluted rivers can be crystal clear | Goal: Restore our water bodies",
   features: ["AI Vision + Sensors", "AI Drones (5/dock)", "National Dashboard", "Multi-Pollution Filtration"],
   progress: 6,
   sections: [{
