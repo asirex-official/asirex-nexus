@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import aquaPurifier1 from "@/assets/aqua-purifier-1.png";
 import aquaPurifier2 from "@/assets/aqua-purifier-2.png";
 import { Calendar, ArrowRight, Bell, Clock, AlertTriangle } from "lucide-react";
@@ -88,6 +89,7 @@ const projects = [{
 }];
 export default function Projects() {
   type Project = typeof projects[0];
+  const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -300,7 +302,11 @@ export default function Projects() {
                   <p className="text-2xl font-bold gradient-text mb-4">
                     {selectedProject.impact}
                   </p>
-                  <Button variant="glass" size="sm">
+                  <Button 
+                    variant="glass" 
+                    size="sm"
+                    onClick={() => navigate('/projects/aqua-river-purifier')}
+                  >
                     Learn More
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
