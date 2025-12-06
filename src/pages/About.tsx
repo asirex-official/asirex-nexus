@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { ApplicationDialog } from "@/components/ApplicationDialog";
 const values = [{
   icon: Target,
   title: "Innovation First",
@@ -72,6 +73,14 @@ export default function About() {
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [applicationOpen, setApplicationOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<typeof openPositions[0] | null>(null);
+
+  const handleApply = (position: typeof openPositions[0]) => {
+    setSelectedPosition(position);
+    setApplicationOpen(true);
+  };
+
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -415,7 +424,7 @@ export default function About() {
                     </span>
                   </div>
                 </div>
-                <Button variant="glass">
+                <Button variant="glass" onClick={() => handleApply(position)}>
                   Apply Now
                 </Button>
               </motion.div>)}
@@ -519,5 +528,14 @@ export default function About() {
           </div>
         </div>
       </section>
+
+      {/* Application Dialog */}
+      {selectedPosition && (
+        <ApplicationDialog
+          open={applicationOpen}
+          onOpenChange={setApplicationOpen}
+          position={selectedPosition}
+        />
+      )}
     </Layout>;
 }
