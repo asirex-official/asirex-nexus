@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, User, LogOut, Settings } from "lucide-react";
+import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import asirexLogo from "@/assets/asirex-logo.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -137,6 +138,16 @@ export function Header() {
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </nav>
+        
+        {/* Progress Alert Bar */}
+        <div className="flex items-center gap-3 py-2 px-4 bg-yellow-500/10 border-t border-yellow-500/20 rounded-b-lg">
+          <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+          <span className="text-xs text-yellow-500 font-medium whitespace-nowrap">Slow Progress due to lack of funds</span>
+          <div className="flex-1 flex items-center gap-2">
+            <Progress value={5} className="h-2 flex-1 bg-yellow-500/20 [&>div]:bg-yellow-500" />
+            <span className="text-xs text-yellow-500 font-bold">5%</span>
+          </div>
+        </div>
       </div>
 
       {/* Mobile Menu */}
