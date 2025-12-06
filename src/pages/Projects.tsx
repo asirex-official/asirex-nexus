@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, ArrowRight, X, Bell, ExternalLink, Clock } from "lucide-react";
+import aquaPurifier1 from "@/assets/aqua-purifier-1.png";
+import aquaPurifier2 from "@/assets/aqua-purifier-2.png";
+import { Calendar, ArrowRight, Bell, Clock } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
+import { CyclingProjectImage } from "@/components/projects/CyclingProjectImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,7 +34,7 @@ const projects = [
     description: "A fleet of self-driving water-cleaning robots that roam rivers 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Operates using solar power, backup batteries, and AI-controlled operations without human supervision.",
     launchQuarter: "Q3 2025",
     status: "Prototype Phase",
-    image: "💧",
+    images: [aquaPurifier1, aquaPurifier2],
     impact: "Small Fleet: 3-5 years per river | Full National Rollout: 1-3 years | Goal: Restore Ganga, Yamuna, Godavari, Narmada, Krishna",
     features: ["AI Vision + Sensors", "AI Drones (5/dock)", "National Dashboard", "Multi-Pollution Filtration"],
     progress: 6,
@@ -161,9 +164,19 @@ type Project = typeof projects[0];
               >
                 <div className="glass-card p-6 lg:p-8 card-hover h-full">
                   <div className="flex items-start gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl flex-shrink-0">
-                      {project.image}
-                    </div>
+                    {'images' in project && project.images ? (
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0">
+                        <CyclingProjectImage 
+                          images={project.images} 
+                          interval={4000}
+                          className="w-full h-full"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl flex-shrink-0">
+                        {project.image}
+                      </div>
+                    )}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-medium text-primary uppercase tracking-wider">
@@ -231,9 +244,19 @@ type Project = typeof projects[0];
             >
               <DialogHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-5xl">
-                    {selectedProject.image}
-                  </div>
+                  {'images' in selectedProject && selectedProject.images ? (
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0">
+                      <CyclingProjectImage 
+                        images={selectedProject.images} 
+                        interval={4000}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-5xl">
+                      {selectedProject.image}
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/20 text-primary">
