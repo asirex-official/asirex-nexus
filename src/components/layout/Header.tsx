@@ -70,16 +70,16 @@ export function Header() {
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
+                      clipPath: 'polygon(0% 0%, 35% 0%, 35% 40%, 0% 40%, 0% 60%, 35% 60%, 35% 100%, 0% 100%, 0% 60%, 0% 40%, 0% 0%, 100% 0%, 100% 40%, 65% 40%, 65% 60%, 100% 60%, 100% 100%, 65% 100%, 65% 60%, 65% 40%, 100% 40%, 100% 0%)',
                     }}
                   >
                     X
                   </span>
-                  {/* Knife cut slash */}
+                  {/* Cut gap effect */}
                   <span 
-                    className="absolute top-1/2 left-1/2 w-[120%] h-[2px] -translate-x-1/2 -translate-y-1/2 rotate-[-35deg]"
+                    className="absolute top-[45%] left-0 w-full h-[10%] rotate-[-25deg]"
                     style={{
-                      background: 'linear-gradient(90deg, transparent 0%, #60A5FA 20%, #FFFFFF 50%, #60A5FA 80%, transparent 100%)',
-                      boxShadow: '0 0 8px rgba(96, 165, 250, 0.8), 0 0 2px rgba(255, 255, 255, 0.9)'
+                      background: 'linear-gradient(90deg, transparent 10%, rgba(96, 165, 250, 0.3) 30%, rgba(255, 255, 255, 0.1) 50%, rgba(96, 165, 250, 0.3) 70%, transparent 90%)',
                     }}
                   />
                 </span>
