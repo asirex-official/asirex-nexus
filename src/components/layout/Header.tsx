@@ -119,9 +119,9 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <Button asChild variant="ghost" size="default" className="relative group overflow-hidden border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-white font-semibold tracking-wide px-6 transition-all duration-300">
+              <Button asChild variant="ghost" size="default" className="relative group overflow-hidden bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] text-white font-bold tracking-wide px-8 py-2.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-500 border-0">
                 <Link to="/auth">
-                  <span className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <User className="w-4 h-4 mr-2 relative z-10" />
                   <span className="relative z-10">Sign up/Login</span>
                 </Link>
