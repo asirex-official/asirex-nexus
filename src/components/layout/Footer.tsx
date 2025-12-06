@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { Zap, Instagram, Mail } from "lucide-react";
+import { Zap, Mail } from "lucide-react";
 import whatsappLogo from "@/assets/whatsapp-logo.png";
+import instagramLogo from "@/assets/instagram-logo.png";
 
 const footerLinks = {
   Products: [
@@ -37,7 +38,7 @@ type SocialLink = {
 
 const socialLinks: SocialLink[] = [
   { image: whatsappLogo, href: "#", label: "WhatsApp" },
-  { icon: Instagram, href: "#", label: "Instagram" },
+  { image: instagramLogo, href: "#", label: "Instagram" },
   { icon: Mail, href: "#", label: "Email" },
 ];
 
