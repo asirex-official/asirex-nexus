@@ -142,11 +142,7 @@ export function Header() {
         {/* Progress Alert Bar */}
         <div className="flex items-center gap-3 py-2 px-4 bg-yellow-500/10 border-t border-yellow-500/20 rounded-b-lg">
           <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-          <span className="text-xs text-yellow-500 font-medium whitespace-nowrap">Slow Progress due to lack of funds</span>
-          <div className="flex-1 flex items-center gap-2">
-            <Progress value={5} className="h-2 flex-1 bg-yellow-500/20 [&>div]:bg-yellow-500" />
-            <span className="text-xs text-yellow-500 font-bold">5%</span>
-          </div>
+          <span className="text-xs text-yellow-500 font-medium">Low funds to Build Real Prototype — Government is not Funding us</span>
         </div>
       </div>
 
