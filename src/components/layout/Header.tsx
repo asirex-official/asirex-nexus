@@ -50,11 +50,18 @@ export function Header() {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
-              <img 
-                src={asirexLogo} 
-                alt="ASIREX" 
-                className="h-8 lg:h-10 w-auto object-contain"
-              />
+              <span 
+                className="text-2xl lg:text-3xl font-bold tracking-wider"
+                style={{
+                  background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              >
+                ASIREX
+              </span>
             </motion.div>
           </Link>
 
