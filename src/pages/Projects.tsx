@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import aquaPurifier1 from "@/assets/aqua-purifier-1.png";
 import aquaPurifier2 from "@/assets/aqua-purifier-2.png";
-import { Calendar, ArrowRight, Bell, Clock } from "lucide-react";
+import { Calendar, ArrowRight, Bell, Clock, AlertTriangle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { CyclingProjectImage } from "@/components/projects/CyclingProjectImage";
 import { Button } from "@/components/ui/button";
@@ -178,9 +178,9 @@ export default function Projects() {
                   <div className="mb-6">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium text-accent">{project.progress}%</span>
+                      <span className="font-medium text-yellow-500">{project.progress}%</span>
                     </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-2 bg-yellow-500/20 rounded-full overflow-hidden">
                       <motion.div initial={{
                     width: 0
                   }} whileInView={{
@@ -190,7 +190,11 @@ export default function Projects() {
                   }} transition={{
                     duration: 1,
                     delay: 0.5
-                  }} className="h-full bg-gradient-to-r from-primary to-accent rounded-full" />
+                  }} className="h-full bg-yellow-500 rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <AlertTriangle className="w-3 h-3 text-yellow-500" />
+                      <span className="text-xs text-yellow-500">Slow Progress Due to lack of funds</span>
                     </div>
                   </div>
 
