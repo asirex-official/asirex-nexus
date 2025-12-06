@@ -50,17 +50,39 @@ export function Header() {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
-              <span 
-                className="text-2xl lg:text-3xl font-bold tracking-wider"
-                style={{
-                  background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-              >
-                ASIREX
+              <span className="flex items-center">
+                <span 
+                  className="text-2xl lg:text-3xl font-bold tracking-wider"
+                  style={{
+                    background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  ASIRE
+                </span>
+                <span className="relative inline-block">
+                  <span 
+                    className="text-2xl lg:text-3xl font-bold tracking-wider"
+                    style={{
+                      background: 'linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #A8A8A8 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
+                  >
+                    X
+                  </span>
+                  {/* Knife cut slash */}
+                  <span 
+                    className="absolute top-1/2 left-1/2 w-[120%] h-[2px] -translate-x-1/2 -translate-y-1/2 rotate-[-35deg]"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent 0%, #60A5FA 20%, #FFFFFF 50%, #60A5FA 80%, transparent 100%)',
+                      boxShadow: '0 0 8px rgba(96, 165, 250, 0.8), 0 0 2px rgba(255, 255, 255, 0.9)'
+                    }}
+                  />
+                </span>
               </span>
             </motion.div>
           </Link>
