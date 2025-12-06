@@ -3,6 +3,7 @@ import { Zap } from "lucide-react";
 import whatsappLogo from "@/assets/whatsapp-logo.png";
 import instagramLogo from "@/assets/instagram-logo.png";
 import gmailLogo from "@/assets/gmail-logo.png";
+import twitterLogo from "@/assets/twitter-logo.png";
 
 const footerLinks = {
   Products: [
@@ -40,6 +41,7 @@ type SocialLink = {
 const socialLinks: SocialLink[] = [
   { image: whatsappLogo, href: "#", label: "WhatsApp" },
   { image: instagramLogo, href: "#", label: "Instagram" },
+  { image: twitterLogo, href: "#", label: "Twitter" },
   { image: gmailLogo, href: "#", label: "Email" },
 ];
 
