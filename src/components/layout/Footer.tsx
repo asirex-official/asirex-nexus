@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Zap, Instagram, Mail } from "lucide-react";
-import whatsappLogo from "@/assets/whatsapp-logo.avif";
+import whatsappLogo from "@/assets/whatsapp-logo.png";
 
 const footerLinks = {
   Products: [
