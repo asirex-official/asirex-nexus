@@ -27,13 +27,13 @@ const projects = [
   {
     id: 2,
     name: "Aqua River Purifier",
-    tagline: "AI-Powered Autonomous Water Purification System",
-    description: "India's first fully autonomous AI river cleaning ecosystem. A fleet of self-driving water-cleaning robots that roam rivers 24/7, collecting waste (plastics, metals, oil, chemicals), purifying water with multi-stage filtration & UV treatment, and protecting aquatic life. Powered by solar energy with smart docking stations for recharging, rescue bots for maintenance support, and AI drones for pollution mapping. Connected to a central intelligence network that learns pollution patterns and optimizes cleaning routes automatically.",
+    tagline: "India's First Fully Autonomous AI River Cleaning Ecosystem",
+    description: "A fleet of self-driving water-cleaning robots that roam rivers 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Operates using solar power, backup batteries, and AI-controlled operations without human supervision.\n\n⚙️ HOW IT WORKS: Bots patrol rivers automatically, detect trash/oil/plastics/metals/toxic hotspots using AI vision + sensors, collect waste onboard with modules for each pollution type, release purified water back, and upload data to central server. Support units (drones + rescue bots) assist continuously.\n\n🧪 POLLUTION REMOVAL: Floating Plastics → Robotic arms + intake conveyor | Metallic Waste → Magnetic separator | Oil & Chemical Films → Eco-friendly enzyme dispersant jets | Micro-Waste & Bacteria → Multi-stage filter + UV treatment | Aquatic life detection ensures fish/wildlife safety.\n\n🚢 DOCKING STATIONS: AI-enabled stations recharge bots (solar + grid), store waste in separate bins (plastics/metals/toxic), auto-empty & clean bots, run health checks, upload data logs.\n\n🤖 RESCUE BOTS: 2 per dock - help stuck/damaged bots, replace/boost batteries, free blocked propellers, tow broken bots, perform emergency repairs. Zero downtime.\n\n🛰️ AI DRONES: 5 per dock - scan for pollution zones, create real-time pollution maps, track cleaning progress, capture evidence for government reporting, redirect bots to hotspots instantly.\n\n🧠 CENTRAL AI: Learns pollution patterns, plans optimal routes, predicts environmental damage, auto-increases bots where needed, alerts humans only when required. System gets smarter over time.\n\n📲 NATIONAL DASHBOARD: Live river map, water health ratings, progress stats, device monitoring, government transparency. India watches rivers recover in real time.\n\n💎 VISION: Build the world's smartest AI Environmental Protection System and make India a global leader in clean-water robotics.",
     launchQuarter: "Q3 2025",
     status: "Prototype Phase",
     image: "💧",
-    impact: "Will Clean Polluted River in 1-5 Years Depending on Scale",
-    features: ["AI Filtration & UV Treatment", "Smart Docking Stations", "Rescue Bots & AI Drones", "Solar Powered 24/7", "Real-time Pollution Mapping", "National Dashboard"],
+    impact: "Small Fleet: 3-5 years per river | Full National Rollout: 1-3 years | Goal: Restore Ganga, Yamuna, Godavari, Narmada, Krishna",
+    features: ["AI Vision + Sensors", "Smart Docking Stations", "Rescue Bots (2/dock)", "AI Drones (5/dock)", "Solar + Hybrid Power", "National Dashboard", "Multi-Pollution Filtration", "Central Intelligence System"],
     progress: 45,
   },
   {
