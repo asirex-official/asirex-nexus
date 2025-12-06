@@ -28,13 +28,55 @@ const projects = [
     id: 2,
     name: "Aqua River Purifier",
     tagline: "India's First Fully Autonomous AI River Cleaning Ecosystem",
-    description: "A fleet of self-driving water-cleaning robots that roam rivers 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Operates using solar power, backup batteries, and AI-controlled operations without human supervision.\n\n⚙️ HOW IT WORKS: Bots patrol rivers automatically, detect trash/oil/plastics/metals/toxic hotspots using AI vision + sensors, collect waste onboard with modules for each pollution type, release purified water back, and upload data to central server. Support units (drones + rescue bots) assist continuously.\n\n🧪 POLLUTION REMOVAL: Floating Plastics → Robotic arms + intake conveyor | Metallic Waste → Magnetic separator | Oil & Chemical Films → Eco-friendly enzyme dispersant jets | Micro-Waste & Bacteria → Multi-stage filter + UV treatment | Aquatic life detection ensures fish/wildlife safety.\n\n🚢 DOCKING STATIONS: AI-enabled stations recharge bots (solar + grid), store waste in separate bins (plastics/metals/toxic), auto-empty & clean bots, run health checks, upload data logs.\n\n🤖 RESCUE BOTS: 2 per dock - help stuck/damaged bots, replace/boost batteries, free blocked propellers, tow broken bots, perform emergency repairs. Zero downtime.\n\n🛰️ AI DRONES: 5 per dock - scan for pollution zones, create real-time pollution maps, track cleaning progress, capture evidence for government reporting, redirect bots to hotspots instantly.\n\n🧠 CENTRAL AI: Learns pollution patterns, plans optimal routes, predicts environmental damage, auto-increases bots where needed, alerts humans only when required. System gets smarter over time.\n\n📲 NATIONAL DASHBOARD: Live river map, water health ratings, progress stats, device monitoring, government transparency. India watches rivers recover in real time.\n\n💎 VISION: Build the world's smartest AI Environmental Protection System and make India a global leader in clean-water robotics.",
+    description: "A fleet of self-driving water-cleaning robots that roam rivers 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Operates using solar power, backup batteries, and AI-controlled operations without human supervision.",
     launchQuarter: "Q3 2025",
     status: "Prototype Phase",
     image: "💧",
     impact: "Small Fleet: 3-5 years per river | Full National Rollout: 1-3 years | Goal: Restore Ganga, Yamuna, Godavari, Narmada, Krishna",
     features: ["AI Vision + Sensors", "Smart Docking Stations", "Rescue Bots (2/dock)", "AI Drones (5/dock)", "Solar + Hybrid Power", "National Dashboard", "Multi-Pollution Filtration", "Central Intelligence System"],
     progress: 45,
+    sections: [
+      {
+        icon: "⚙️",
+        title: "How It Works",
+        content: "Bots patrol rivers automatically, detect trash/oil/plastics/metals/toxic hotspots using AI vision + sensors, collect waste onboard with modules for each pollution type, release purified water back, and upload data to central server. Support units (drones + rescue bots) assist continuously."
+      },
+      {
+        icon: "🧪",
+        title: "Pollution Removal Technologies",
+        content: "Floating Plastics → Robotic arms + intake conveyor | Metallic Waste → Magnetic separator | Oil & Chemical Films → Eco-friendly enzyme dispersant jets | Micro-Waste & Bacteria → Multi-stage filter + UV treatment | Aquatic life detection ensures fish/wildlife safety."
+      },
+      {
+        icon: "🚢",
+        title: "Smart Docking Stations",
+        content: "AI-enabled stations recharge bots (solar + grid), store waste in separate bins (plastics/metals/toxic), auto-empty & clean bots, run health checks, upload data logs. Stations act as charging and maintenance homes for the fleet."
+      },
+      {
+        icon: "🤖",
+        title: "Rescue Bots",
+        content: "2 per dock - help stuck/damaged bots, replace/boost batteries, free blocked propellers, tow broken bots, perform emergency repairs. Ensures zero downtime across the entire fleet."
+      },
+      {
+        icon: "🛰️",
+        title: "AI Drones",
+        content: "5 per dock - scan for pollution zones, create real-time pollution maps, track cleaning progress, capture evidence for government reporting, redirect bots to hotspots instantly."
+      },
+      {
+        icon: "🧠",
+        title: "Central Intelligence System",
+        content: "Learns pollution patterns, plans optimal routes, predicts environmental damage, auto-increases bots where needed, alerts humans only when required. System gets smarter over time."
+      },
+      {
+        icon: "📲",
+        title: "National Dashboard",
+        content: "Live river map, water health ratings, progress stats, device monitoring, government transparency. India watches rivers recover in real time."
+      },
+      {
+        icon: "💎",
+        title: "Vision",
+        content: "Build the world's smartest AI Environmental Protection System and make India a global leader in clean-water robotics."
+      }
+    ],
   },
   {
     id: 3,
@@ -63,7 +105,8 @@ const projects = [
 ];
 
 export default function Projects() {
-  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+type Project = typeof projects[0];
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -237,7 +280,7 @@ export default function Projects() {
                 <div>
                   <h4 className="font-display font-semibold mb-3">Key Features</h4>
                   <div className="grid sm:grid-cols-2 gap-3">
-                    {selectedProject.features.map((feature) => (
+                {selectedProject.features.map((feature) => (
                       <div
                         key={feature}
                         className="flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30"
@@ -248,6 +291,32 @@ export default function Projects() {
                     ))}
                   </div>
                 </div>
+
+                {/* Detailed Sections */}
+                {selectedProject.sections && selectedProject.sections.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="font-display font-semibold">Detailed Overview</h4>
+                    <div className="space-y-3">
+                      {selectedProject.sections.map((section, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="glass-card p-4 bg-muted/20"
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl flex-shrink-0">{section.icon}</span>
+                            <div>
+                              <h5 className="font-semibold text-foreground mb-1">{section.title}</h5>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{section.content}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Impact */}
                 <div className="glass-card p-6 bg-gradient-to-br from-primary/10 to-secondary/10">
