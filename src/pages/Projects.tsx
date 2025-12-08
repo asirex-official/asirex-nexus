@@ -9,6 +9,16 @@ import { CyclingProjectImage } from "@/components/projects/CyclingProjectImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+// Helper to get stage status
+const getStageStatus = (currentStage: string, stage: string) => {
+  const stages = ['Planning', 'Prototype', 'Development', 'Testing', 'Production'];
+  const currentIndex = stages.indexOf(currentStage);
+  const stageIndex = stages.indexOf(stage);
+  if (stageIndex < currentIndex) return 'completed';
+  if (stageIndex === currentIndex) return 'active';
+  return 'pending';
+};
+
 const projects = [{
   id: 1,
   name: "Project ASTRA",
@@ -16,6 +26,7 @@ const projects = [{
   description: "A revolutionary satellite-based internet system designed to bring high-speed connectivity to remote areas of India. Using AI-powered mesh networking and solar-powered ground stations.",
   launchQuarter: "Q2 2025",
   status: "In Development",
+  stage: "Development",
   image: "🛰️",
   impact: "Connect 50M+ rural users",
   features: ["AI Mesh Networking", "Solar Powered", "Low Latency", "Affordable Access"],
@@ -25,12 +36,14 @@ const projects = [{
   name: "Aqua River Purifier",
   tagline: "India's First Fully Autonomous AI River Cleaning Ecosystem",
   description: "A Team of AI Powered River-cleaning robots that will work 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network. Charges in seconds — it just needs a battery swap which the docking station will do. In 5 years, a team of 500 Bots can make our Yamuna the Cleanest River in INDIA.",
-  launchQuarter: "Expected Launch Date: August, 2026",
+  launchQuarter: "August 2026",
   status: "Prototype Phase",
+  stage: "Prototype",
   images: [aquaPurifier1, aquaPurifier2],
   impact: "In 5 Years our polluted rivers can be crystal clear | Goal: Restore our water bodies",
   features: ["AI Vision + Sensors", "AI Drones (5/dock)", "National Dashboard", "Multi-Pollution Filtration"],
   progress: 6,
+  detailsPath: "/projects/aqua-river-purifier",
   sections: [{
     icon: "⚙️",
     title: "How It Works",
@@ -71,6 +84,7 @@ const projects = [{
   description: "A comprehensive smart city solution featuring renewable energy grids, AI traffic management, and IoT-based waste management. Partnering with 5 major Indian cities.",
   launchQuarter: "Q4 2025",
   status: "Planning",
+  stage: "Planning",
   image: "🏙️",
   impact: "Transform 5 cities",
   features: ["Renewable Energy Grid", "AI Traffic", "Smart Waste", "Clean Air"],
@@ -82,6 +96,7 @@ const projects = [{
   description: "AI-powered diagnostic tool that helps rural health workers identify diseases from symptoms and basic tests. Integrating with government health programs for maximum reach.",
   launchQuarter: "Q1 2025",
   status: "Beta Testing",
+  stage: "Testing",
   image: "🏥",
   impact: "Serve 100M+ patients",
   features: ["Symptom Analysis", "Offline Mode", "Multi-language", "Doctor Connect"],
@@ -134,200 +149,126 @@ export default function Projects() {
             </p>
           </motion.div>
 
-          {/* Projects Grid */}
-          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-            {projects.map((project, index) => <motion.div key={project.id} initial={{
-            opacity: 0,
-            y: 30
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: index * 0.1
-          }} className="group cursor-pointer" onClick={() => setSelectedProject(project)}>
-                <div className="glass-card p-6 lg:p-8 card-hover h-full">
-                  <div className="flex items-start gap-4 mb-6">
-                    {'images' in project && project.images ? <div className="w-40 h-40 rounded-2xl overflow-hidden flex-shrink-0">
-                        <CyclingProjectImage images={project.images} interval={4000} className="w-full h-full" />
-                      </div> : <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl flex-shrink-0">
-                        {project.image}
-                      </div>}
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-primary uppercase tracking-wider">
-                          {project.status}
-                        </span>
-                        <span className="text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground flex items-center gap-1.5 bg-muted/50 px-3 py-1 rounded-full">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {project.launchQuarter}
-                        </span>
-                      </div>
-                      <h3 className="font-display text-xl font-semibold group-hover:text-accent transition-colors">
-                        {project.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <p className="text-accent text-sm font-medium mb-3">
-                    {project.tagline}
-                  </p>
-                  <p className="text-muted-foreground text-sm mb-6 line-clamp-3">
-                    {project.description}
-                  </p>
-
-                  {/* Progress Bar */}
-                  <div className="mb-6">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium text-yellow-500">{project.progress}%</span>
-                    </div>
-                    <div className="h-2 bg-yellow-500/20 rounded-full overflow-hidden">
-                      <motion.div initial={{
-                    width: 0
-                  }} whileInView={{
-                    width: `${project.progress}%`
-                  }} viewport={{
-                    once: true
-                  }} transition={{
-                    duration: 1,
-                    delay: 0.5
-                  }} className="h-full bg-yellow-500 rounded-full" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <AlertTriangle className="w-3 h-3 text-yellow-500" />
-                      <span className="text-xs text-yellow-500">Slow Progress Due to lack of funds</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Impact: <span className="text-foreground font-medium">{project.impact}</span>
-                    </span>
-                    <Button variant="glass" size="sm" className="group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
-                      Learn More
-                      <ArrowRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>)}
-          </div>
-
-          {/* Currently Working On Section */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-20"
-          >
-            <div className="text-center mb-12">
+          {/* Projects Grid - New Detailed Layout */}
+          <div className="space-y-8">
+            {projects.map((project, index) => (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+                key={project.id} 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group cursor-pointer"
+                onClick={() => setSelectedProject(project)}
               >
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-primary">Active Development</span>
-              </motion.div>
-              <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
-                Currently <span className="gradient-text">Working On</span>
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Our primary focus right now. Building the future one prototype at a time.
-              </p>
-            </div>
-
-            {/* Active Project Card - Aqua River Purifier */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="max-w-4xl mx-auto"
-            >
-              <div className="glass-card p-8 lg:p-10 border-2 border-primary/30 relative overflow-hidden">
-                {/* Animated Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-                
-                <div className="relative">
-                  <div className="flex flex-col lg:flex-row items-start gap-8">
-                    {/* Project Image */}
-                    <div className="w-full lg:w-64 h-48 rounded-2xl overflow-hidden flex-shrink-0">
-                      <CyclingProjectImage images={[aquaPurifier1, aquaPurifier2]} interval={4000} className="w-full h-full" />
-                    </div>
-
-                    <div className="flex-1">
-                      {/* Status Badge */}
-                      <div className="flex flex-wrap items-center gap-3 mb-4">
-                        <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
-                          🔧 Prototype Phase
-                        </span>
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/50 text-muted-foreground">
-                          Expected: August 2026
-                        </span>
-                      </div>
-
-                      <h3 className="font-display text-2xl lg:text-3xl font-bold mb-2">
-                        Aqua River Purifier
-                      </h3>
-                      <p className="text-accent font-medium mb-4">
-                        India's First Fully Autonomous AI River Cleaning Ecosystem
-                      </p>
-                      <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
-                        A Team of AI Powered River-cleaning robots that will work 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network.
-                      </p>
-
-                      {/* Development Stage Buttons */}
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-500/20 text-green-500 border border-green-500/30">
-                          ✓ Planning
-                        </span>
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/20 text-primary border border-primary/30 animate-pulse">
-                          ◉ Prototype
-                        </span>
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/30 text-muted-foreground border border-border">
-                          ○ Development
-                        </span>
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/30 text-muted-foreground border border-border">
-                          ○ Testing
-                        </span>
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/30 text-muted-foreground border border-border">
-                          ○ Production
-                        </span>
-                      </div>
-
-                      {/* Progress */}
-                      <div className="mb-6">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-muted-foreground">Overall Progress</span>
-                          <span className="font-bold text-primary">6%</span>
+                <div className="glass-card p-8 lg:p-10 border border-border/50 hover:border-primary/30 transition-colors relative overflow-hidden">
+                  {/* Animated Background Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  
+                  <div className="relative">
+                    <div className="flex flex-col lg:flex-row items-start gap-8">
+                      {/* Project Image */}
+                      {'images' in project && project.images ? (
+                        <div className="w-full lg:w-64 h-48 rounded-2xl overflow-hidden flex-shrink-0">
+                          <CyclingProjectImage images={project.images} interval={4000} className="w-full h-full" />
                         </div>
-                        <div className="h-3 bg-primary/20 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "6%" }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.5, delay: 0.3 }}
-                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
-                          />
+                      ) : (
+                        <div className="w-full lg:w-64 h-48 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-7xl flex-shrink-0">
+                          {project.image}
+                        </div>
+                      )}
+
+                      <div className="flex-1">
+                        {/* Status Badge */}
+                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                          <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
+                            🔧 {project.status}
+                          </span>
+                          <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/50 text-muted-foreground flex items-center gap-1.5">
+                            <Calendar className="w-3 h-3" />
+                            {project.launchQuarter}
+                          </span>
+                        </div>
+
+                        <h3 className="font-display text-2xl lg:text-3xl font-bold mb-2 group-hover:text-accent transition-colors">
+                          {project.name}
+                        </h3>
+                        <p className="text-accent font-medium mb-4">
+                          {project.tagline}
+                        </p>
+                        <p className="text-muted-foreground text-sm mb-6 leading-relaxed line-clamp-2">
+                          {project.description}
+                        </p>
+
+                        {/* Development Stage Buttons */}
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {['Planning', 'Prototype', 'Development', 'Testing', 'Production'].map((stage) => {
+                            const status = getStageStatus(project.stage, stage);
+                            return (
+                              <span 
+                                key={stage}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full border ${
+                                  status === 'completed' 
+                                    ? 'bg-green-500/20 text-green-500 border-green-500/30' 
+                                    : status === 'active'
+                                    ? 'bg-primary/20 text-primary border-primary/30 animate-pulse'
+                                    : 'bg-muted/30 text-muted-foreground border-border'
+                                }`}
+                              >
+                                {status === 'completed' ? '✓' : status === 'active' ? '◉' : '○'} {stage}
+                              </span>
+                            );
+                          })}
+                        </div>
+
+                        {/* Progress */}
+                        <div className="mb-6">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-muted-foreground">Overall Progress</span>
+                            <span className="font-bold text-primary">{project.progress}%</span>
+                          </div>
+                          <div className="h-3 bg-primary/20 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${project.progress}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 1.5, delay: 0.3 }}
+                              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <AlertTriangle className="w-3 h-3 text-yellow-500" />
+                            <span className="text-xs text-yellow-500">Slow Progress Due to lack of funds</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Impact: <span className="text-foreground font-medium">{project.impact}</span>
+                          </span>
+                          <Button 
+                            variant="hero" 
+                            size="sm"
+                            className="group-hover:scale-105 transition-transform"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if ('detailsPath' in project && project.detailsPath) {
+                                navigate(project.detailsPath);
+                              } else {
+                                setSelectedProject(project);
+                              }
+                            }}
+                          >
+                            View Details
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Button>
                         </div>
                       </div>
-
-                      <Button 
-                        variant="hero" 
-                        size="lg"
-                        onClick={() => navigate('/projects/aqua-river-purifier')}
-                        className="group"
-                      >
-                        View Full Details
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </motion.div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
