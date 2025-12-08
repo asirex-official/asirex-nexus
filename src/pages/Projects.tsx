@@ -30,7 +30,8 @@ const projects = [{
   image: "🛰️",
   impact: "Connect 50M+ rural users",
   features: ["AI Mesh Networking", "Solar Powered", "Low Latency", "Affordable Access"],
-  progress: 65
+  progress: 65,
+  budget: "₹50Cr - ₹200Cr"
 }, {
   id: 2,
   name: "Aqua River Purifier",
@@ -43,6 +44,7 @@ const projects = [{
   impact: "In 5 Years our polluted rivers can be crystal clear | Goal: Restore our water bodies",
   features: ["AI Vision + Sensors", "AI Drones (5/dock)", "National Dashboard", "Multi-Pollution Filtration"],
   progress: 6,
+  budget: "₹10Cr - ₹1000Cr",
   detailsPath: "/projects/aqua-river-purifier",
   sections: [{
     icon: "⚙️",
@@ -88,7 +90,8 @@ const projects = [{
   image: "🏙️",
   impact: "Transform 5 cities",
   features: ["Renewable Energy Grid", "AI Traffic", "Smart Waste", "Clean Air"],
-  progress: 25
+  progress: 25,
+  budget: "₹100Cr - ₹500Cr"
 }, {
   id: 4,
   name: "MedAssist AI",
@@ -100,7 +103,8 @@ const projects = [{
   image: "🏥",
   impact: "Serve 100M+ patients",
   features: ["Symptom Analysis", "Offline Mode", "Multi-language", "Doctor Connect"],
-  progress: 80
+  progress: 80,
+  budget: "₹15Cr - ₹75Cr"
 }];
 export default function Projects() {
   type Project = typeof projects[0];
@@ -166,16 +170,23 @@ export default function Projects() {
                   
                   <div className="relative">
                     <div className="flex flex-col lg:flex-row items-start gap-8">
-                      {/* Project Image */}
-                      {'images' in project && project.images ? (
-                        <div className="w-full lg:w-64 h-48 rounded-2xl overflow-hidden flex-shrink-0">
-                          <CyclingProjectImage images={project.images} interval={4000} className="w-full h-full" />
+                      {/* Project Image with Budget */}
+                      <div className="flex-shrink-0">
+                        {'images' in project && project.images ? (
+                          <div className="w-full lg:w-64 h-48 rounded-2xl overflow-hidden">
+                            <CyclingProjectImage images={project.images} interval={4000} className="w-full h-full" />
+                          </div>
+                        ) : (
+                          <div className="w-full lg:w-64 h-48 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-7xl">
+                            {project.image}
+                          </div>
+                        )}
+                        {/* Budget Badge */}
+                        <div className="mt-3 px-4 py-2 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-center">
+                          <span className="text-xs text-muted-foreground">Est. Budget</span>
+                          <p className="text-sm font-bold text-green-500">{project.budget}</p>
                         </div>
-                      ) : (
-                        <div className="w-full lg:w-64 h-48 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-7xl flex-shrink-0">
-                          {project.image}
-                        </div>
-                      )}
+                      </div>
 
                       <div className="flex-1">
                         {/* Status Badge */}
