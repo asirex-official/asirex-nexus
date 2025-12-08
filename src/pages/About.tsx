@@ -65,6 +65,36 @@ const openPositions = [{
   location: "Vientiane",
   type: "Full-time",
   salary: "Per Sale Commission"
+}, {
+  title: "Machine Learning Engineer",
+  location: "India",
+  type: "Full-time",
+  salary: "12-25 LPA"
+}, {
+  title: "Embedded Systems Developer",
+  location: "India",
+  type: "Full-time",
+  salary: "8-18 LPA"
+}, {
+  title: "Marketing Manager",
+  location: "Remote",
+  type: "Full-time",
+  salary: "6-12 LPA"
+}, {
+  title: "Hardware Engineer",
+  location: "India",
+  type: "Full-time",
+  salary: "10-22 LPA"
+}, {
+  title: "Content Writer & Social Media",
+  location: "Remote",
+  type: "Part-time",
+  salary: "3-6 LPA"
+}, {
+  title: "Business Development Executive",
+  location: "India",
+  type: "Full-time",
+  salary: "5-10 LPA + Commission"
 }];
 export default function About() {
   const [contactForm, setContactForm] = useState({
