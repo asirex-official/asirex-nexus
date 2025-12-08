@@ -138,14 +138,12 @@ export function Header() {
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </nav>
-
-        {/* Progress Alert Bar - Only shown on Projects page */}
-        {location.pathname === '/projects' && (
-          <div className="flex items-center gap-3 py-2 px-4 bg-yellow-500/10 border-t border-yellow-500/20 rounded-b-lg">
-            <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-            <span className="text-xs text-yellow-500 font-medium">Slow Progress Due to Lack of funds, Building Real Life Prototype on Our Own Funds — Please Support us</span>
-          </div>
-        )}
+        
+        {/* Progress Alert Bar */}
+        <div className="flex items-center gap-3 py-2 px-4 bg-yellow-500/10 border-t border-yellow-500/20 rounded-b-lg">
+          <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+          <span className="text-xs text-yellow-500 font-medium">Slow Progress Due to Lack of funds, Building Real Life Prototype on Our Own Funds — Please Support us</span>
+        </div>
       </div>
 
       {/* Mobile Menu */}
