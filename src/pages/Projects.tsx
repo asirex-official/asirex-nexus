@@ -212,6 +212,122 @@ export default function Projects() {
                 </div>
               </motion.div>)}
           </div>
+
+          {/* Currently Working On Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-20"
+          >
+            <div className="text-center mb-12">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              >
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-primary">Active Development</span>
+              </motion.div>
+              <h2 className="font-display text-3xl lg:text-4xl font-bold mb-4">
+                Currently <span className="gradient-text">Working On</span>
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Our primary focus right now. Building the future one prototype at a time.
+              </p>
+            </div>
+
+            {/* Active Project Card - Aqua River Purifier */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="glass-card p-8 lg:p-10 border-2 border-primary/30 relative overflow-hidden">
+                {/* Animated Background Glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+                
+                <div className="relative">
+                  <div className="flex flex-col lg:flex-row items-start gap-8">
+                    {/* Project Image */}
+                    <div className="w-full lg:w-64 h-48 rounded-2xl overflow-hidden flex-shrink-0">
+                      <CyclingProjectImage images={[aquaPurifier1, aquaPurifier2]} interval={4000} className="w-full h-full" />
+                    </div>
+
+                    <div className="flex-1">
+                      {/* Status Badge */}
+                      <div className="flex flex-wrap items-center gap-3 mb-4">
+                        <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
+                          🔧 Prototype Phase
+                        </span>
+                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/50 text-muted-foreground">
+                          Expected: August 2026
+                        </span>
+                      </div>
+
+                      <h3 className="font-display text-2xl lg:text-3xl font-bold mb-2">
+                        Aqua River Purifier
+                      </h3>
+                      <p className="text-accent font-medium mb-4">
+                        India's First Fully Autonomous AI River Cleaning Ecosystem
+                      </p>
+                      <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
+                        A Team of AI Powered River-cleaning robots that will work 24/7, collect waste, purify water, protect aquatic life, and send real-time environmental data to a national monitoring network.
+                      </p>
+
+                      {/* Development Stage Buttons */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-500/20 text-green-500 border border-green-500/30">
+                          ✓ Planning
+                        </span>
+                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/20 text-primary border border-primary/30 animate-pulse">
+                          ◉ Prototype
+                        </span>
+                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/30 text-muted-foreground border border-border">
+                          ○ Development
+                        </span>
+                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/30 text-muted-foreground border border-border">
+                          ○ Testing
+                        </span>
+                        <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/30 text-muted-foreground border border-border">
+                          ○ Production
+                        </span>
+                      </div>
+
+                      {/* Progress */}
+                      <div className="mb-6">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-muted-foreground">Overall Progress</span>
+                          <span className="font-bold text-primary">6%</span>
+                        </div>
+                        <div className="h-3 bg-primary/20 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "6%" }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.5, delay: 0.3 }}
+                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                          />
+                        </div>
+                      </div>
+
+                      <Button 
+                        variant="hero" 
+                        size="lg"
+                        onClick={() => navigate('/projects/aqua-river-purifier')}
+                        className="group"
+                      >
+                        View Full Details
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
