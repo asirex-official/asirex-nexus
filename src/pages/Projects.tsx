@@ -106,10 +106,112 @@ const projects = [{
   progress: 80,
   budget: "₹15Cr - ₹75Cr"
 }];
+
+// Completed Projects Data
+const completedProjects = [{
+  id: 101,
+  name: "ASIREX AI Assistant",
+  tagline: "Internal AI-Powered Productivity Tool",
+  category: "AI",
+  icon: "🤖",
+  description: "Internal AI-powered assistant for team productivity, document analysis, and automated workflows. Built with cutting-edge natural language processing.",
+  completedDate: "March 2024",
+  impact: "50% increase in team productivity",
+  features: ["Natural Language Processing", "Document Analysis", "Workflow Automation", "Smart Scheduling"],
+  techStack: ["Python", "TensorFlow", "FastAPI", "React"],
+  highlights: [
+    { title: "Documents Processed", value: "10,000+" },
+    { title: "Tasks Automated", value: "500+" },
+    { title: "Time Saved", value: "200+ hrs/month" }
+  ]
+}, {
+  id: 102,
+  name: "RoboCore Control Suite",
+  tagline: "Modular Robotics Control System",
+  category: "Robotics",
+  icon: "⚙️",
+  description: "Modular robotics control system for autonomous navigation, sensor fusion, and real-time decision making. Powers all ASIREX robotic systems.",
+  completedDate: "January 2024",
+  impact: "Powers 15+ robotic systems",
+  features: ["Autonomous Navigation", "Sensor Fusion", "Real-time Control", "Modular Architecture"],
+  techStack: ["C++", "ROS2", "Python", "CUDA"],
+  highlights: [
+    { title: "Response Time", value: "<10ms" },
+    { title: "Sensor Support", value: "50+ types" },
+    { title: "Accuracy", value: "99.7%" }
+  ]
+}, {
+  id: 103,
+  name: "EcoSense Monitor",
+  tagline: "IoT Environmental Monitoring",
+  category: "Environment",
+  icon: "🌍",
+  description: "IoT-based environmental monitoring system for air quality, temperature, and pollution tracking. Deployed across multiple cities for real-time environmental data.",
+  completedDate: "November 2023",
+  impact: "Monitoring 25+ locations",
+  features: ["Air Quality Index", "Temperature Monitoring", "Pollution Alerts", "Data Analytics"],
+  techStack: ["IoT Sensors", "AWS IoT", "Node.js", "React"],
+  highlights: [
+    { title: "Data Points/Day", value: "1M+" },
+    { title: "Locations", value: "25+" },
+    { title: "Uptime", value: "99.9%" }
+  ]
+}, {
+  id: 104,
+  name: "ASIREX Cloud Platform",
+  tagline: "Scalable Cloud Infrastructure",
+  category: "Tech",
+  icon: "💻",
+  description: "Scalable cloud infrastructure powering all ASIREX services, APIs, and data processing pipelines. Built for reliability and performance.",
+  completedDate: "August 2023",
+  impact: "99.99% uptime achieved",
+  features: ["Auto-scaling", "Load Balancing", "Data Pipelines", "API Gateway"],
+  techStack: ["Kubernetes", "Docker", "PostgreSQL", "Redis"],
+  highlights: [
+    { title: "API Requests/Day", value: "5M+" },
+    { title: "Uptime", value: "99.99%" },
+    { title: "Services", value: "20+" }
+  ]
+}, {
+  id: 105,
+  name: "ClimatePredict AI",
+  tagline: "Climate Pattern Prediction",
+  category: "Climate",
+  icon: "🌡️",
+  description: "Machine learning model for climate pattern prediction and environmental impact assessment. Helps organizations plan for climate change.",
+  completedDate: "February 2024",
+  impact: "85% prediction accuracy",
+  features: ["Weather Forecasting", "Impact Assessment", "Trend Analysis", "Risk Prediction"],
+  techStack: ["Python", "PyTorch", "Scikit-learn", "Pandas"],
+  highlights: [
+    { title: "Accuracy", value: "85%" },
+    { title: "Predictions/Day", value: "10,000+" },
+    { title: "Data Sources", value: "50+" }
+  ]
+}, {
+  id: 106,
+  name: "AgriBot Vision",
+  tagline: "Smart Agriculture Computer Vision",
+  category: "AgriTech",
+  icon: "🌾",
+  description: "Computer vision system for crop health monitoring, pest detection, and yield optimization. Helping farmers increase productivity sustainably.",
+  completedDate: "December 2023",
+  impact: "30% yield improvement",
+  features: ["Crop Health Analysis", "Pest Detection", "Yield Prediction", "Disease Identification"],
+  techStack: ["Python", "OpenCV", "YOLO", "TensorFlow"],
+  highlights: [
+    { title: "Crops Analyzed", value: "500K+" },
+    { title: "Pest Detection", value: "95% accuracy" },
+    { title: "Farmers Helped", value: "1,000+" }
+  ]
+}];
+
 export default function Projects() {
   type Project = typeof projects[0];
+  type CompletedProject = typeof completedProjects[0];
   const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedCompletedProject, setSelectedCompletedProject] = useState<CompletedProject | null>(null);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const handleNotify = () => {
@@ -306,168 +408,104 @@ export default function Projects() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* AI Assistant */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0 }}
-                className="glass-card p-6 border border-green-500/20 hover:border-green-500/40 transition-colors"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center text-3xl mb-4">
-                  🤖
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">
-                    ✓ Completed
-                  </span>
-                  <span className="text-xs text-muted-foreground">AI</span>
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2">ASIREX AI Assistant</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Internal AI-powered assistant for team productivity, document analysis, and automated workflows.
-                </p>
-                <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-500 mt-2 block">100% Complete</span>
-              </motion.div>
+            <div className="space-y-6">
+              {completedProjects.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group cursor-pointer"
+                  onClick={() => setSelectedCompletedProject(project)}
+                >
+                  <div className="glass-card p-8 lg:p-10 border border-green-500/20 hover:border-green-500/40 transition-colors relative overflow-hidden">
+                    {/* Animated Background Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    <div className="relative">
+                      <div className="flex flex-col lg:flex-row items-start gap-8">
+                        {/* Project Icon/Banner */}
+                        <div className="flex-shrink-0">
+                          <div className="w-full lg:w-64 h-48 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 flex items-center justify-center text-7xl border border-green-500/20">
+                            {project.icon}
+                          </div>
+                          {/* Completed Badge */}
+                          <div className="mt-3 px-4 py-2 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-center">
+                            <span className="text-xs text-muted-foreground">Completed</span>
+                            <p className="text-sm font-bold text-green-500">{project.completedDate}</p>
+                          </div>
+                        </div>
 
-              {/* Robotics Control System */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="glass-card p-6 border border-green-500/20 hover:border-green-500/40 transition-colors"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center text-3xl mb-4">
-                  ⚙️
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">
-                    ✓ Completed
-                  </span>
-                  <span className="text-xs text-muted-foreground">Robotics</span>
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2">RoboCore Control Suite</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Modular robotics control system for autonomous navigation, sensor fusion, and real-time decision making.
-                </p>
-                <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-500 mt-2 block">100% Complete</span>
-              </motion.div>
+                        <div className="flex-1">
+                          {/* Status Badge */}
+                          <div className="flex flex-wrap items-center gap-3 mb-4">
+                            <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-green-500/20 text-green-500 border border-green-500/30">
+                              ✓ Production
+                            </span>
+                            <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/50 text-muted-foreground">
+                              {project.category}
+                            </span>
+                          </div>
 
-              {/* Environment Monitoring */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="glass-card p-6 border border-green-500/20 hover:border-green-500/40 transition-colors"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-3xl mb-4">
-                  🌍
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">
-                    ✓ Completed
-                  </span>
-                  <span className="text-xs text-muted-foreground">Environment</span>
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2">EcoSense Monitor</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  IoT-based environmental monitoring system for air quality, temperature, and pollution tracking.
-                </p>
-                <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-500 mt-2 block">100% Complete</span>
-              </motion.div>
+                          <h3 className="font-display text-2xl lg:text-3xl font-bold mb-2 group-hover:text-green-400 transition-colors">
+                            {project.name}
+                          </h3>
+                          <p className="text-green-400 font-medium mb-4">
+                            {project.tagline}
+                          </p>
+                          <p className="text-muted-foreground text-sm mb-6 leading-relaxed line-clamp-2">
+                            {project.description}
+                          </p>
 
-              {/* Tech Platform */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-                className="glass-card p-6 border border-green-500/20 hover:border-green-500/40 transition-colors"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-3xl mb-4">
-                  💻
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">
-                    ✓ Completed
-                  </span>
-                  <span className="text-xs text-muted-foreground">Tech</span>
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2">ASIREX Cloud Platform</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Scalable cloud infrastructure powering all ASIREX services, APIs, and data processing pipelines.
-                </p>
-                <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-500 mt-2 block">100% Complete</span>
-              </motion.div>
+                          {/* All Stages Complete */}
+                          <div className="flex flex-wrap gap-2 mb-6">
+                            {['Planning', 'Prototype', 'Development', 'Testing', 'Production'].map((stage) => (
+                              <span 
+                                key={stage}
+                                className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-500/20 text-green-500 border border-green-500/30"
+                              >
+                                ✓ {stage}
+                              </span>
+                            ))}
+                          </div>
 
-              {/* Climate AI */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4 }}
-                className="glass-card p-6 border border-green-500/20 hover:border-green-500/40 transition-colors"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/20 to-yellow-500/20 flex items-center justify-center text-3xl mb-4">
-                  🌡️
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">
-                    ✓ Completed
-                  </span>
-                  <span className="text-xs text-muted-foreground">Climate</span>
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2">ClimatePredict AI</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Machine learning model for climate pattern prediction and environmental impact assessment.
-                </p>
-                <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-500 mt-2 block">100% Complete</span>
-              </motion.div>
+                          {/* Progress - 100% */}
+                          <div className="mb-6">
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="text-muted-foreground">Project Status</span>
+                              <span className="font-bold text-green-500">100% Complete</span>
+                            </div>
+                            <div className="h-3 bg-green-500/20 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                whileInView={{ width: "100%" }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 1.5, delay: 0.3 }}
+                                className="h-full bg-green-500 rounded-full"
+                              />
+                            </div>
+                          </div>
 
-              {/* Smart Agriculture */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5 }}
-                className="glass-card p-6 border border-green-500/20 hover:border-green-500/40 transition-colors"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-lime-500/20 to-green-500/20 flex items-center justify-center text-3xl mb-4">
-                  🌾
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">
-                    ✓ Completed
-                  </span>
-                  <span className="text-xs text-muted-foreground">AgriTech</span>
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2">AgriBot Vision</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Computer vision system for crop health monitoring, pest detection, and yield optimization.
-                </p>
-                <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-500 mt-2 block">100% Complete</span>
-              </motion.div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">
+                              Impact: <span className="text-foreground font-medium">{project.impact}</span>
+                            </span>
+                            <Button 
+                              variant="glass" 
+                              size="sm"
+                              className="group-hover:bg-green-500 group-hover:text-white transition-colors"
+                            >
+                              View Details
+                              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
@@ -607,6 +645,128 @@ export default function Projects() {
                 </div>
               </div>
             </motion.div>}
+        </DialogContent>
+      </Dialog>
+
+      {/* Completed Project Detail Modal */}
+      <Dialog open={!!selectedCompletedProject} onOpenChange={() => setSelectedCompletedProject(null)}>
+        <DialogContent className="max-w-3xl glass-card border-green-500/30 max-h-[90vh] overflow-y-auto">
+          {selectedCompletedProject && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <DialogHeader>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center text-5xl border border-green-500/30">
+                    {selectedCompletedProject.icon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500 border border-green-500/30">
+                        ✓ Production
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedCompletedProject.category}
+                      </span>
+                    </div>
+                    <DialogTitle className="font-display text-2xl lg:text-3xl">
+                      {selectedCompletedProject.name}
+                    </DialogTitle>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                <p className="text-lg text-green-400 font-medium">
+                  {selectedCompletedProject.tagline}
+                </p>
+
+                <p className="text-muted-foreground leading-relaxed">
+                  {selectedCompletedProject.description}
+                </p>
+
+                {/* Key Highlights */}
+                <div>
+                  <h4 className="font-display font-semibold mb-4">Key Highlights</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    {selectedCompletedProject.highlights.map((highlight, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="glass-card p-4 text-center bg-green-500/5 border border-green-500/20"
+                      >
+                        <p className="text-2xl font-bold text-green-500">{highlight.value}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{highlight.title}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div>
+                  <h4 className="font-display font-semibold mb-3">Key Features</h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {selectedCompletedProject.features.map((feature) => (
+                      <div key={feature} className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                        <span className="w-2 h-2 bg-green-500 rounded-full" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tech Stack */}
+                <div>
+                  <h4 className="font-display font-semibold mb-3">Tech Stack</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCompletedProject.techStack.map((tech) => (
+                      <span 
+                        key={tech} 
+                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/50 text-muted-foreground border border-border"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Impact & Completion */}
+                <div className="glass-card p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-display font-semibold mb-1">Project Impact</h4>
+                      <p className="text-xl font-bold text-green-500">
+                        {selectedCompletedProject.impact}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">Completed</p>
+                      <p className="text-lg font-bold text-foreground">{selectedCompletedProject.completedDate}</p>
+                    </div>
+                  </div>
+                  
+                  {/* 100% Progress Bar */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Status</span>
+                      <span className="font-bold text-green-500">100% Complete</span>
+                    </div>
+                    <div className="h-3 bg-green-500/20 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 1 }}
+                        className="h-full bg-green-500 rounded-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </DialogContent>
       </Dialog>
     </Layout>;
