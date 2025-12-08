@@ -123,6 +123,100 @@ export default function About() {
         </div>
       </section>
 
+      {/* Affordable Products & Customers */}
+      <section className="py-16 bg-gradient-to-b from-card/50 to-transparent border-y border-border/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-5xl mx-auto"
+          >
+            {/* Main Message */}
+            <div className="glass-card p-8 lg:p-10 mb-8 text-center">
+              <h2 className="font-display text-2xl lg:text-3xl font-bold mb-4">
+                We Also Create <span className="gradient-text">Affordable Tech</span> for Everyone
+              </h2>
+              <p className="text-muted-foreground leading-relaxed text-lg max-w-3xl mx-auto mb-6">
+                ASIREX also creates cheap, affordable products like Spy Earpieces, Decorative Items, 
+                and Daily Life essentials for middle-class people. But that doesn't mean we'll stop here — 
+                we're just gathering funds to launch a <span className="text-primary font-semibold">game-changing project</span>.
+              </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                <Heart className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Please Support Us If You Want a Tech Giant from India That'll Change India</span>
+              </div>
+            </div>
+
+            {/* Customer Segments */}
+            <div className="text-center mb-6">
+              <h3 className="font-display text-xl lg:text-2xl font-semibold mb-2">
+                Our <span className="gradient-text">Customers</span>
+              </h3>
+              <p className="text-muted-foreground text-sm">We serve everyone — from individuals to institutions</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="glass-card p-6 text-center card-hover"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-7 h-7 text-blue-400" />
+                </div>
+                <h4 className="font-display font-semibold text-lg mb-2">Normal Public</h4>
+                <p className="text-sm text-muted-foreground">Affordable tech for everyday use</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="glass-card p-6 text-center card-hover"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center mx-auto mb-4">
+                  <Briefcase className="w-7 h-7 text-purple-400" />
+                </div>
+                <h4 className="font-display font-semibold text-lg mb-2">Private Companies</h4>
+                <p className="text-sm text-muted-foreground">Enterprise solutions & partnerships</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="glass-card p-6 text-center card-hover"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-7 h-7 text-green-400" />
+                </div>
+                <h4 className="font-display font-semibold text-lg mb-2">Government</h4>
+                <p className="text-sm text-muted-foreground">Large-scale national projects</p>
+              </motion.div>
+            </div>
+
+            {/* Tech Fields */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="text-center"
+            >
+              <p className="text-muted-foreground">
+                We are in <span className="text-foreground font-medium">every tech and AI field</span> — 
+                and if we're not, <span className="text-primary">we're planning to be</span>.
+              </p>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Mission & Vision */}
       <section className="py-20 bg-card/30">
         <div className="container mx-auto px-4 lg:px-8">
