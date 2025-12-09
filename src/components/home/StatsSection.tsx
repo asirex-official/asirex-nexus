@@ -77,9 +77,17 @@ function StatCard({ stat, index }: { stat: { value: number; suffix: string; labe
 export function StatsSection() {
   const { data: stats } = useSiteStats();
 
-  const displayStats = stats?.map((stat, index) => ({
+  // Map keys to their correct links
+  const linkMap: Record<string, string> = {
+    devices_shipped: "/stats/products-shipped",
+    countries: "/stats/countries-impacted",
+    satisfaction: "/stats/customer-satisfaction",
+    projects: "/stats/active-projects"
+  };
+
+  const displayStats = stats?.map((stat) => ({
     ...stat,
-    link: ["/stats/products-shipped", "/stats/active-projects", "/stats/countries-impacted", "/stats/customer-satisfaction"][index] || "/"
+    link: linkMap[(stat as any).key] || "/"
   })) || [
     { id: "1", value: 1000, suffix: "+", label: "Products Shipped Impacting Whole Nation", link: "/stats/products-shipped" },
     { id: "2", value: 5, suffix: "+", label: "Active Projects", link: "/stats/active-projects" },
