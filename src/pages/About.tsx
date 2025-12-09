@@ -431,14 +431,14 @@ export default function About() {
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            <Link to="/values/mission">
+            <Link to="/values/mission" className="h-full">
               <motion.div 
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={slideInLeft}
                 whileHover={{ scale: 1.02 }}
-                className="glass-card p-10 lg:p-12 relative overflow-hidden group cursor-pointer"
+                className="glass-card p-10 lg:p-12 relative overflow-hidden group cursor-pointer h-full"
               >
                 <motion.div
                   className="absolute -top-20 -left-20 w-60 h-60 bg-accent/10 rounded-full blur-3xl group-hover:bg-accent/20 transition-colors duration-500"
@@ -465,14 +465,14 @@ export default function About() {
               </motion.div>
             </Link>
 
-            <Link to="/values/vision">
+            <Link to="/values/vision" className="h-full">
               <motion.div 
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={slideInRight}
                 whileHover={{ scale: 1.02 }}
-                className="glass-card p-10 lg:p-12 relative overflow-hidden group cursor-pointer"
+                className="glass-card p-10 lg:p-12 relative overflow-hidden group cursor-pointer h-full"
               >
                 <motion.div
                   className="absolute -bottom-20 -right-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
