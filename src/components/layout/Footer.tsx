@@ -112,7 +112,7 @@ export function Footer() {
             © {new Date().getFullYear()} ASIREX Technologies. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
-            Crafted with precision in India 🇮🇳 & Laos 🇱🇦
+            Crafted with precision in India 🇮🇳
           </p>
         </div>
       </div>

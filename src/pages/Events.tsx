@@ -50,22 +50,6 @@ const events = [
     tags: ["Hands-on", "AI", "Edge Computing"],
     isFeatured: false,
   },
-  {
-    id: 4,
-    title: "ASIREX Laos Launch Event",
-    type: "Launch",
-    date: "January 6, 2026",
-    time: "9:00 PM - 12:00 AM",
-    location: "Cyber City, Gurugram, India",
-    venue: "Cyber Hub Convention Center",
-    description: "Be part of ASIREX's expansion into Laos. Exclusive product reveals, partnership announcements, and networking dinner with regional tech leaders.",
-    image: "🚀",
-    price: 0,
-    capacity: 200,
-    registered: 156,
-    tags: ["Launch", "Networking", "Exclusive"],
-    isFeatured: true,
-  },
 ];
 
 const cities = ["All Locations", "Noida", "New Delhi", "Gurugram"];
@@ -105,7 +89,7 @@ export default function Events() {
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Connect with the ASIREX community at conferences, workshops, and meetups 
-              across India and Laos.
+              across India.
             </p>
           </motion.div>
 

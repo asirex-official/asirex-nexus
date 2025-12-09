@@ -20,7 +20,7 @@ const features = [
   {
     icon: Globe,
     title: "Global Delivery",
-    description: "Worldwide shipping with local support centers in India and Laos.",
+    description: "Worldwide shipping with local support centers across India.",
   },
 ];
 
