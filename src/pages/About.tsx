@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload, Rocket, Sparkles, Zap, Globe, Shield, Award, Star, TrendingUp } from "lucide-react";
+import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload, Rocket, Sparkles, Zap, Globe, Shield, Award, Star, TrendingUp, ArrowRight } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
+import { Link } from "react-router-dom";
 
 // Animation variants for smooth staggered animations
 const containerVariants = {
@@ -344,14 +345,17 @@ export default function About() {
                 and Daily Life essentials for middle-class people. But that doesn't mean we'll stop here — 
                 we're just gathering funds to launch a <span className="text-primary font-semibold">game-changing project</span>.
               </p>
-              <motion.div 
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              >
-                <Heart className="w-5 h-5 text-primary animate-pulse" />
-                <span className="font-medium">Please Support Us If You Want a Tech Giant from India That'll Change India</span>
-              </motion.div>
+              <Link to="/support-us">
+                <motion.div 
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Heart className="w-5 h-5 text-primary animate-pulse" />
+                  <span className="font-medium">Please Support Us If You Want a Tech Giant from India That'll Change India</span>
+                  <ArrowRight className="w-4 h-4 text-primary" />
+                </motion.div>
+              </Link>
             </motion.div>
 
             {/* Customer Segments */}
@@ -364,27 +368,29 @@ export default function About() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
               {[
-                { icon: Users, title: "Normal Public", desc: "Affordable tech for everyday heroes", color: "blue", delay: 0.1 },
-                { icon: Briefcase, title: "Private Companies", desc: "Enterprise solutions that scale", color: "purple", delay: 0.2 },
-                { icon: Target, title: "Government", desc: "Nation-building projects", color: "green", delay: 0.3 }
+                { icon: Users, title: "Normal Public", desc: "Affordable tech for everyday heroes", color: "blue", delay: 0.1, link: "/customers/public" },
+                { icon: Briefcase, title: "Private Companies", desc: "Enterprise solutions that scale", color: "purple", delay: 0.2, link: "/customers/private" },
+                { icon: Target, title: "Government", desc: "Nation-building projects", color: "green", delay: 0.3, link: "/customers/government" }
               ].map((customer, i) => (
-                <motion.div
-                  key={customer.title}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: customer.delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  className="glass-card p-8 text-center group cursor-pointer"
-                >
-                  <motion.div 
-                    className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${customer.color}-500/20 to-${customer.color}-600/20 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300`}
+                <Link key={customer.title} to={customer.link}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: customer.delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    className="glass-card p-8 text-center group cursor-pointer"
                   >
-                    <customer.icon className={`w-8 h-8 text-${customer.color}-400`} />
+                    <motion.div 
+                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${customer.color}-500/20 to-${customer.color}-600/20 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <customer.icon className={`w-8 h-8 text-${customer.color}-400`} />
+                    </motion.div>
+                    <h4 className="font-display font-semibold text-xl mb-2">{customer.title}</h4>
+                    <p className="text-muted-foreground">{customer.desc}</p>
+                    <ArrowRight className="w-5 h-5 text-primary mx-auto mt-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </motion.div>
-                  <h4 className="font-display font-semibold text-xl mb-2">{customer.title}</h4>
-                  <p className="text-muted-foreground">{customer.desc}</p>
-                </motion.div>
+                </Link>
               ))}
             </div>
 
@@ -430,67 +436,73 @@ export default function About() {
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            <motion.div 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={slideInLeft}
-              whileHover={{ scale: 1.02 }}
-              className="glass-card p-10 lg:p-12 relative overflow-hidden group"
-            >
-              <motion.div
-                className="absolute -top-20 -left-20 w-60 h-60 bg-accent/10 rounded-full blur-3xl group-hover:bg-accent/20 transition-colors duration-500"
-              />
-              <div className="relative">
-                <motion.div 
-                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-8"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <Target className="w-8 h-8 text-accent-foreground" />
-                </motion.div>
-                <h2 className="font-display text-3xl font-bold mb-6">Our Mission</h2>
-                <p className="text-muted-foreground leading-relaxed text-lg mb-4">
-                  To democratize access to advanced technology across India and Southeast Asia. 
-                  We create affordable, powerful tools that empower developers, businesses, 
-                  and institutions to build a better future.
-                </p>
-                <p className="text-primary font-medium italic">
-                  "Technology should be a right, not a privilege."
-                </p>
-              </div>
-            </motion.div>
+            <Link to="/values/mission">
+              <motion.div 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={slideInLeft}
+                whileHover={{ scale: 1.02 }}
+                className="glass-card p-10 lg:p-12 relative overflow-hidden group cursor-pointer"
+              >
+                <motion.div
+                  className="absolute -top-20 -left-20 w-60 h-60 bg-accent/10 rounded-full blur-3xl group-hover:bg-accent/20 transition-colors duration-500"
+                />
+                <div className="relative">
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-8"
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <Target className="w-8 h-8 text-accent-foreground" />
+                  </motion.div>
+                  <h2 className="font-display text-3xl font-bold mb-6">Our Mission</h2>
+                  <p className="text-muted-foreground leading-relaxed text-lg mb-4">
+                    To democratize access to advanced technology across India and Southeast Asia. 
+                    We create affordable, powerful tools that empower developers, businesses, 
+                    and institutions to build a better future.
+                  </p>
+                  <p className="text-primary font-medium italic">
+                    "Technology should be a right, not a privilege."
+                  </p>
+                  <ArrowRight className="w-5 h-5 text-primary mt-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </motion.div>
+            </Link>
 
-            <motion.div 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={slideInRight}
-              whileHover={{ scale: 1.02 }}
-              className="glass-card p-10 lg:p-12 relative overflow-hidden group"
-            >
-              <motion.div
-                className="absolute -bottom-20 -right-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
-              />
-              <div className="relative">
-                <motion.div 
-                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-8"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <Eye className="w-8 h-8 text-primary-foreground" />
-                </motion.div>
-                <h2 className="font-display text-3xl font-bold mb-6">Our Vision</h2>
-                <p className="text-muted-foreground leading-relaxed text-lg mb-4">
-                  A world where cutting-edge AI, robotics, and sustainable tech are not luxuries 
-                  but everyday tools. Where Indian innovation leads global progress. 
-                  Where technology serves humanity.
-                </p>
-                <p className="text-accent font-medium italic">
-                  "Dream big. Build bigger. Impact biggest."
-                </p>
-              </div>
-            </motion.div>
+            <Link to="/values/vision">
+              <motion.div 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={slideInRight}
+                whileHover={{ scale: 1.02 }}
+                className="glass-card p-10 lg:p-12 relative overflow-hidden group cursor-pointer"
+              >
+                <motion.div
+                  className="absolute -bottom-20 -right-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
+                />
+                <div className="relative">
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-8"
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <Eye className="w-8 h-8 text-primary-foreground" />
+                  </motion.div>
+                  <h2 className="font-display text-3xl font-bold mb-6">Our Vision</h2>
+                  <p className="text-muted-foreground leading-relaxed text-lg mb-4">
+                    A world where cutting-edge AI, robotics, and sustainable tech are not luxuries 
+                    but everyday tools. Where Indian innovation leads global progress. 
+                    Where technology serves humanity.
+                  </p>
+                  <p className="text-accent font-medium italic">
+                    "Dream big. Build bigger. Impact biggest."
+                  </p>
+                  <ArrowRight className="w-5 h-5 text-accent mt-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </motion.div>
+            </Link>
           </div>
         </div>
       </section>
