@@ -211,25 +211,10 @@ export function ProductsSection() {
           </motion.div>
         </motion.div>
 
-        {/* Products Grid */}
-        {isLoading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="glass-card p-6 rounded-3xl">
-                <div className="aspect-square bg-muted/30 rounded-2xl mb-6 animate-pulse" />
-                <div className="h-4 bg-muted/30 rounded-full mb-3 w-1/3 animate-pulse" />
-                <div className="h-6 bg-muted/30 rounded-full mb-4 animate-pulse" />
-                <div className="h-8 bg-muted/30 rounded-full w-1/2 animate-pulse" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products?.slice(0, 4).map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
-          </div>
-        )}
+        {/* Empty space for future products */}
+        <div className="min-h-[200px] flex items-center justify-center">
+          <p className="text-muted-foreground text-lg">Coming Soon</p>
+        </div>
       </div>
     </section>
   );
