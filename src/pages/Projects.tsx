@@ -100,7 +100,7 @@ const projects = [{
   launchQuarter: "February 17, 2026",
   status: "Prototype Phase",
   stage: "Prototype",
-  image: "🌬️",
+  image: "💨",
   impact: "AQI 800 → 80 | Clean Air for Every Street",
   features: ["UV Rays Purifier", "HEPA Filter", "Ionization Tech", "Self-Cleaning Filters", "24/7 Auto Operation", "AI Smart Manager"],
   progress: 68,
