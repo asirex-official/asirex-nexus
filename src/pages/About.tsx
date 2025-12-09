@@ -363,9 +363,9 @@ export default function About() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
               {[
-                { icon: Users, title: "Normal Public", desc: "Affordable tech for everyday heroes", color: "blue", delay: 0.1, link: "/customers/public" },
-                { icon: Briefcase, title: "Private Companies", desc: "Enterprise solutions that scale", color: "purple", delay: 0.2, link: "/customers/private" },
-                { icon: Target, title: "Government", desc: "Nation-building projects", color: "green", delay: 0.3, link: "/customers/government" }
+                { icon: Users, title: "Normal Public", desc: "Affordable tech for everyday heroes", bgClass: "from-blue-500/20 to-blue-600/20", iconClass: "text-blue-400", delay: 0.1, link: "/customers/public" },
+                { icon: Briefcase, title: "Private Companies", desc: "Enterprise solutions that scale", bgClass: "from-purple-500/20 to-purple-600/20", iconClass: "text-purple-400", delay: 0.2, link: "/customers/private" },
+                { icon: Target, title: "Government", desc: "Nation-building projects", bgClass: "from-green-500/20 to-green-600/20", iconClass: "text-green-400", delay: 0.3, link: "/customers/government" }
               ].map((customer, i) => (
                 <Link key={customer.title} to={customer.link}>
                   <motion.div
@@ -374,12 +374,12 @@ export default function About() {
                     viewport={{ once: true }}
                     transition={{ delay: customer.delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={{ y: -8, scale: 1.02 }}
-                    className="glass-card p-8 text-center group cursor-pointer"
+                    className="glass-card p-8 text-center group cursor-pointer h-full"
                   >
                     <motion.div 
-                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${customer.color}-500/20 to-${customer.color}-600/20 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300`}
+                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${customer.bgClass} flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300`}
                     >
-                      <customer.icon className={`w-8 h-8 text-${customer.color}-400`} />
+                      <customer.icon className={`w-8 h-8 ${customer.iconClass}`} />
                     </motion.div>
                     <h4 className="font-display font-semibold text-xl mb-2">{customer.title}</h4>
                     <p className="text-muted-foreground">{customer.desc}</p>
