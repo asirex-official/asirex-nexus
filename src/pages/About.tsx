@@ -81,6 +81,10 @@ const values = [{
   icon: Users,
   title: "Collaborative Spirit",
   description: "Together we rise. Open innovation, shared dreams, and the power of community drive us forward."
+}, {
+  icon: TrendingUp,
+  title: "Future-Driven Excellence",
+  description: "We build for tomorrow, anticipating needs and crafting solutions that stand the test of time."
 }];
 
 const team = [{
