@@ -94,17 +94,17 @@ const projects = [{
   budget: "₹100Cr - ₹500Cr"
 }, {
   id: 4,
-  name: "MedAssist AI",
-  tagline: "Democratizing Healthcare with AI",
-  description: "AI-powered diagnostic tool that helps rural health workers identify diseases from symptoms and basic tests. Integrating with government health programs for maximum reach.",
-  launchQuarter: "Q1 2025",
-  status: "Beta Testing",
-  stage: "Testing",
-  image: "🏥",
-  impact: "Serve 100M+ patients",
-  features: ["Symptom Analysis", "Offline Mode", "Multi-language", "Doctor Connect"],
-  progress: 80,
-  budget: "₹15Cr - ₹75Cr"
+  name: "Smart Air Pollution Reducer",
+  tagline: "Smart AI-Powered Air Purification System",
+  description: "Revolutionary AI-powered air purifiers featuring triple-action cleaning: UV rays purification, HEPA filter technology, and ionization purification. Self-cleaning reusable filters with AI-managed auto-cleaning cycles. Deploys across every street - just needs power. Runs 24/7 with zero maintenance. Smart AI manager handles scheduling, performance optimization, and predictive maintenance automatically. Transform your city's air quality from hazardous AQI 800+ to healthy AQI 80 in covered zones.",
+  launchQuarter: "February 17, 2026",
+  status: "Prototype Phase",
+  stage: "Prototype",
+  image: "🌬️",
+  impact: "AQI 800 → 80 | Clean Air for Every Street",
+  features: ["UV Rays Purifier", "HEPA Filter", "Ionization Tech", "Self-Cleaning Filters", "24/7 Auto Operation", "AI Smart Manager"],
+  progress: 68,
+  budget: "₹100Cr - ₹500Cr"
 }];
 
 // Completed Projects Data
