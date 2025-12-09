@@ -25,12 +25,12 @@ const projects = [{
   tagline: "Autonomous Satellite Technology for Rural Access",
   description: "A revolutionary satellite-based internet system designed to bring high-speed connectivity to remote areas of India. Using AI-powered mesh networking and solar-powered ground stations.",
   launchQuarter: "Q2 2025",
-  status: "In Development",
-  stage: "Development",
+  status: "Planning",
+  stage: "Planning",
   image: "🛰️",
   impact: "Connect 50M+ rural users",
   features: ["AI Mesh Networking", "Solar Powered", "Low Latency", "Affordable Access"],
-  progress: 65,
+  progress: 4,
   budget: "₹50Cr - ₹200Cr"
 }, {
   id: 2,
@@ -350,7 +350,7 @@ export default function Projects() {
                           </div>
                           <div className="flex items-center gap-2 mt-2">
                             <AlertTriangle className="w-3 h-3 text-yellow-500" />
-                            <span className="text-xs text-yellow-500">Slow Progress Due to lack of funds</span>
+                            <span className="text-xs text-yellow-500">Planning Phase - Slow Progress Due to lack of funds</span>
                           </div>
                         </div>
 
