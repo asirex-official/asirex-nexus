@@ -79,8 +79,8 @@ const values = [{
   description: "Every product is crafted with passion, designed with precision, and built for the people who matter most."
 }, {
   icon: Users,
-  title: "Collaborative Spirit",
-  description: "Together we rise. Open innovation, shared dreams, and the power of community drive us forward."
+  title: "Excellence & Quality",
+  description: "We pursue perfection in every detail. Quality engineering, rigorous testing, and uncompromising standards define everything we create."
 }];
 
 const team = [{

@@ -54,7 +54,7 @@ const missionStatements = [
 const howWeDeliver = [
   { title: "Research & Development", desc: "Continuous innovation in AI, robotics, and clean-tech" },
   { title: "Affordable Products", desc: "Quality tech at middle-class friendly prices" },
-  { title: "Open Collaboration", desc: "Sharing knowledge and building together" },
+  { title: "Excellence First", desc: "Uncompromising quality in everything we build" },
   { title: "Customer Focus", desc: "Solutions designed around real user needs" }
 ];
 
