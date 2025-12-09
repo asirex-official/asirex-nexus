@@ -84,43 +84,24 @@ const valuesData: Record<string, {
     quote: "When you put customers first, everything else falls into place.",
     color: "red"
   },
-  "excellence-quality": {
+  "collaborative-spirit": {
     icon: Users,
-    title: "Excellence & Quality",
-    tagline: "Perfection in every detail — uncompromising standards define us",
-    description: "At ASIREX, we believe that excellence is not an act but a habit. Every product, every line of code, every decision is held to the highest standards. Quality engineering, rigorous testing, and attention to detail define everything we create.",
+    title: "Collaborative Spirit",
+    tagline: "Together we rise — the power of community drives us forward",
+    description: "No one builds the future alone. At ASIREX, we believe in the power of collaboration — with our team, our partners, our community, and even our competitors. Open innovation, shared dreams, and the collective genius of many minds drive us forward.",
     principles: [
-      { title: "Zero Compromise", desc: "Quality is never sacrificed for speed" },
-      { title: "Continuous Improvement", desc: "Always striving to be better than yesterday" },
-      { title: "Precision Engineering", desc: "Every detail matters in our products" },
-      { title: "Rigorous Testing", desc: "Thorough validation before any release" }
+      { title: "Open Source Mindset", desc: "Share knowledge, grow together" },
+      { title: "Partner-First", desc: "We win when our partners win" },
+      { title: "Diverse Perspectives", desc: "The best ideas come from diverse teams" },
+      { title: "Community Building", desc: "Nurturing the ecosystem around us" }
     ],
     examples: [
-      "Extensive quality assurance processes",
-      "Regular product improvement cycles",
-      "Customer feedback integration for excellence"
+      "Open-source contributions to key projects",
+      "Partnership programs with startups and institutions",
+      "Community events and knowledge sharing sessions"
     ],
-    quote: "Excellence is not a destination but a continuous journey.",
+    quote: "If you want to go fast, go alone. If you want to go far, go together.",
     color: "blue"
-  },
-  "future-driven-excellence": {
-    icon: Rocket,
-    title: "Future-Driven Excellence",
-    tagline: "Engineering solutions built for the next century",
-    description: "We engineer solutions built not just for today, but for the next century—scalable, intelligent, and ready for the future. Every product we create is designed to evolve, adapt, and remain relevant for generations to come.",
-    principles: [
-      { title: "Long-Term Thinking", desc: "Building for decades, not quarters" },
-      { title: "Scalable Architecture", desc: "Solutions that grow with demand" },
-      { title: "Intelligent Systems", desc: "AI-ready and self-improving designs" },
-      { title: "Future-Proof Technology", desc: "Embracing standards that will stand the test of time" }
-    ],
-    examples: [
-      "Modular product designs for easy upgrades",
-      "AI systems that learn and improve over time",
-      "Open standards for long-term compatibility"
-    ],
-    quote: "The future belongs to those who prepare for it today.",
-    color: "green"
   }
 };
 

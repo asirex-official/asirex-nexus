@@ -194,7 +194,7 @@ export default function ActiveProjects() {
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
               These projects need dreamers, builders, and believers. Whether you want to invest, 
-              contribute, or simply support our mission—every contribution counts. Together, 
+              collaborate, or simply support our mission—every contribution counts. Together, 
               we can make India a global technology powerhouse.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
