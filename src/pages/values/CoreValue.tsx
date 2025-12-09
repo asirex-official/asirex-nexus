@@ -102,6 +102,25 @@ const valuesData: Record<string, {
     ],
     quote: "Excellence is not a destination but a continuous journey.",
     color: "blue"
+  },
+  "future-driven-excellence": {
+    icon: Rocket,
+    title: "Future-Driven Excellence",
+    tagline: "Engineering solutions built for the next century",
+    description: "We engineer solutions built not just for today, but for the next century—scalable, intelligent, and ready for the future. Every product we create is designed to evolve, adapt, and remain relevant for generations to come.",
+    principles: [
+      { title: "Long-Term Thinking", desc: "Building for decades, not quarters" },
+      { title: "Scalable Architecture", desc: "Solutions that grow with demand" },
+      { title: "Intelligent Systems", desc: "AI-ready and self-improving designs" },
+      { title: "Future-Proof Technology", desc: "Embracing standards that will stand the test of time" }
+    ],
+    examples: [
+      "Modular product designs for easy upgrades",
+      "AI systems that learn and improve over time",
+      "Open standards for long-term compatibility"
+    ],
+    quote: "The future belongs to those who prepare for it today.",
+    color: "green"
   }
 };
 
