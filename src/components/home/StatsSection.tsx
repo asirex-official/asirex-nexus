@@ -83,7 +83,7 @@ export function StatsSection() {
   })) || [
     { id: "1", value: 1000, suffix: "+", label: "Products Shipped Impacting Whole Nation", link: "/stats/products-shipped" },
     { id: "2", value: 5, suffix: "+", label: "Active Projects", link: "/stats/active-projects" },
-    { id: "3", value: 15, suffix: "", label: "Countries Impacted", link: "/stats/countries-impacted" },
+    { id: "3", value: 3, suffix: "+", label: "Countries Impacted", link: "/stats/countries-impacted" },
     { id: "4", value: 96, suffix: "%", label: "Customer Satisfaction", link: "/stats/customer-satisfaction" },
   ];
 
