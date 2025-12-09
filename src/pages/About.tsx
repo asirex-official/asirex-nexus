@@ -85,6 +85,10 @@ const values = [{
   icon: Zap,
   title: "Sustainable Impact",
   description: "Every innovation we build serves a greater purpose — cleaner rivers, purer air, and a healthier planet for future generations."
+}, {
+  icon: Rocket,
+  title: "Future-Driven Excellence",
+  description: "We engineer solutions built not just for today, but for the next century—scalable, intelligent, and ready for the future."
 }];
 
 const team = [{
