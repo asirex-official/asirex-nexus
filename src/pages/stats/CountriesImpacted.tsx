@@ -71,7 +71,7 @@ export default function CountriesImpacted() {
             </motion.div>
             
             <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              <span className="gradient-text">15</span> Countries Impacted
+              <span className="gradient-text">3+</span> Countries Impacted
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-4">
               From India to the World
@@ -111,10 +111,10 @@ export default function CountriesImpacted() {
             className="text-center mb-16"
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Our <span className="gradient-text">Global Footprint</span>
+              Countries We <span className="gradient-text">Impact</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Current markets and expansion plans across South and Southeast Asia.
+              India, Nepal, Bangladesh - Our current and planned markets across South Asia.
             </p>
           </motion.div>
 
@@ -211,7 +211,7 @@ export default function CountriesImpacted() {
               The Journey Has Just Begun
             </h2>
             <p className="text-lg text-muted-foreground mb-4">
-              From 15 countries today to every corner of the developing world tomorrow. Our technology 
+              From 3+ countries today to every corner of the developing world tomorrow. Our technology 
               is built to solve universal challenges—clean water, sustainable energy, accessible AI, 
               smart agriculture. These aren't just Indian problems; they're global opportunities.
             </p>
