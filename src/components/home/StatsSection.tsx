@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, useSpring, useTransform, MotionValue } from "framer-motion";
+import { motion, useInView, useSpring, MotionValue } from "framer-motion";
 import { useSiteStats } from "@/hooks/useSiteData";
+import { Link } from "react-router-dom";
 
-function AnimatedNumber({ value, duration = 2 }: { value: MotionValue<number>; duration?: number }) {
+function AnimatedNumber({ value }: { value: MotionValue<number> }) {
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
@@ -13,7 +14,7 @@ function AnimatedNumber({ value, duration = 2 }: { value: MotionValue<number>; d
   return <span className="tabular-nums">{displayValue.toLocaleString()}</span>;
 }
 
-function StatCard({ stat, index }: { stat: { value: number; suffix: string; label: string }; index: number }) {
+function StatCard({ stat, index }: { stat: { value: number; suffix: string; label: string; link: string }; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const springValue = useSpring(0, { duration: 2000, bounce: 0.1 });
@@ -25,55 +26,65 @@ function StatCard({ stat, index }: { stat: { value: number; suffix: string; labe
   }, [isInView, stat.value, springValue]);
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40, scale: 0.95 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-      whileHover={{ y: -5, transition: { duration: 0.3 } }}
-      className="relative group"
-    >
-      {/* Glow effect on hover */}
+    <Link to={stat.link}>
       <motion.div
-        className="absolute -inset-px rounded-2xl bg-gradient-to-r from-primary/50 via-accent/50 to-secondary/50 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"
-      />
-      
-      <div className="relative text-center p-8 rounded-2xl bg-card/60 border border-border/50 backdrop-blur-xl">
-        {/* Number */}
-        <div className="font-display text-3xl sm:text-4xl lg:text-5xl font-black mb-3">
-          <span className="gradient-text">
-            <AnimatedNumber value={springValue} />
-            {stat.suffix}
-          </span>
-        </div>
-        
-        {/* Label */}
-        <div className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
-          {stat.label}
-        </div>
-        
-        {/* Decorative line */}
+        ref={ref}
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+        whileHover={{ y: -8, scale: 1.02, transition: { duration: 0.3 } }}
+        className="relative group cursor-pointer"
+      >
+        {/* Glow effect on hover */}
         <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 + index * 0.1, duration: 0.6 }}
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+          className="absolute -inset-px rounded-2xl bg-gradient-to-r from-primary/50 via-accent/50 to-secondary/50 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"
         />
-      </div>
-    </motion.div>
+        
+        <div className="relative text-center p-8 rounded-2xl bg-card/60 border border-border/50 backdrop-blur-xl group-hover:border-primary/50 transition-colors">
+          {/* Number */}
+          <div className="font-display text-3xl sm:text-4xl lg:text-5xl font-black mb-3">
+            <span className="gradient-text">
+              <AnimatedNumber value={springValue} />
+              {stat.suffix}
+            </span>
+          </div>
+          
+          {/* Label */}
+          <div className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
+            {stat.label}
+          </div>
+          
+          {/* Click indicator */}
+          <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-xs text-primary">Click to learn more →</span>
+          </div>
+          
+          {/* Decorative line */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 + index * 0.1, duration: 0.6 }}
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+          />
+        </div>
+      </motion.div>
+    </Link>
   );
 }
 
 export function StatsSection() {
-  const { data: stats, isLoading } = useSiteStats();
+  const { data: stats } = useSiteStats();
 
-  const displayStats = stats || [
-    { id: "1", value: 1000, suffix: "+", label: "Products Shipped Impacting Whole Nation India" },
-    { id: "2", value: 5, suffix: "+", label: "Active Projects" },
-    { id: "3", value: 15, suffix: "", label: "Countries Impacted" },
-    { id: "4", value: 99, suffix: "%", label: "Customer Satisfaction" },
+  const displayStats = stats?.map((stat, index) => ({
+    ...stat,
+    link: ["/stats/products-shipped", "/stats/active-projects", "/stats/countries-impacted", "/stats/customer-satisfaction"][index] || "/"
+  })) || [
+    { id: "1", value: 1000, suffix: "+", label: "Products Shipped Impacting Whole Nation", link: "/stats/products-shipped" },
+    { id: "2", value: 5, suffix: "+", label: "Active Projects", link: "/stats/active-projects" },
+    { id: "3", value: 15, suffix: "", label: "Countries Impacted", link: "/stats/countries-impacted" },
+    { id: "4", value: 96, suffix: "%", label: "Customer Satisfaction", link: "/stats/customer-satisfaction" },
   ];
 
   return (
