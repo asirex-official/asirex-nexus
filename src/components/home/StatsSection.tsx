@@ -70,8 +70,8 @@ export function StatsSection() {
   const { data: stats, isLoading } = useSiteStats();
 
   const displayStats = stats || [
-    { id: "1", value: 10000, suffix: "+", label: "Devices Shipped" },
-    { id: "2", value: 25, suffix: "+", label: "Active Projects" },
+    { id: "1", value: 1000, suffix: "+", label: "Products Shipped Impacting Whole Nation India" },
+    { id: "2", value: 5, suffix: "+", label: "Active Projects" },
     { id: "3", value: 15, suffix: "", label: "Countries Impacted" },
     { id: "4", value: 99, suffix: "%", label: "Customer Satisfaction" },
   ];
