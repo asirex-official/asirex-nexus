@@ -364,8 +364,8 @@ export default function About() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
               {[
                 { icon: Users, title: "Normal Public", desc: "Affordable tech for everyday heroes", bgClass: "from-blue-500/20 to-blue-600/20", iconClass: "text-blue-400", delay: 0.1, link: "/customers/public" },
-                { icon: Briefcase, title: "Private Companies", desc: "Enterprise solutions that scale", bgClass: "from-purple-500/20 to-purple-600/20", iconClass: "text-purple-400", delay: 0.2, link: "/customers/private" },
-                { icon: Target, title: "Government", desc: "Nation-building projects", bgClass: "from-green-500/20 to-green-600/20", iconClass: "text-green-400", delay: 0.3, link: "/customers/government" }
+                { icon: Target, title: "Government", desc: "Nation-building projects", bgClass: "from-green-500/20 to-green-600/20", iconClass: "text-green-400", delay: 0.2, link: "/customers/government" },
+                { icon: Briefcase, title: "Private Companies", desc: "Enterprise solutions that scale", bgClass: "from-purple-500/20 to-purple-600/20", iconClass: "text-purple-400", delay: 0.3, link: "/customers/private" }
               ].map((customer, i) => (
                 <Link key={customer.title} to={customer.link}>
                   <motion.div
