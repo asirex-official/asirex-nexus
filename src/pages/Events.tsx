@@ -60,7 +60,7 @@ const events = [
     venue: "Cyber Hub Convention Center",
     description: "Be part of ASIREX's expansion into Laos. Exclusive product reveals, partnership announcements, and networking dinner with regional tech leaders.",
     image: "🚀",
-    price: 1499,
+    price: 0,
     capacity: 200,
     registered: 156,
     tags: ["Launch", "Networking", "Exclusive"],
