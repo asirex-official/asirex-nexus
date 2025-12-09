@@ -58,7 +58,7 @@ const events = [
     time: "9:00 AM - 6:00 PM",
     location: "Bangalore, India",
     venue: "Bangalore International Exhibition Centre",
-    description: "Join 5000+ tech enthusiasts for India's largest AI and robotics conference. Featuring keynotes from industry leaders, hands-on workshops, live Aqua Purifier demonstrations, and exclusive product launches.",
+    description: "Join 5000+ tech enthusiasts for India's largest AI and robotics conference. Featuring keynotes from industry leaders, hands-on workshops, live Aqua Purifier demonstrations, and exclusive product launches. Got your own product or partnership idea? Get a chance to pitch on stage and share your vision, suggestions, or collaboration proposals with our team and audience!",
     image: "🎯",
     price: 2999,
     capacity: 5000,
