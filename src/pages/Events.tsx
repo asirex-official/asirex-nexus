@@ -68,7 +68,7 @@ const events = [
   },
 ];
 
-const cities = ["All Locations", "Bangalore", "Mumbai", "Delhi", "Vientiane"];
+const cities = ["All Locations", "Noida", "New Delhi", "Gurugram"];
 const types = ["All Types", "Conference", "Workshop", "Meetup", "Launch"];
 
 export default function Events() {
