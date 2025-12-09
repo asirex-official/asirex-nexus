@@ -33,6 +33,10 @@ import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
 import CountriesImpacted from "./pages/stats/CountriesImpacted";
+import AIMLPage from "./pages/features/AIMLPage";
+import RoboticsPage from "./pages/features/RoboticsPage";
+import CleanTechPage from "./pages/features/CleanTechPage";
+import GlobalDeliveryPage from "./pages/features/GlobalDeliveryPage";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +69,12 @@ const App = () => (
             <Route path="/stats/customer-satisfaction" element={<CustomerSatisfaction />} />
             <Route path="/stats/active-projects" element={<ActiveProjects />} />
             <Route path="/stats/countries-impacted" element={<CountriesImpacted />} />
+            
+            {/* Feature Pages */}
+            <Route path="/features/ai-ml" element={<AIMLPage />} />
+            <Route path="/features/robotics" element={<RoboticsPage />} />
+            <Route path="/features/clean-tech" element={<CleanTechPage />} />
+            <Route path="/features/global-delivery" element={<GlobalDeliveryPage />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>

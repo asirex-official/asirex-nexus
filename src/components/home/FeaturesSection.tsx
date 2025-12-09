@@ -1,26 +1,31 @@
 import { motion } from "framer-motion";
-import { Brain, Bot, Leaf, Globe, Zap, Shield } from "lucide-react";
+import { Brain, Bot, Leaf, Globe } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const features = [
   {
     icon: Brain,
     title: "AI & Machine Learning",
     description: "Cutting-edge AI solutions from neural processors to intelligent software frameworks.",
+    link: "/features/ai-ml"
   },
   {
     icon: Bot,
     title: "Advanced Robotics",
     description: "Professional-grade robotics platforms for education, research, and industry.",
+    link: "/features/robotics"
   },
   {
     icon: Leaf,
     title: "Clean Technology",
     description: "Sustainable energy solutions and eco-friendly tech for a greener future.",
+    link: "/features/clean-tech"
   },
   {
     icon: Globe,
     title: "Global Delivery",
     description: "Worldwide shipping with local support centers across India.",
+    link: "/features/global-delivery"
   },
 ];
 
@@ -57,27 +62,33 @@ export function FeaturesSection() {
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className="group"
             >
-              <div className="glass-card p-8 h-full rounded-3xl relative overflow-hidden">
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                />
-                
-                <motion.div 
-                  className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent p-0.5 mb-6 relative"
-                  whileHover={{ rotate: 5, scale: 1.05 }}
-                >
-                  <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center">
-                    <feature.icon className="w-6 h-6 text-primary" />
-                  </div>
-                </motion.div>
+              <Link to={feature.link} className="block h-full">
+                <div className="glass-card p-8 h-full rounded-3xl relative overflow-hidden cursor-pointer">
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  />
+                  
+                  <motion.div 
+                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent p-0.5 mb-6 relative"
+                    whileHover={{ rotate: 5, scale: 1.05 }}
+                  >
+                    <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center">
+                      <feature.icon className="w-6 h-6 text-primary" />
+                    </div>
+                  </motion.div>
 
-                <h3 className="font-display text-xl font-bold mb-3 group-hover:text-primary transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+                  <h3 className="font-display text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+                  
+                  <div className="mt-4 text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    Learn more →
+                  </div>
+                </div>
+              </Link>
             </motion.div>
           ))}
         </div>
