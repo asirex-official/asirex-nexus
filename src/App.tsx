@@ -12,6 +12,14 @@ import Events from "./pages/Events";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import SupportUs from "./pages/SupportUs";
+import PublicCustomers from "./pages/customers/PublicCustomers";
+import PrivateCompanies from "./pages/customers/PrivateCompanies";
+import GovernmentCustomers from "./pages/customers/GovernmentCustomers";
+import Mission from "./pages/values/Mission";
+import Vision from "./pages/values/Vision";
+import CoreValue from "./pages/values/CoreValue";
+import TeamMember from "./pages/team/TeamMember";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import ProductsManager from "./pages/admin/ProductsManager";
@@ -39,6 +47,14 @@ const App = () => (
             <Route path="/events" element={<Events />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/support-us" element={<SupportUs />} />
+            <Route path="/customers/public" element={<PublicCustomers />} />
+            <Route path="/customers/private" element={<PrivateCompanies />} />
+            <Route path="/customers/government" element={<GovernmentCustomers />} />
+            <Route path="/values/mission" element={<Mission />} />
+            <Route path="/values/vision" element={<Vision />} />
+            <Route path="/values/:valueId" element={<CoreValue />} />
+            <Route path="/team/:memberId" element={<TeamMember />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
