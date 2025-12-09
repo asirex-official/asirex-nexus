@@ -38,7 +38,7 @@ export default function CountriesImpacted() {
     {
       icon: Handshake,
       title: "Strategic Partnerships",
-      description: "Collaborating with governments, NGOs, and businesses to maximize our positive impact."
+      description: "Working with governments, NGOs, and businesses to maximize our positive impact."
     },
     {
       icon: Users,
