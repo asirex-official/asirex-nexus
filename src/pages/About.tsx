@@ -78,6 +78,10 @@ const values = [{
   title: "Customer Obsession",
   description: "Every product is crafted with passion, designed with precision, and built for the people who matter most."
 }, {
+  icon: Sparkles,
+  title: "Collaborative Spirit",
+  description: "Together we rise. Open innovation, shared dreams, and the power of community drive us forward."
+}, {
   icon: Users,
   title: "Future-Driven Excellence",
   description: "We engineer solutions built not just for today, but for the next century—scalable, intelligent, and ready for the future."
@@ -529,7 +533,7 @@ export default function About() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={containerVariants}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6"
           >
             {values.map((value, index) => (
               <motion.div 
