@@ -29,6 +29,10 @@ import ContentManager from "./pages/admin/ContentManager";
 import MessagesManager from "./pages/admin/MessagesManager";
 import OrdersManager from "./pages/admin/OrdersManager";
 import SettingsManager from "./pages/admin/SettingsManager";
+import ProductsShipped from "./pages/stats/ProductsShipped";
+import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
+import ActiveProjects from "./pages/stats/ActiveProjects";
+import CountriesImpacted from "./pages/stats/CountriesImpacted";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +59,12 @@ const App = () => (
             <Route path="/values/vision" element={<Vision />} />
             <Route path="/values/:valueId" element={<CoreValue />} />
             <Route path="/team/:memberId" element={<TeamMember />} />
+            
+            {/* Stats Pages */}
+            <Route path="/stats/products-shipped" element={<ProductsShipped />} />
+            <Route path="/stats/customer-satisfaction" element={<CustomerSatisfaction />} />
+            <Route path="/stats/active-projects" element={<ActiveProjects />} />
+            <Route path="/stats/countries-impacted" element={<CountriesImpacted />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
