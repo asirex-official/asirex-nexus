@@ -18,92 +18,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const products = [
-  {
-    id: 1,
-    name: "ASIREX Neural Core X1",
-    category: "AI Hardware",
-    price: 49999,
-    originalPrice: 59999,
-    rating: 4.9,
-    reviews: 128,
-    image: "🧠",
-    badge: "Best Seller",
-    description: "Next-gen AI processing unit for edge computing with 8 TOPS of computing power.",
-    specs: ["8 TOPS AI Performance", "16GB LPDDR5 Memory", "USB-C & HDMI Ports", "Linux/Windows Support"],
-    inStock: true,
-  },
-  {
-    id: 2,
-    name: "RoboKit Pro 2024",
-    category: "Robotics",
-    price: 34999,
-    originalPrice: null,
-    rating: 4.8,
-    reviews: 89,
-    image: "🤖",
-    badge: "New",
-    description: "Complete robotics development platform with 6-axis arm and AI vision system.",
-    specs: ["6-Axis Robotic Arm", "AI Vision Camera", "Python SDK", "Mobile App Control"],
-    inStock: true,
-  },
-  {
-    id: 3,
-    name: "CleanTech Solar Module",
-    category: "Clean Tech",
-    price: 24999,
-    originalPrice: 29999,
-    rating: 4.7,
-    reviews: 156,
-    image: "☀️",
-    badge: null,
-    description: "High-efficiency 400W solar panel with smart monitoring and battery integration.",
-    specs: ["400W Output", "Smart Monitoring", "25 Year Warranty", "Weather Resistant"],
-    inStock: true,
-  },
-  {
-    id: 4,
-    name: "Dev Board Elite",
-    category: "Developer Tools",
-    price: 12999,
-    originalPrice: null,
-    rating: 4.9,
-    reviews: 234,
-    image: "⚡",
-    badge: "Popular",
-    description: "Professional development board with AI acceleration and extensive I/O options.",
-    specs: ["ARM Cortex-A72", "4GB RAM", "32GB eMMC", "40-pin GPIO"],
-    inStock: true,
-  },
-  {
-    id: 5,
-    name: "Smart Drone Kit S1",
-    category: "Robotics",
-    price: 45999,
-    originalPrice: 54999,
-    rating: 4.6,
-    reviews: 67,
-    image: "🚁",
-    badge: null,
-    description: "Autonomous drone platform with GPS, obstacle avoidance and custom programming.",
-    specs: ["30 Min Flight Time", "4K Camera", "GPS Navigation", "SDK Access"],
-    inStock: false,
-  },
-  {
-    id: 6,
-    name: "AI Sensor Array",
-    category: "AI Hardware",
-    price: 18999,
-    originalPrice: null,
-    rating: 4.8,
-    reviews: 91,
-    image: "📡",
-    badge: null,
-    description: "Multi-sensor array with LIDAR, thermal and ultrasonic sensing capabilities.",
-    specs: ["LIDAR 360°", "Thermal Imaging", "Ultrasonic", "I2C/SPI Interface"],
-    inStock: true,
-  },
-];
+const products: Array<{
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  originalPrice: number | null;
+  rating: number;
+  reviews: number;
+  image: string;
+  badge: string | null;
+  description: string;
+  specs: string[];
+  inStock: boolean;
+}> = [];
 
 const categories = ["All", "AI Hardware", "Robotics", "Clean Tech", "Developer Tools"];
 
