@@ -121,11 +121,6 @@ const openPositions = [{
   type: "Full-time",
   salary: "5-15 LPA"
 }, {
-  title: "Sales Manager - Laos",
-  location: "Vientiane",
-  type: "Full-time",
-  salary: "Per Sale Commission"
-}, {
   title: "Machine Learning Engineer",
   location: "India",
   type: "Full-time",

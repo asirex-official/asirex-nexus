@@ -14,13 +14,6 @@ export default function CountriesImpacted() {
       highlights: ["28+ States Covered", "500+ Cities", "Growing Rural Presence"]
     },
     {
-      name: "Laos",
-      flag: "🇱🇦",
-      status: "Expansion",
-      description: "Strategic expansion into Southeast Asia, bringing ASIREX innovation to our neighboring nations.",
-      highlights: ["Upcoming Launch Event", "Partnership Discussions", "Market Research Complete"]
-    },
-    {
       name: "Nepal",
       flag: "🇳🇵",
       status: "Planned",
