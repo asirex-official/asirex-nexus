@@ -220,11 +220,14 @@ export default function AuthorityLogin() {
       });
       return;
     }
-    // For hired positions, show login prompt
-    toast({
-      title: `Welcome, ${card.name}`,
-      description: "Please use your company email and password to login.",
+    // Navigate to card login page with user details
+    const params = new URLSearchParams({
+      name: card.name || "",
+      title: card.title,
+      id: card.id,
+      department: card.department,
     });
+    navigate(`/card-login?${params.toString()}`);
   };
 
   const AuthorityIcon = authority.icon;

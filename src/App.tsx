@@ -12,6 +12,7 @@ import Events from "./pages/Events";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import AuthorityLogin from "./pages/AuthorityLogin";
+import CardLogin from "./pages/CardLogin";
 import NotFound from "./pages/NotFound";
 import SupportUs from "./pages/SupportUs";
 import PublicCustomers from "./pages/customers/PublicCustomers";
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/authority-login" element={<AuthorityLogin />} />
+            <Route path="/card-login" element={<CardLogin />} />
             <Route path="/support-us" element={<SupportUs />} />
             <Route path="/customers/public" element={<PublicCustomers />} />
             <Route path="/customers/private" element={<PrivateCompanies />} />
