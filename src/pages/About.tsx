@@ -93,10 +93,10 @@ const team = [{
   emoji: "👨‍💼",
   slug: "kapeesh-sorout"
 }, {
-  name: "Ayush Soni",
+  name: "It can be you",
   role: "Website Admin and SWE",
-  emoji: "👩‍💻",
-  slug: "ayush-soni"
+  emoji: "+",
+  slug: "open-position-swe"
 }, {
   name: "It can be you",
   role: "Sales Manager and Head",
