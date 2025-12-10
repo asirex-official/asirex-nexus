@@ -104,12 +104,7 @@ export default function Auth() {
   };
 
   const handleAdminRoleSelect = (roleId: string) => {
-    setSelectedRole(roleId);
-    setShowAdminOptions(false);
-    toast({
-      title: "Admin Login Selected",
-      description: "Please enter your credentials to continue.",
-    });
+    navigate(`/authority-login?type=${roleId}`);
   };
 
   return (
