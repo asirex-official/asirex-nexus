@@ -13,7 +13,7 @@ const authorityTypes = {
   admin: {
     label: "Admin Login",
     icon: Shield,
-    description: "Super Admins and Admins with full system access",
+    description: "Super Admins, Core Pillars, and Website Admin & SWE",
     color: "from-red-500/20 to-orange-500/20",
   },
   manager: {
