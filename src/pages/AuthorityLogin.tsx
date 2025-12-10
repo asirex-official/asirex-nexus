@@ -33,6 +33,15 @@ const authorityTypes = {
 // Admin role cards - Core Pillars and Website Admin/SWE
 const adminRoleCards = [
   {
+    id: "ASX-2025-000",
+    title: "CEO and Founder",
+    name: "Kapeesh Sorout",
+    coreType: "Core Pillar",
+    department: "Executive Leadership",
+    isHired: true,
+    photoUrl: null,
+  },
+  {
     id: "ASX-2025-001",
     title: "Production Head and Manager",
     name: "Vaibhav Ghatwal",
