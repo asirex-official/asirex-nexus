@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, ArrowLeft, Shield, Users, Briefcase } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, Shield, Users, Briefcase, LockKeyhole, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,108 @@ const authorityTypes = {
     color: "from-green-500/20 to-emerald-500/20",
   },
 };
+
+// Role cards with job positions - some are filled, some are vacant
+const roleCards = [
+  {
+    id: "ceo-founder",
+    title: "CEO & Founder",
+    name: "Kapeesh Sorout",
+    isHired: true,
+    emoji: "👨‍💼",
+  },
+  {
+    id: "production-head",
+    title: "Production Head and Manager",
+    name: "Vaibhav Ghatwal",
+    isHired: true,
+    emoji: "🌱",
+  },
+  {
+    id: "senior-ai-engineer",
+    title: "Senior AI Engineer",
+    name: null,
+    isHired: false,
+    emoji: "🤖",
+  },
+  {
+    id: "robotics-developer",
+    title: "Robotics Software Developer",
+    name: null,
+    isHired: false,
+    emoji: "⚙️",
+  },
+  {
+    id: "product-designer",
+    title: "Product Designer",
+    name: null,
+    isHired: false,
+    emoji: "🎨",
+  },
+  {
+    id: "ml-engineer",
+    title: "Machine Learning Engineer",
+    name: null,
+    isHired: false,
+    emoji: "🧠",
+  },
+  {
+    id: "embedded-systems",
+    title: "Embedded Systems Developer",
+    name: null,
+    isHired: false,
+    emoji: "💻",
+  },
+  {
+    id: "marketing-manager",
+    title: "Marketing Manager",
+    name: null,
+    isHired: false,
+    emoji: "📈",
+  },
+  {
+    id: "hardware-engineer",
+    title: "Hardware Engineer",
+    name: null,
+    isHired: false,
+    emoji: "🔧",
+  },
+  {
+    id: "content-writer",
+    title: "Content Writer & Social Media",
+    name: null,
+    isHired: false,
+    emoji: "✍️",
+  },
+  {
+    id: "business-dev",
+    title: "Business Development Executive",
+    name: null,
+    isHired: false,
+    emoji: "💼",
+  },
+  {
+    id: "website-admin-swe",
+    title: "Website Admin and SWE",
+    name: null,
+    isHired: false,
+    emoji: "🌐",
+  },
+  {
+    id: "sales-manager",
+    title: "Sales Manager and Head",
+    name: null,
+    isHired: false,
+    emoji: "📊",
+  },
+  {
+    id: "rd-lead",
+    title: "Engineering and Research & Development Lead",
+    name: null,
+    isHired: false,
+    emoji: "🔬",
+  },
+];
 
 export default function AuthorityLogin() {
   const [searchParams] = useSearchParams();
@@ -68,8 +170,131 @@ export default function AuthorityLogin() {
     }
   };
 
+  const handleRoleCardClick = (card: typeof roleCards[0]) => {
+    if (!card.isHired) {
+      toast({
+        title: "Position Vacant",
+        description: "This role is not yet filled. Apply for this position through our careers page!",
+        variant: "destructive",
+      });
+      return;
+    }
+    // For hired positions, show login prompt
+    toast({
+      title: `Welcome, ${card.name}`,
+      description: "Please use your company email and password to login.",
+    });
+  };
+
   const AuthorityIcon = authority.icon;
 
+  // Show role cards for manager type
+  if (authorityType === "manager") {
+    return (
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className={`fixed inset-0 bg-gradient-to-br ${authority.color} opacity-30 pointer-events-none`} />
+        
+        <div className="container mx-auto max-w-6xl relative">
+          <Link 
+            to="/auth" 
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Login
+          </Link>
+
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-10"
+          >
+            <div className="flex items-center justify-center mb-4">
+              <div className={`p-4 rounded-full bg-gradient-to-br ${authority.color} border border-border/50`}>
+                <AuthorityIcon className="w-8 h-8 text-foreground" />
+              </div>
+            </div>
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+              {authority.label}
+            </h1>
+            <p className="text-muted-foreground">
+              Select your role card to login
+            </p>
+          </motion.div>
+
+          {/* Role Cards Grid */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"
+          >
+            {roleCards.map((card, index) => (
+              <motion.div
+                key={card.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                onClick={() => handleRoleCardClick(card)}
+                className={`
+                  glass-card p-5 cursor-pointer transition-all duration-300
+                  ${card.isHired 
+                    ? "hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10" 
+                    : "opacity-60 cursor-not-allowed border-destructive/30"
+                  }
+                `}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`
+                    text-3xl w-12 h-12 rounded-lg flex items-center justify-center
+                    ${card.isHired ? "bg-primary/10" : "bg-destructive/10"}
+                  `}>
+                    {card.isHired ? card.emoji : <LockKeyhole className="w-5 h-5 text-destructive" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm text-foreground truncate">
+                      {card.title}
+                    </h3>
+                    {card.isHired ? (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <UserCheck className="w-3.5 h-3.5 text-green-500" />
+                        <span className="text-sm text-green-500 font-medium">{card.name}</span>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-destructive font-medium mt-1">
+                        Card not activated - No one hired
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Support Contact */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center"
+          >
+            <p className="text-muted-foreground text-sm mb-3">
+              Can't find your Login card?
+            </p>
+            <a 
+              href="mailto:Support@asirex.in"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Mail className="w-4 h-4" />
+              Contact Support@asirex.in
+            </a>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default email/password login for admin and employee types
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className={`absolute inset-0 bg-gradient-to-br ${authority.color} opacity-50`} />
