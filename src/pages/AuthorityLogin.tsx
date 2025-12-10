@@ -59,6 +59,15 @@ const adminRoleCards = [
     isHired: false,
     photoUrl: null,
   },
+  {
+    id: "ASX-2025-012",
+    title: "Sales Lead and Head",
+    name: null,
+    coreType: "Core Pillar",
+    department: "Sales",
+    isHired: false,
+    photoUrl: null,
+  },
 ];
 
 // Manager role cards - Managers, Developers, Core Members (excluding Core Pillars)
@@ -141,15 +150,6 @@ const managerRoleCards = [
     name: null,
     coreType: "Manager",
     department: "Business Development",
-    isHired: false,
-    photoUrl: null,
-  },
-  {
-    id: "ASX-2025-012",
-    title: "Sales Manager and Head",
-    name: null,
-    coreType: "Manager",
-    department: "Sales",
     isHired: false,
     photoUrl: null,
   },
