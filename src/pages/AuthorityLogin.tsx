@@ -37,7 +37,7 @@ const adminRoleCards = [
     title: "CEO and Founder",
     name: "Kapeesh Sorout",
     coreType: "Founding Core",
-    department: "Founding Core",
+    department: "Executive Leadership",
     isHired: true,
     photoUrl: null,
   },
