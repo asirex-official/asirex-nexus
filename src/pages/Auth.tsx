@@ -244,7 +244,7 @@ export default function Auth() {
               className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
             >
               <Shield className="w-4 h-4" />
-              Login as Admin
+              Login as Authority
               <ChevronDown className={`w-4 h-4 transition-transform ${showAdminOptions ? 'rotate-180' : ''}`} />
             </button>
 
