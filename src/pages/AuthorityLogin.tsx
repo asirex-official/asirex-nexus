@@ -43,7 +43,7 @@ const adminRoleCards = [
   },
   {
     id: "ASX-2025-014",
-    title: "Managing Team Lead",
+    title: "Core Members and Managing Team Lead",
     name: null,
     coreType: "Core Pillar",
     department: "Management",
