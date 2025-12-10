@@ -30,8 +30,8 @@ const authorityTypes = {
   },
 };
 
-// Role cards with job positions - some are filled, some are vacant
-const roleCards = [
+// Admin role cards - Core Pillars and Website Admin/SWE
+const adminRoleCards = [
   {
     id: "ASX-2025-001",
     title: "Production Head and Manager",
@@ -41,6 +41,28 @@ const roleCards = [
     isHired: true,
     photoUrl: null,
   },
+  {
+    id: "ASX-2025-011",
+    title: "Website Admin and SWE",
+    name: null,
+    coreType: "Developer",
+    department: "Software Engineering",
+    isHired: false,
+    photoUrl: null,
+  },
+  {
+    id: "ASX-2025-013",
+    title: "Engineering and R&D Lead",
+    name: null,
+    coreType: "Core Pillar",
+    department: "Research & Development",
+    isHired: false,
+    photoUrl: null,
+  },
+];
+
+// Manager role cards - Managers, Developers, Core Members (excluding Core Pillars)
+const managerRoleCards = [
   {
     id: "ASX-2025-002",
     title: "Senior AI Engineer",
@@ -123,29 +145,11 @@ const roleCards = [
     photoUrl: null,
   },
   {
-    id: "ASX-2025-011",
-    title: "Website Admin and SWE",
-    name: null,
-    coreType: "Developer",
-    department: "Software Engineering",
-    isHired: false,
-    photoUrl: null,
-  },
-  {
     id: "ASX-2025-012",
     title: "Sales Manager and Head",
     name: null,
     coreType: "Manager",
     department: "Sales",
-    isHired: false,
-    photoUrl: null,
-  },
-  {
-    id: "ASX-2025-013",
-    title: "Engineering and R&D Lead",
-    name: null,
-    coreType: "Core Pillar",
-    department: "Research & Development",
     isHired: false,
     photoUrl: null,
   },
@@ -189,7 +193,7 @@ export default function AuthorityLogin() {
     }
   };
 
-  const handleRoleCardClick = (card: typeof roleCards[0]) => {
+  const handleRoleCardClick = (card: typeof adminRoleCards[0]) => {
     if (!card.isHired) {
       toast({
         title: "Position Vacant",
@@ -206,6 +210,148 @@ export default function AuthorityLogin() {
   };
 
   const AuthorityIcon = authority.icon;
+
+  // Show role cards for admin type (Core Pillars, Website Admin/SWE)
+  if (authorityType === "admin") {
+    return (
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className={`fixed inset-0 bg-gradient-to-br ${authority.color} opacity-30 pointer-events-none`} />
+        
+        <div className="container mx-auto max-w-6xl relative">
+          <Link 
+            to="/auth" 
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Login
+          </Link>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-10"
+          >
+            <div className="flex items-center justify-center mb-4">
+              <div className={`p-4 rounded-full bg-gradient-to-br ${authority.color} border border-border/50`}>
+                <AuthorityIcon className="w-8 h-8 text-foreground" />
+              </div>
+            </div>
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+              {authority.label}
+            </h1>
+            <p className="text-muted-foreground">
+              Core Pillars & Website Admin - Select your role card
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 max-w-5xl mx-auto"
+          >
+            {adminRoleCards.map((card, index) => (
+              <motion.div
+                key={card.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                onClick={() => handleRoleCardClick(card)}
+                className={`
+                  relative overflow-hidden rounded-xl border-2 transition-all duration-300
+                  ${card.isHired 
+                    ? "bg-gradient-to-br from-background via-primary/5 to-background border-primary/40 hover:border-primary hover:shadow-2xl hover:shadow-primary/20 cursor-pointer hover:scale-[1.02]" 
+                    : "bg-gradient-to-br from-background via-destructive/5 to-background border-destructive/30 cursor-not-allowed opacity-70"
+                  }
+                `}
+              >
+                <div className={`px-4 py-3 border-b ${card.isHired ? "bg-primary/10 border-primary/20" : "bg-destructive/10 border-destructive/20"}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold tracking-wider text-muted-foreground">ASIREX ID CARD</span>
+                    <span className={`text-xs font-mono ${card.isHired ? "text-primary" : "text-destructive"}`}>{card.id}</span>
+                  </div>
+                </div>
+                
+                <div className="p-5 flex gap-5">
+                  <div className={`
+                    w-24 h-28 rounded-lg border-2 flex items-center justify-center flex-shrink-0
+                    ${card.isHired 
+                      ? "bg-primary/10 border-primary/30" 
+                      : "bg-destructive/5 border-destructive/20"
+                    }
+                  `}>
+                    {card.isHired ? (
+                      <User className="w-12 h-12 text-primary/60" />
+                    ) : (
+                      <LockKeyhole className="w-10 h-10 text-destructive/50" />
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Name</p>
+                      <p className={`font-bold text-base ${card.isHired ? "text-foreground" : "text-destructive"}`}>
+                        {card.isHired ? card.name : "— VACANT —"}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Designation</p>
+                      <p className="font-semibold text-sm text-foreground">{card.title}</p>
+                    </div>
+                    
+                    <div className="flex gap-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Core Type</p>
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                          card.coreType === "Core Pillar" ? "bg-yellow-500/20 text-yellow-400" :
+                          card.coreType === "Manager" ? "bg-blue-500/20 text-blue-400" :
+                          card.coreType === "Developer" ? "bg-green-500/20 text-green-400" :
+                          "bg-purple-500/20 text-purple-400"
+                        }`}>
+                          {card.coreType}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Dept</p>
+                        <p className="text-xs text-muted-foreground">{card.department}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className={`px-4 py-2 border-t text-center ${card.isHired ? "bg-primary/5 border-primary/10" : "bg-destructive/5 border-destructive/10"}`}>
+                  {card.isHired ? (
+                    <p className="text-xs text-primary font-medium">Click to Login →</p>
+                  ) : (
+                    <p className="text-xs text-destructive font-medium">Card Not Activated • No Admin Hired</p>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center"
+          >
+            <p className="text-muted-foreground text-sm mb-3">
+              Can't find your Login card?
+            </p>
+            <a 
+              href="mailto:Support@asirex.in"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Mail className="w-4 h-4" />
+              Contact Support@asirex.in
+            </a>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   // Show role cards for manager type
   if (authorityType === "manager") {
@@ -248,7 +394,7 @@ export default function AuthorityLogin() {
             transition={{ delay: 0.2 }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 max-w-5xl mx-auto"
           >
-            {roleCards.map((card, index) => (
+            {managerRoleCards.map((card, index) => (
               <motion.div
                 key={card.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -360,7 +506,7 @@ export default function AuthorityLogin() {
     );
   }
 
-  // Default email/password login for admin and employee types
+  // Default email/password login for employee type
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className={`absolute inset-0 bg-gradient-to-br ${authority.color} opacity-50`} />
