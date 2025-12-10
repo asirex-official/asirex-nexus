@@ -40,11 +40,19 @@ const CardLogin = () => {
     }
     
     setIsLoading(true);
-    // Simulate authentication
+    
+    // Authenticate with password
     setTimeout(() => {
-      setIsLoading(false);
-      toast.success(`Welcome back, ${name.split(" ")[0]}!`);
-      navigate(getDashboardRoute());
+      if (password === "Jaath@0422") {
+        setIsLoading(false);
+        toast.success(`Welcome back, ${name.split(" ")[0]}!`);
+        navigate(getDashboardRoute());
+      } else {
+        setIsLoading(false);
+        toast.error("Invalid password", {
+          description: "Please check your credentials and try again."
+        });
+      }
     }, 1500);
   };
 
