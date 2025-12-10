@@ -110,6 +110,126 @@ export type Database = {
         }
         Relationships: []
       }
+      job_postings: {
+        Row: {
+          created_at: string
+          department: string
+          description: string | null
+          employment_type: string | null
+          id: string
+          is_active: boolean | null
+          location: string | null
+          posted_by: string | null
+          requirements: Json | null
+          salary_range: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          description?: string | null
+          employment_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          posted_by?: string | null
+          requirements?: Json | null
+          salary_range?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          description?: string | null
+          employment_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          posted_by?: string | null
+          requirements?: Json | null
+          salary_range?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          attendees: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          meeting_date: string
+          meeting_link: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          meeting_date: string
+          meeting_link?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          meeting_date?: string
+          meeting_link?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notices: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          posted_by: string | null
+          priority: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          posted_by?: string | null
+          priority?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          posted_by?: string | null
+          priority?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
@@ -350,6 +470,102 @@ export type Database = {
           suffix?: string | null
           updated_at?: string
           value?: number
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_by: string | null
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          bonus: number | null
+          created_at: string
+          department: string | null
+          designation: string | null
+          email: string
+          hired_at: string | null
+          id: string
+          is_core_pillar: boolean | null
+          name: string
+          profile_image: string | null
+          role: string
+          salary: number | null
+          serial_number: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          bonus?: number | null
+          created_at?: string
+          department?: string | null
+          designation?: string | null
+          email: string
+          hired_at?: string | null
+          id?: string
+          is_core_pillar?: boolean | null
+          name: string
+          profile_image?: string | null
+          role: string
+          salary?: number | null
+          serial_number?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          bonus?: number | null
+          created_at?: string
+          department?: string | null
+          designation?: string | null
+          email?: string
+          hired_at?: string | null
+          id?: string
+          is_core_pillar?: boolean | null
+          name?: string
+          profile_image?: string | null
+          role?: string
+          salary?: number | null
+          serial_number?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Package, FolderKanban, Calendar, Briefcase, Upload, DollarSign, MapPin, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type ContentType = "product" | "project" | "event" | "job";
 
@@ -58,23 +59,78 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    onAdd(formData);
-    
-    const messages = {
-      product: "Product added successfully!",
-      project: "Project created successfully!",
-      event: "Event added successfully!",
-      job: "Job posting created successfully!",
-    };
-    
-    toast.success(messages[contentType]);
-    setFormData({});
-    setIsSubmitting(false);
-    onOpenChange(false);
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+
+      if (contentType === "product") {
+        const { error } = await supabase.from('products').insert({
+          name: formData.name,
+          price: parseFloat(formData.price?.replace(/[₹,]/g, '') || '0'),
+          category: formData.category || 'General',
+          description: formData.description,
+          stock_status: formData.stock || 'in_stock',
+        });
+        if (error) throw error;
+      } else if (contentType === "project") {
+        const { error } = await supabase.from('projects').insert({
+          title: formData.title,
+          tagline: formData.tagline,
+          description: formData.description,
+          status: formData.status || 'In Development',
+          progress_percentage: parseInt(formData.progress || '0'),
+          launch_date: formData.launchDate,
+        });
+        if (error) throw error;
+      } else if (contentType === "event") {
+        const eventDate = formData.date && formData.time 
+          ? `${formData.date}T${formData.time}:00`
+          : formData.date 
+          ? `${formData.date}T00:00:00`
+          : new Date().toISOString();
+        
+        const { error } = await supabase.from('events').insert({
+          name: formData.name,
+          description: formData.description,
+          event_date: eventDate,
+          location: formData.location,
+          capacity: formData.capacity ? parseInt(formData.capacity) : null,
+          ticket_price: formData.ticketPrice === 'Free' ? 0 : parseFloat(formData.ticketPrice?.replace(/[₹,]/g, '') || '0'),
+        });
+        if (error) throw error;
+      } else if (contentType === "job") {
+        const { error } = await supabase.from('job_postings').insert({
+          title: formData.title,
+          department: formData.department,
+          description: formData.description,
+          requirements: formData.requirements ? formData.requirements.split('\n') : [],
+          salary_range: formData.salary,
+          location: formData.location,
+          employment_type: formData.type?.toLowerCase().replace(' ', '-') || 'full-time',
+          posted_by: userData?.user?.id || null,
+        });
+        if (error) throw error;
+      }
+
+      onAdd(formData);
+      
+      const messages = {
+        product: "Product added successfully!",
+        project: "Project created successfully!",
+        event: "Event added successfully!",
+        job: "Job posting created successfully!",
+      };
+      
+      toast.success(messages[contentType]);
+      setFormData({});
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error(`Error adding ${contentType}:`, error);
+      toast.error(error.message || `Failed to add ${contentType}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderForm = () => {
