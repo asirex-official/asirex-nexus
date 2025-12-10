@@ -42,6 +42,7 @@ import GlobalDeliveryPage from "./pages/features/GlobalDeliveryPage";
 import CEODashboard from "./pages/dashboards/CEODashboard";
 import DeveloperDashboard from "./pages/dashboards/DeveloperDashboard";
 import CorePillarDashboard from "./pages/dashboards/CorePillarDashboard";
+import VisualEditor from "./pages/admin/VisualEditor";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/dashboard/ceo" element={<CEODashboard />} />
             <Route path="/dashboard/developer" element={<DeveloperDashboard />} />
             <Route path="/dashboard/core-pillar" element={<CorePillarDashboard />} />
+            <Route path="/admin/visual-editor" element={<VisualEditor />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>

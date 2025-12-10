@@ -132,12 +132,12 @@ const CEODashboard = () => {
   ];
 
   const websiteActions = [
-    { label: "Edit Homepage", icon: Home, color: "bg-primary/10 text-primary", action: () => toast.info("Visual editor coming soon") },
-    { label: "Edit About Page", icon: Building, color: "bg-blue-500/10 text-blue-500", action: () => toast.info("Visual editor coming soon") },
-    { label: "Edit Shop", icon: ShoppingBag, color: "bg-green-500/10 text-green-500", action: () => navigate("/admin/products") },
-    { label: "Edit Projects", icon: Layers, color: "bg-purple-500/10 text-purple-500", action: () => navigate("/admin/projects") },
-    { label: "Edit Events", icon: Calendar, color: "bg-orange-500/10 text-orange-500", action: () => navigate("/admin/events") },
-    { label: "Design System", icon: Palette, color: "bg-pink-500/10 text-pink-500", action: () => toast.info("Design system editor coming soon") },
+    { label: "Edit Homepage", icon: Home, color: "bg-primary/10 text-primary", action: () => navigate("/admin/visual-editor?page=homepage") },
+    { label: "Edit About Page", icon: Building, color: "bg-blue-500/10 text-blue-500", action: () => navigate("/admin/visual-editor?page=about") },
+    { label: "Edit Shop", icon: ShoppingBag, color: "bg-green-500/10 text-green-500", action: () => navigate("/admin/visual-editor?page=shop") },
+    { label: "Edit Projects", icon: Layers, color: "bg-purple-500/10 text-purple-500", action: () => navigate("/admin/visual-editor?page=projects") },
+    { label: "Edit Events", icon: Calendar, color: "bg-orange-500/10 text-orange-500", action: () => navigate("/admin/visual-editor?page=events") },
+    { label: "Design System", icon: Palette, color: "bg-pink-500/10 text-pink-500", action: () => navigate("/admin/visual-editor?page=design-system") },
     { label: "View Analytics", icon: PieChart, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Analytics dashboard coming soon") },
     { label: "SEO Settings", icon: Search, color: "bg-yellow-500/10 text-yellow-500", action: () => toast.info("SEO settings coming soon") },
   ];
