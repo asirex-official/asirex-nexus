@@ -278,7 +278,7 @@ export default function AuthorityLogin() {
                 className={`
                   relative overflow-hidden rounded-xl border-2 transition-all duration-300
                   ${index === 0 ? "sm:col-start-1 sm:col-end-3 sm:justify-self-center sm:w-full sm:max-w-md" : ""}
-                  ${index === adminRoleCards.length - 1 && (adminRoleCards.length - 1) % 2 === 0 ? "sm:col-start-1 sm:col-end-3 sm:justify-self-center sm:w-full sm:max-w-md" : ""}
+                  ${index === adminRoleCards.length - 1 && index % 2 === 1 ? "sm:col-start-1 sm:col-end-3 sm:justify-self-center sm:w-full sm:max-w-md" : ""}
                   ${card.isHired 
                     ? "bg-gradient-to-br from-background via-primary/5 to-background border-primary/40 hover:border-primary hover:shadow-2xl hover:shadow-primary/20 cursor-pointer hover:scale-[1.02]" 
                     : "bg-gradient-to-br from-background via-destructive/5 to-background border-destructive/30 cursor-not-allowed opacity-70"
