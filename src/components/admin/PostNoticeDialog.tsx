@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Megaphone, Send, Users, AlertTriangle, Info, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Notice {
-  id: number;
+  id: string;
   title: string;
   content: string;
   priority: "high" | "medium" | "low";
@@ -50,24 +51,45 @@ export function PostNoticeDialog({ open, onOpenChange, onPost }: PostNoticeDialo
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const newNotice: Notice = {
-      id: Date.now(),
-      title: formData.title,
-      content: formData.content,
-      priority: formData.priority as "high" | "medium" | "low",
-      to: recipients.find(r => r.value === formData.to)?.label || formData.to,
-      date: "Just now",
-      author: "Kapeesh Sorout",
-    };
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase
+        .from('notices')
+        .insert({
+          title: formData.title,
+          content: formData.content,
+          priority: formData.priority,
+          posted_by: userData?.user?.id || null,
+          is_active: true,
+        })
+        .select()
+        .single();
 
-    onPost(newNotice);
-    toast.success("Notice posted successfully!");
-    
-    setFormData({ title: "", content: "", priority: "", to: "" });
-    setIsSubmitting(false);
-    onOpenChange(false);
+      if (error) throw error;
+
+      const newNotice: Notice = {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        priority: data.priority as "high" | "medium" | "low",
+        to: recipients.find(r => r.value === formData.to)?.label || formData.to,
+        date: "Just now",
+        author: "Kapeesh Sorout",
+      };
+
+      onPost(newNotice);
+      toast.success("Notice posted successfully!");
+      
+      setFormData({ title: "", content: "", priority: "", to: "" });
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error posting notice:", error);
+      toast.error(error.message || "Failed to post notice");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getPriorityIcon = (priority: string) => {

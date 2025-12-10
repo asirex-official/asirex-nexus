@@ -6,7 +6,7 @@ import {
   Shield, TrendingUp, Briefcase, Megaphone, FileText, Video, LogOut, Crown, Zap, Globe,
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
-  Award, Gift, Target, BarChart3,
+  Award, Gift, Target, BarChart3, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,10 +19,28 @@ import { TeamActionDialog } from "@/components/admin/TeamActionDialog";
 import { PostNoticeDialog, Notice } from "@/components/admin/PostNoticeDialog";
 import { AddContentDialog } from "@/components/admin/AddContentDialog";
 import { StartMeetingDialog } from "@/components/admin/StartMeetingDialog";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+}
+
+interface DashboardStats {
+  teamCount: number;
+  projectsCount: number;
+  productsCount: number;
+  ordersCount: number;
+  totalRevenue: number;
+  pendingOrdersValue: number;
+}
 
 const CEODashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isLoading, setIsLoading] = useState(true);
   
   // Dialog states
   const [showAddMember, setShowAddMember] = useState(false);
@@ -33,76 +51,222 @@ const CEODashboard = () => {
   const [contentType, setContentType] = useState<"product" | "project" | "event" | "job" | null>(null);
 
   // Data states
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
-    const saved = localStorage.getItem("asirex_team_members");
-    return saved ? JSON.parse(saved) : [
-      {
-        id: "ASX-2025-001",
-        name: "Kapeesh Sorout",
-        role: "CEO & Founder",
-        department: "Executive Leadership",
-        status: "active",
-        joinDate: "2025-01-01",
-        salary: "₹0/month (Founder)",
-        email: "Ceo@asirex.in",
-        coreType: "Core Pillar",
-      },
-      {
-        id: "ASX-2025-002",
-        name: "Vaibhav Ghatwal",
-        role: "Production Head and Manager",
-        department: "Production & Operations",
-        status: "active",
-        joinDate: "2025-01-15",
-        salary: "₹25,000/month",
-        email: "Vaibhav.Phm@asirex.in",
-        coreType: "Core Pillar",
-      },
-    ];
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    teamCount: 0,
+    projectsCount: 0,
+    productsCount: 0,
+    ordersCount: 0,
+    totalRevenue: 0,
+    pendingOrdersValue: 0,
   });
 
-  const [notices, setNotices] = useState<Notice[]>(() => {
-    const saved = localStorage.getItem("asirex_notices");
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: "Welcome to ASIREX Dashboard", content: "Welcome to the new CEO Dashboard", priority: "high", to: "All Team", date: "Today", author: "System" },
-    ];
-  });
-
-  // Save to localStorage
+  // Fetch data from Supabase
   useEffect(() => {
-    localStorage.setItem("asirex_team_members", JSON.stringify(teamMembers));
-  }, [teamMembers]);
+    fetchDashboardData();
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem("asirex_notices", JSON.stringify(notices));
-  }, [notices]);
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch team members
+      const { data: teamData } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (teamData) {
+        const mappedTeam: TeamMember[] = teamData.map((m) => ({
+          id: m.id,
+          name: m.name,
+          email: m.email,
+          role: m.role,
+          department: m.department || '',
+          status: m.status as 'active' | 'inactive',
+          joinDate: m.hired_at?.split('T')[0] || '',
+          salary: m.salary ? `₹${m.salary.toLocaleString()}/month` : 'To be decided',
+          coreType: m.is_core_pillar ? 'Core Pillar' : 'Employee',
+          serialNumber: m.serial_number || '',
+        }));
+        setTeamMembers(mappedTeam);
+      }
+
+      // Fetch notices
+      const { data: noticesData } = await supabase
+        .from('notices')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (noticesData) {
+        const mappedNotices: Notice[] = noticesData.map((n) => ({
+          id: n.id,
+          title: n.title,
+          content: n.content,
+          priority: n.priority as 'high' | 'medium' | 'low',
+          to: 'All Team',
+          date: new Date(n.created_at).toLocaleDateString(),
+          author: 'Kapeesh Sorout',
+        }));
+        setNotices(mappedNotices);
+      }
+
+      // Fetch tasks
+      const { data: tasksData } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (tasksData) {
+        setTasks(tasksData.map((t) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status || 'pending',
+          priority: t.priority || 'medium',
+        })));
+      }
+
+      // Fetch stats
+      const [projectsRes, productsRes, ordersRes] = await Promise.all([
+        supabase.from('projects').select('id', { count: 'exact' }),
+        supabase.from('products').select('id', { count: 'exact' }),
+        supabase.from('orders').select('total_amount, order_status'),
+      ]);
+
+      const orders = ordersRes.data || [];
+      const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const pendingOrders = orders.filter(o => o.order_status === 'pending');
+      const pendingValue = pendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+      setStats({
+        teamCount: teamData?.length || 0,
+        projectsCount: projectsRes.count || 0,
+        productsCount: productsRes.count || 0,
+        ordersCount: pendingOrders.length,
+        totalRevenue,
+        pendingOrdersValue: pendingValue,
+      });
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handlers
   const handleAddMember = (member: TeamMember) => {
-    setTeamMembers([...teamMembers, member]);
+    setTeamMembers([member, ...teamMembers]);
+    setStats(prev => ({ ...prev, teamCount: prev.teamCount + 1 }));
   };
 
-  const handleFireMember = (memberId: string) => {
-    setTeamMembers(teamMembers.filter((m) => m.id !== memberId));
+  const handleFireMember = async (memberId: string) => {
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .update({ status: 'inactive' })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setTeamMembers(teamMembers.filter((m) => m.id !== memberId));
+      setStats(prev => ({ ...prev, teamCount: prev.teamCount - 1 }));
+      toast.success('Team member removed');
+    } catch (error: any) {
+      console.error('Error removing team member:', error);
+      toast.error(error.message || 'Failed to remove team member');
+    }
   };
 
-  const handleTeamAction = (memberId: string, data: Record<string, string>) => {
-    setTeamMembers(teamMembers.map((m) => {
-      if (m.id !== memberId) return m;
-      if (teamActionType === "role" && data.newRole) return { ...m, role: data.newRole };
-      if (teamActionType === "promotion" && data.newPosition) return { ...m, role: data.newPosition };
-      if (teamActionType === "salary" && data.newSalary) return { ...m, salary: data.newSalary };
-      return m;
-    }));
+  const handleTeamAction = async (memberId: string, data: Record<string, string>) => {
+    try {
+      const updateData: Record<string, any> = {};
+      
+      if (teamActionType === "role" && data.newRole) {
+        updateData.role = data.newRole;
+      } else if (teamActionType === "promotion" && data.newPosition) {
+        updateData.role = data.newPosition;
+        updateData.designation = data.newPosition;
+      } else if (teamActionType === "salary" && data.newSalary) {
+        updateData.salary = parseFloat(data.newSalary.replace(/[₹,]/g, ''));
+      } else if (teamActionType === "bonus" && data.bonus) {
+        const member = teamMembers.find(m => m.id === memberId);
+        if (member) {
+          const currentBonus = parseFloat(data.bonus.replace(/[₹,]/g, ''));
+          updateData.bonus = currentBonus;
+        }
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from('team_members')
+          .update(updateData)
+          .eq('id', memberId);
+
+        if (error) throw error;
+
+        setTeamMembers(teamMembers.map((m) => {
+          if (m.id !== memberId) return m;
+          if (teamActionType === "role" && data.newRole) return { ...m, role: data.newRole };
+          if (teamActionType === "promotion" && data.newPosition) return { ...m, role: data.newPosition };
+          if (teamActionType === "salary" && data.newSalary) return { ...m, salary: data.newSalary };
+          return m;
+        }));
+
+        toast.success('Team member updated');
+      }
+    } catch (error: any) {
+      console.error('Error updating team member:', error);
+      toast.error(error.message || 'Failed to update team member');
+    }
   };
 
   const handlePostNotice = (notice: Notice) => {
     setNotices([notice, ...notices]);
   };
 
-  const handleAddContent = (data: Record<string, string>) => {
-    console.log("Content added:", contentType, data);
-    // In real app, would save to database
+  const handleDeleteNotice = async (noticeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notices')
+        .update({ is_active: false })
+        .eq('id', noticeId);
+
+      if (error) throw error;
+
+      setNotices(notices.filter((n) => n.id !== noticeId));
+      toast.success('Notice deleted');
+    } catch (error: any) {
+      console.error('Error deleting notice:', error);
+      toast.error(error.message || 'Failed to delete notice');
+    }
+  };
+
+  const handleTaskComplete = async (taskId: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ status: 'completed' })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, status: 'completed' } : t));
+      toast.success('Task marked as complete');
+    } catch (error: any) {
+      console.error('Error completing task:', error);
+      toast.error(error.message || 'Failed to complete task');
+    }
+  };
+
+  const handleAddContent = () => {
+    // Refresh stats after adding content
+    fetchDashboardData();
   };
 
   // Actions config
@@ -149,26 +313,32 @@ const CEODashboard = () => {
     { label: "Share Update", icon: Share2, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Share update feature coming soon") },
   ];
 
-  const stats = [
-    { label: "Team Members", value: teamMembers.length.toString(), icon: Users, trend: "+1 this month", color: "text-blue-500" },
-    { label: "Active Projects", value: "5", icon: FolderKanban, trend: "+2 new", color: "text-purple-500" },
-    { label: "Products Listed", value: "12", icon: Package, trend: "3 pending", color: "text-green-500" },
-    { label: "Pending Orders", value: "8", icon: ShoppingCart, trend: "₹45,000", color: "text-orange-500" },
-    { label: "Total Revenue", value: "₹1.2L", icon: DollarSign, trend: "+15%", color: "text-emerald-500" },
+  const dashboardStats = [
+    { label: "Team Members", value: stats.teamCount.toString(), icon: Users, trend: "+1 this month", color: "text-blue-500" },
+    { label: "Active Projects", value: stats.projectsCount.toString(), icon: FolderKanban, trend: "+2 new", color: "text-purple-500" },
+    { label: "Products Listed", value: stats.productsCount.toString(), icon: Package, trend: "3 pending", color: "text-green-500" },
+    { label: "Pending Orders", value: stats.ordersCount.toString(), icon: ShoppingCart, trend: `₹${stats.pendingOrdersValue.toLocaleString()}`, color: "text-orange-500" },
+    { label: "Total Revenue", value: `₹${(stats.totalRevenue / 100000).toFixed(1)}L`, icon: DollarSign, trend: "+15%", color: "text-emerald-500" },
     { label: "Website Visits", value: "2.5K", icon: Eye, trend: "+23%", color: "text-cyan-500" },
   ];
 
-  const pendingTasks = [
-    { id: 1, title: "Review new product designs", status: "pending", priority: "high" },
-    { id: 2, title: "Approve salary for Jan", status: "pending", priority: "high" },
-    { id: 3, title: "Sign partnership agreement", status: "in-progress", priority: "medium" },
-    { id: 4, title: "Update company policies", status: "pending", priority: "low" },
-  ];
+  const pendingTasks = tasks.filter(t => t.status !== 'completed').slice(0, 4);
 
   const handleSignOut = () => {
     navigate("/");
     toast.success("Signed out successfully");
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -227,7 +397,7 @@ const CEODashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {stats.map((stat, index) => (
+          {dashboardStats.map((stat, index) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
               <Card className="hover:border-primary/50 transition-all hover:shadow-lg cursor-pointer">
                 <CardContent className="p-4">
@@ -276,19 +446,23 @@ const CEODashboard = () => {
                   <Badge variant="outline">{pendingTasks.length} tasks</Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {pendingTasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-                      <div className={`w-3 h-3 rounded-full ${task.priority === "high" ? "bg-red-500" : task.priority === "medium" ? "bg-yellow-500" : "bg-green-500"}`} />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{task.title}</p>
-                        <Badge variant="outline" className="text-xs mt-1 capitalize">{task.status}</Badge>
+                  {pendingTasks.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">No pending tasks</p>
+                  ) : (
+                    pendingTasks.map((task) => (
+                      <div key={task.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+                        <div className={`w-3 h-3 rounded-full ${task.priority === "high" ? "bg-red-500" : task.priority === "medium" ? "bg-yellow-500" : "bg-green-500"}`} />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{task.title}</p>
+                          <Badge variant="outline" className="text-xs mt-1 capitalize">{task.status}</Badge>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500" onClick={() => handleTaskComplete(task.id)}><CheckCircle className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="w-4 h-4" /></Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500"><CheckCircle className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="w-4 h-4" /></Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </CardContent>
               </Card>
 
@@ -350,7 +524,7 @@ const CEODashboard = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">{member.salary}</p>
-                        <p className="text-xs text-muted-foreground">ID: {member.id}</p>
+                        <p className="text-xs text-muted-foreground">ID: {member.serialNumber || member.id.slice(0, 8)}</p>
                       </div>
                     </div>
                   ))}
@@ -365,8 +539,8 @@ const CEODashboard = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { label: "Products", icon: Package, count: 12, color: "text-blue-500", action: () => setContentType("product") },
-                    { label: "Projects", icon: FolderKanban, count: 5, color: "text-purple-500", action: () => setContentType("project") },
+                    { label: "Products", icon: Package, count: stats.productsCount, color: "text-blue-500", action: () => setContentType("product") },
+                    { label: "Projects", icon: FolderKanban, count: stats.projectsCount, color: "text-purple-500", action: () => setContentType("project") },
                     { label: "Events", icon: Calendar, count: 8, color: "text-orange-500", action: () => setContentType("event") },
                     { label: "Job Postings", icon: Briefcase, count: 3, color: "text-green-500", action: () => setContentType("job") },
                   ].map((item) => (
@@ -421,24 +595,38 @@ const CEODashboard = () => {
                 <Button onClick={() => setShowNotice(true)} className="bg-yellow-500 hover:bg-yellow-600 gap-2"><Megaphone className="w-4 h-4" />Post Notice</Button>
               </CardHeader>
               <CardContent className="space-y-3">
-                {notices.map((notice) => (
-                  <div key={notice.id} className={`p-4 rounded-xl border ${notice.priority === "high" ? "border-red-500/30 bg-red-500/5" : notice.priority === "medium" ? "border-yellow-500/30 bg-yellow-500/5" : "border-green-500/30 bg-green-500/5"}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className={`text-xs ${notice.priority === "high" ? "bg-red-500/20 text-red-500" : notice.priority === "medium" ? "bg-yellow-500/20 text-yellow-500" : "bg-green-500/20 text-green-500"}`}>{notice.priority}</Badge>
-                          <span className="text-xs text-muted-foreground">To: {notice.to}</span>
+                {notices.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No notices posted yet</p>
+                ) : (
+                  notices.map((notice) => (
+                    <div key={notice.id} className={`p-4 rounded-xl border ${notice.priority === "high" ? "border-red-500/30 bg-red-500/5" : notice.priority === "medium" ? "border-yellow-500/30 bg-yellow-500/5" : "border-green-500/30 bg-green-500/5"}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className={`text-xs ${notice.priority === "high" ? "bg-red-500/20 text-red-500" : notice.priority === "medium" ? "bg-yellow-500/20 text-yellow-500" : "bg-green-500/20 text-green-500"}`}>{notice.priority}</Badge>
+                            <span className="text-xs text-muted-foreground">To: {notice.to}</span>
+                          </div>
+                          <p className="font-semibold">{notice.title}</p>
+                          {notice.content && <p className="text-sm text-muted-foreground mt-1">{notice.content}</p>}
                         </div>
-                        <p className="font-semibold">{notice.title}</p>
-                        {notice.content && <p className="text-sm text-muted-foreground mt-1">{notice.content}</p>}
-                      </div>
-                      <div className="text-right text-xs text-muted-foreground">
-                        <p>{notice.date}</p>
-                        <p>{notice.author}</p>
+                        <div className="flex items-start gap-2">
+                          <div className="text-right text-xs text-muted-foreground">
+                            <p>{notice.date}</p>
+                            <p>{notice.author}</p>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-red-500 hover:bg-red-500/10"
+                            onClick={() => handleDeleteNotice(notice.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserPlus, Upload, Mail, Phone, Building, Briefcase, DollarSign } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface TeamMember {
   id: string;
@@ -19,6 +20,8 @@ export interface TeamMember {
   phone?: string;
   photo?: string;
   coreType?: string;
+  designation?: string;
+  serialNumber?: string;
 }
 
 interface AddTeamMemberDialogProps {
@@ -67,7 +70,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const generateId = () => {
+  const generateSerialNumber = () => {
     const year = new Date().getFullYear();
     const randomNum = Math.floor(Math.random() * 900) + 100;
     return `ASX-${year}-${randomNum}`;
@@ -83,37 +86,62 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
 
     setIsSubmitting(true);
 
-    const newMember: TeamMember = {
-      id: generateId(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      role: formData.role,
-      department: formData.department,
-      salary: formData.salary || "To be decided",
-      status: "active",
-      joinDate: new Date().toISOString().split("T")[0],
-      coreType: formData.coreType,
-    };
+    try {
+      const serialNumber = generateSerialNumber();
+      const salaryValue = formData.salary ? parseFloat(formData.salary.replace(/[₹,]/g, '')) : 0;
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    onAdd(newMember);
-    toast.success(`${formData.name} has been added to the team!`);
-    
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      role: "",
-      department: "",
-      salary: "",
-      coreType: "",
-    });
-    
-    setIsSubmitting(false);
-    onOpenChange(false);
+      const { data, error } = await supabase
+        .from('team_members')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          department: formData.department,
+          designation: formData.role,
+          salary: salaryValue,
+          serial_number: serialNumber,
+          is_core_pillar: formData.coreType === "Core Pillar",
+          status: "active",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newMember: TeamMember = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        phone: formData.phone,
+        role: data.role,
+        department: data.department || "",
+        salary: formData.salary || "To be decided",
+        status: "active",
+        joinDate: new Date().toISOString().split("T")[0],
+        coreType: formData.coreType,
+        serialNumber: data.serial_number || serialNumber,
+      };
+
+      onAdd(newMember);
+      toast.success(`${formData.name} has been added to the team!`);
+      
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        role: "",
+        department: "",
+        salary: "",
+        coreType: "",
+      });
+      
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error adding team member:", error);
+      toast.error(error.message || "Failed to add team member");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
