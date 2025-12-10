@@ -36,7 +36,7 @@ const adminRoleCards = [
     id: "ASX-2025-000",
     title: "CEO and Founder",
     name: "Kapeesh Sorout",
-    coreType: "Core Pillar",
+    coreType: "Owner",
     department: "Executive Leadership",
     isHired: true,
     photoUrl: null,
@@ -45,7 +45,7 @@ const adminRoleCards = [
     id: "ASX-2025-001",
     title: "Production Head and Manager",
     name: "Vaibhav Ghatwal",
-    coreType: "Head and Lead",
+    coreType: "Core Pillar",
     department: "Production & Operations",
     isHired: true,
     photoUrl: null,
@@ -324,11 +324,12 @@ export default function AuthorityLogin() {
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Core Type</p>
                         <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                          card.coreType === "Owner" ? "bg-purple-500/20 text-purple-400" :
                           card.coreType === "Core Pillar" ? "bg-yellow-500/20 text-yellow-400" :
                           card.coreType === "Head and Lead" ? "bg-green-500/20 text-green-400" :
                           card.coreType === "Manager" ? "bg-blue-500/20 text-blue-400" :
                           card.coreType === "Developer" ? "bg-cyan-500/20 text-cyan-400" :
-                          "bg-purple-500/20 text-purple-400"
+                          "bg-gray-500/20 text-gray-400"
                         }`}>
                           {card.coreType}
                         </span>
