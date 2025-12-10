@@ -220,12 +220,22 @@ export default function AuthorityLogin() {
       });
       return;
     }
+    
+    // Determine role type for routing
+    let roleType = "member";
+    if (card.title.toLowerCase().includes("ceo") || card.title.toLowerCase().includes("founder")) {
+      roleType = "ceo";
+    } else if (card.title.toLowerCase().includes("developer") || card.title.toLowerCase().includes("swe") || card.title.toLowerCase().includes("website admin")) {
+      roleType = "developer";
+    }
+    
     // Navigate to card login page with user details
     const params = new URLSearchParams({
       name: card.name || "",
       title: card.title,
       id: card.id,
       department: card.department,
+      role: roleType,
     });
     navigate(`/card-login?${params.toString()}`);
   };
