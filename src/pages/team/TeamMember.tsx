@@ -37,7 +37,7 @@ const teamData: Record<string, {
     role: "CEO & Founder",
     emoji: "👨‍💼",
     title: "Visionary Leader",
-    bio: "Kapeesh Sorout is the visionary founder of ASIREX, driven by a singular mission: to make India a global leader in technology. At just 20, he embarked on this ambitious journey, combining technical expertise with an entrepreneurial spirit that refuses to accept limitations.",
+    bio: "Kapeesh Sorout is the visionary founder of ASIREX, building advanced technology that will position India as a global leader in innovation. He focuses on robotics, automation, industrial systems, and intelligent tech that solves real-world problems at scale. He believes success is earned through discipline, consistency, vision, smart work, hard work, and leadership — not by chasing a title or a degree. Under his leadership, ASIREX is shaping the future with technology that empowers industries, strengthens India, and inspires the next generation of creators.",
     skills: ["Strategic Leadership", "AI & Machine Learning", "Product Vision", "Business Development", "Robotics", "Public Speaking"],
     experience: [
       { company: "ASIREX", role: "Founder & CEO", years: "2024 - Present" },
@@ -50,7 +50,7 @@ const teamData: Record<string, {
       "Developing multiple product lines simultaneously"
     ],
     education: "Self-taught in AI, Robotics, and Business",
-    quote: "The future belongs to those who dare to dream and have the courage to build.",
+    quote: "Becoming an IITian is an illusion. Real power comes from building, not memorizing. I won't be a part of the matrix. I will break it — and help others escape too.",
     email: "Ceo@asirex.in"
   },
   "ayush-soni": {
