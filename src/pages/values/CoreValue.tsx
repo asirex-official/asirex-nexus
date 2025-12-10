@@ -84,24 +84,24 @@ const valuesData: Record<string, {
     quote: "When you put customers first, everything else falls into place.",
     color: "red"
   },
-  "collaborative-spirit": {
-    icon: Users,
-    title: "Collaborative Spirit",
-    tagline: "Together we rise — the power of community drives us forward",
-    description: "No one builds the future alone. At ASIREX, we believe in the power of collaboration — with our team, our partners, our community, and even our competitors. Open innovation, shared dreams, and the collective genius of many minds drive us forward.",
+  "future-driven-excellence": {
+    icon: Rocket,
+    title: "Future-Driven Excellence",
+    tagline: "Building for tomorrow, anticipating the needs of the next generation",
+    description: "At ASIREX, we don't just solve today's problems — we anticipate tomorrow's challenges. We build for the future, crafting solutions that stand the test of time and evolve with the world. Excellence isn't a destination; it's our journey.",
     principles: [
-      { title: "Open Source Mindset", desc: "Share knowledge, grow together" },
-      { title: "Partner-First", desc: "We win when our partners win" },
-      { title: "Diverse Perspectives", desc: "The best ideas come from diverse teams" },
-      { title: "Community Building", desc: "Nurturing the ecosystem around us" }
+      { title: "Long-Term Thinking", desc: "Every decision considers the next decade, not just the next quarter" },
+      { title: "Continuous Improvement", desc: "Good enough today won't be good enough tomorrow" },
+      { title: "Scalable Solutions", desc: "Build once, scale infinitely" },
+      { title: "Sustainable Innovation", desc: "Technology that serves future generations" }
     ],
     examples: [
-      "Open-source contributions to key projects",
-      "Partnership programs with startups and institutions",
-      "Community events and knowledge sharing sessions"
+      "Modular designs that allow easy upgrades",
+      "AI systems that learn and improve autonomously",
+      "Sustainable materials and eco-friendly manufacturing"
     ],
-    quote: "If you want to go fast, go alone. If you want to go far, go together.",
-    color: "blue"
+    quote: "The best time to plant a tree was 20 years ago. The second best time is now.",
+    color: "emerald"
   }
 };
 
