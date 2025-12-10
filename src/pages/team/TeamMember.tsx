@@ -89,7 +89,7 @@ const teamData: Record<string, {
       "Implemented quality control processes"
     ],
     quote: "Excellence is not an act, but a habit. Every product we ship carries our reputation.",
-    email: "vaibhav@asirex.in"
+    email: "Vaibhav.Phm@asirex.in"
   },
   "open-position-sales": {
     name: "Your Name Here",
