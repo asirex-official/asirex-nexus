@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, ArrowLeft, Shield, Users, Briefcase, LockKeyhole, UserCheck } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, Shield, Users, Briefcase, LockKeyhole, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,95 +33,121 @@ const authorityTypes = {
 // Role cards with job positions - some are filled, some are vacant
 const roleCards = [
   {
-    id: "production-head",
+    id: "ASX-2025-001",
     title: "Production Head and Manager",
     name: "Vaibhav Ghatwal",
+    coreType: "Core Pillar",
+    department: "Production & Operations",
     isHired: true,
-    emoji: "🌱",
+    photoUrl: null,
   },
   {
-    id: "senior-ai-engineer",
+    id: "ASX-2025-002",
     title: "Senior AI Engineer",
     name: null,
+    coreType: "Core Member",
+    department: "AI & Machine Learning",
     isHired: false,
-    emoji: "🤖",
+    photoUrl: null,
   },
   {
-    id: "robotics-developer",
+    id: "ASX-2025-003",
     title: "Robotics Software Developer",
     name: null,
+    coreType: "Developer",
+    department: "Robotics Engineering",
     isHired: false,
-    emoji: "⚙️",
+    photoUrl: null,
   },
   {
-    id: "product-designer",
+    id: "ASX-2025-004",
     title: "Product Designer",
     name: null,
+    coreType: "Core Member",
+    department: "Design & UX",
     isHired: false,
-    emoji: "🎨",
+    photoUrl: null,
   },
   {
-    id: "ml-engineer",
+    id: "ASX-2025-005",
     title: "Machine Learning Engineer",
     name: null,
+    coreType: "Developer",
+    department: "AI & Machine Learning",
     isHired: false,
-    emoji: "🧠",
+    photoUrl: null,
   },
   {
-    id: "embedded-systems",
+    id: "ASX-2025-006",
     title: "Embedded Systems Developer",
     name: null,
+    coreType: "Developer",
+    department: "Hardware Engineering",
     isHired: false,
-    emoji: "💻",
+    photoUrl: null,
   },
   {
-    id: "marketing-manager",
+    id: "ASX-2025-007",
     title: "Marketing Manager",
     name: null,
+    coreType: "Manager",
+    department: "Marketing & Growth",
     isHired: false,
-    emoji: "📈",
+    photoUrl: null,
   },
   {
-    id: "hardware-engineer",
+    id: "ASX-2025-008",
     title: "Hardware Engineer",
     name: null,
+    coreType: "Developer",
+    department: "Hardware Engineering",
     isHired: false,
-    emoji: "🔧",
+    photoUrl: null,
   },
   {
-    id: "content-writer",
+    id: "ASX-2025-009",
     title: "Content Writer & Social Media",
     name: null,
+    coreType: "Core Member",
+    department: "Marketing & Growth",
     isHired: false,
-    emoji: "✍️",
+    photoUrl: null,
   },
   {
-    id: "business-dev",
+    id: "ASX-2025-010",
     title: "Business Development Executive",
     name: null,
+    coreType: "Manager",
+    department: "Business Development",
     isHired: false,
-    emoji: "💼",
+    photoUrl: null,
   },
   {
-    id: "website-admin-swe",
+    id: "ASX-2025-011",
     title: "Website Admin and SWE",
     name: null,
+    coreType: "Developer",
+    department: "Software Engineering",
     isHired: false,
-    emoji: "🌐",
+    photoUrl: null,
   },
   {
-    id: "sales-manager",
+    id: "ASX-2025-012",
     title: "Sales Manager and Head",
     name: null,
+    coreType: "Manager",
+    department: "Sales",
     isHired: false,
-    emoji: "📊",
+    photoUrl: null,
   },
   {
-    id: "rd-lead",
-    title: "Engineering and Research & Development Lead",
+    id: "ASX-2025-013",
+    title: "Engineering and R&D Lead",
     name: null,
+    coreType: "Core Pillar",
+    department: "Research & Development",
     isHired: false,
-    emoji: "🔬",
+    photoUrl: null,
   },
 ];
 
@@ -220,7 +246,7 @@ export default function AuthorityLogin() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 max-w-5xl mx-auto"
           >
             {roleCards.map((card, index) => (
               <motion.div
@@ -230,53 +256,81 @@ export default function AuthorityLogin() {
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleRoleCardClick(card)}
                 className={`
-                  relative overflow-hidden rounded-2xl border-2 p-6 transition-all duration-300
+                  relative overflow-hidden rounded-xl border-2 transition-all duration-300
                   ${card.isHired 
-                    ? "bg-gradient-to-br from-primary/10 via-background to-primary/5 border-primary/30 hover:border-primary hover:shadow-xl hover:shadow-primary/20 cursor-pointer hover:scale-[1.02]" 
-                    : "bg-gradient-to-br from-destructive/5 via-background to-destructive/10 border-destructive/30 cursor-not-allowed"
+                    ? "bg-gradient-to-br from-background via-primary/5 to-background border-primary/40 hover:border-primary hover:shadow-2xl hover:shadow-primary/20 cursor-pointer hover:scale-[1.02]" 
+                    : "bg-gradient-to-br from-background via-destructive/5 to-background border-destructive/30 cursor-not-allowed opacity-70"
                   }
                 `}
               >
-                {/* ID Card Header Strip */}
-                <div className={`absolute top-0 left-0 right-0 h-2 ${card.isHired ? "bg-gradient-to-r from-primary to-primary/50" : "bg-gradient-to-r from-destructive to-destructive/50"}`} />
+                {/* ID Card Header */}
+                <div className={`px-4 py-3 border-b ${card.isHired ? "bg-primary/10 border-primary/20" : "bg-destructive/10 border-destructive/20"}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold tracking-wider text-muted-foreground">ASIREX ID CARD</span>
+                    <span className={`text-xs font-mono ${card.isHired ? "text-primary" : "text-destructive"}`}>{card.id}</span>
+                  </div>
+                </div>
                 
-                {/* Card Content */}
-                <div className="flex flex-col items-center text-center pt-4">
-                  {/* Avatar/Icon */}
+                {/* Card Body */}
+                <div className="p-5 flex gap-5">
+                  {/* Photo Section */}
                   <div className={`
-                    text-5xl w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2
+                    w-24 h-28 rounded-lg border-2 flex items-center justify-center flex-shrink-0
                     ${card.isHired 
-                      ? "bg-primary/20 border-primary/30" 
-                      : "bg-destructive/10 border-destructive/30"
+                      ? "bg-primary/10 border-primary/30" 
+                      : "bg-destructive/5 border-destructive/20"
                     }
                   `}>
-                    {card.isHired ? card.emoji : <LockKeyhole className="w-8 h-8 text-destructive" />}
+                    {card.isHired ? (
+                      <User className="w-12 h-12 text-primary/60" />
+                    ) : (
+                      <LockKeyhole className="w-10 h-10 text-destructive/50" />
+                    )}
                   </div>
                   
-                  {/* Title */}
-                  <h3 className="font-bold text-lg text-foreground mb-2">
-                    {card.title}
-                  </h3>
-                  
-                  {/* Status */}
-                  {card.isHired ? (
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20">
-                      <UserCheck className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-green-500 font-semibold">{card.name}</span>
-                    </div>
-                  ) : (
-                    <div className="px-4 py-2 rounded-full bg-destructive/10 border border-destructive/20">
-                      <p className="text-sm text-destructive font-semibold">
-                        Card not activated - No one hired
+                  {/* Info Section */}
+                  <div className="flex-1 space-y-2">
+                    {/* Name */}
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Name</p>
+                      <p className={`font-bold text-base ${card.isHired ? "text-foreground" : "text-destructive"}`}>
+                        {card.isHired ? card.name : "— VACANT —"}
                       </p>
                     </div>
-                  )}
-                  
-                  {/* Click to Login indicator for hired cards */}
-                  {card.isHired && (
-                    <p className="text-xs text-muted-foreground mt-4">
-                      Click to login →
-                    </p>
+                    
+                    {/* Work/Title */}
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Designation</p>
+                      <p className="font-semibold text-sm text-foreground">{card.title}</p>
+                    </div>
+                    
+                    {/* Core Type & Department */}
+                    <div className="flex gap-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Core Type</p>
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                          card.coreType === "Core Pillar" ? "bg-yellow-500/20 text-yellow-400" :
+                          card.coreType === "Manager" ? "bg-blue-500/20 text-blue-400" :
+                          card.coreType === "Developer" ? "bg-green-500/20 text-green-400" :
+                          "bg-purple-500/20 text-purple-400"
+                        }`}>
+                          {card.coreType}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Dept</p>
+                        <p className="text-xs text-muted-foreground">{card.department}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Card Footer */}
+                <div className={`px-4 py-2 border-t text-center ${card.isHired ? "bg-primary/5 border-primary/10" : "bg-destructive/5 border-destructive/10"}`}>
+                  {card.isHired ? (
+                    <p className="text-xs text-primary font-medium">Click to Login →</p>
+                  ) : (
+                    <p className="text-xs text-destructive font-medium">Card Not Activated • No Manager Hired</p>
                   )}
                 </div>
               </motion.div>
