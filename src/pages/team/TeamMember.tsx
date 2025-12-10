@@ -41,7 +41,7 @@ const teamData: Record<string, {
     skills: ["Strategic Leadership", "AI & Machine Learning", "Product Vision", "Business Development", "Robotics", "Public Speaking"],
     experience: [
       { company: "ASIREX", role: "Founder & CEO", years: "2024 - Present" },
-      { company: "Self-taught", role: "AI & Robotics Research", years: "2020 - 2024" }
+      { company: "Self-taught", role: "AI & Robotics Research", years: "2024 - 2025" }
     ],
     achievements: [
       "Founded ASIREX with zero external funding",
