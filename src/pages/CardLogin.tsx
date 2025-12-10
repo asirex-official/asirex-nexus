@@ -14,10 +14,23 @@ const CardLogin = () => {
   const title = searchParams.get("title") || "Team Member";
   const id = searchParams.get("id") || "ASX-0000-000";
   const department = searchParams.get("department") || "Department";
+  const role = searchParams.get("role") || "member";
   
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const getDashboardRoute = () => {
+    // Route based on role type
+    if (role === "ceo" || title.toLowerCase().includes("ceo") || title.toLowerCase().includes("founder")) {
+      return "/dashboard/ceo";
+    }
+    if (role === "developer" || title.toLowerCase().includes("developer") || title.toLowerCase().includes("swe") || title.toLowerCase().includes("website admin")) {
+      return "/dashboard/developer";
+    }
+    // All other Core Pillars go to their dashboard with params
+    return `/dashboard/core-pillar?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
+  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +44,7 @@ const CardLogin = () => {
     setTimeout(() => {
       setIsLoading(false);
       toast.success(`Welcome back, ${name.split(" ")[0]}!`);
-      navigate("/admin");
+      navigate(getDashboardRoute());
     }, 1500);
   };
 

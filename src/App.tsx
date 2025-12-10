@@ -39,6 +39,9 @@ import AIMLPage from "./pages/features/AIMLPage";
 import RoboticsPage from "./pages/features/RoboticsPage";
 import CleanTechPage from "./pages/features/CleanTechPage";
 import GlobalDeliveryPage from "./pages/features/GlobalDeliveryPage";
+import CEODashboard from "./pages/dashboards/CEODashboard";
+import DeveloperDashboard from "./pages/dashboards/DeveloperDashboard";
+import CorePillarDashboard from "./pages/dashboards/CorePillarDashboard";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +82,11 @@ const App = () => (
             <Route path="/features/robotics" element={<RoboticsPage />} />
             <Route path="/features/clean-tech" element={<CleanTechPage />} />
             <Route path="/features/global-delivery" element={<GlobalDeliveryPage />} />
+            
+            {/* Role-Based Dashboards */}
+            <Route path="/dashboard/ceo" element={<CEODashboard />} />
+            <Route path="/dashboard/developer" element={<DeveloperDashboard />} />
+            <Route path="/dashboard/core-pillar" element={<CorePillarDashboard />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
