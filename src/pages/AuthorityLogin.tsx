@@ -33,13 +33,6 @@ const authorityTypes = {
 // Role cards with job positions - some are filled, some are vacant
 const roleCards = [
   {
-    id: "ceo-founder",
-    title: "CEO & Founder",
-    name: "Kapeesh Sorout",
-    isHired: true,
-    emoji: "👨‍💼",
-  },
-  {
     id: "production-head",
     title: "Production Head and Manager",
     name: "Vaibhav Ghatwal",
@@ -222,12 +215,12 @@ export default function AuthorityLogin() {
             </p>
           </motion.div>
 
-          {/* Role Cards Grid */}
+          {/* Role Cards Grid - 2 per row, ID card style */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto"
           >
             {roleCards.map((card, index) => (
               <motion.div
@@ -237,35 +230,54 @@ export default function AuthorityLogin() {
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleRoleCardClick(card)}
                 className={`
-                  glass-card p-5 cursor-pointer transition-all duration-300
+                  relative overflow-hidden rounded-2xl border-2 p-6 transition-all duration-300
                   ${card.isHired 
-                    ? "hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10" 
-                    : "opacity-60 cursor-not-allowed border-destructive/30"
+                    ? "bg-gradient-to-br from-primary/10 via-background to-primary/5 border-primary/30 hover:border-primary hover:shadow-xl hover:shadow-primary/20 cursor-pointer hover:scale-[1.02]" 
+                    : "bg-gradient-to-br from-destructive/5 via-background to-destructive/10 border-destructive/30 cursor-not-allowed"
                   }
                 `}
               >
-                <div className="flex items-start gap-3">
+                {/* ID Card Header Strip */}
+                <div className={`absolute top-0 left-0 right-0 h-2 ${card.isHired ? "bg-gradient-to-r from-primary to-primary/50" : "bg-gradient-to-r from-destructive to-destructive/50"}`} />
+                
+                {/* Card Content */}
+                <div className="flex flex-col items-center text-center pt-4">
+                  {/* Avatar/Icon */}
                   <div className={`
-                    text-3xl w-12 h-12 rounded-lg flex items-center justify-center
-                    ${card.isHired ? "bg-primary/10" : "bg-destructive/10"}
+                    text-5xl w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2
+                    ${card.isHired 
+                      ? "bg-primary/20 border-primary/30" 
+                      : "bg-destructive/10 border-destructive/30"
+                    }
                   `}>
-                    {card.isHired ? card.emoji : <LockKeyhole className="w-5 h-5 text-destructive" />}
+                    {card.isHired ? card.emoji : <LockKeyhole className="w-8 h-8 text-destructive" />}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-foreground truncate">
-                      {card.title}
-                    </h3>
-                    {card.isHired ? (
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <UserCheck className="w-3.5 h-3.5 text-green-500" />
-                        <span className="text-sm text-green-500 font-medium">{card.name}</span>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-destructive font-medium mt-1">
+                  
+                  {/* Title */}
+                  <h3 className="font-bold text-lg text-foreground mb-2">
+                    {card.title}
+                  </h3>
+                  
+                  {/* Status */}
+                  {card.isHired ? (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20">
+                      <UserCheck className="w-4 h-4 text-green-500" />
+                      <span className="text-sm text-green-500 font-semibold">{card.name}</span>
+                    </div>
+                  ) : (
+                    <div className="px-4 py-2 rounded-full bg-destructive/10 border border-destructive/20">
+                      <p className="text-sm text-destructive font-semibold">
                         Card not activated - No one hired
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  
+                  {/* Click to Login indicator for hired cards */}
+                  {card.isHired && (
+                    <p className="text-xs text-muted-foreground mt-4">
+                      Click to login →
+                    </p>
+                  )}
                 </div>
               </motion.div>
             ))}
