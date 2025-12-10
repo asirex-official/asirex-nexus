@@ -68,19 +68,23 @@ const scaleIn = {
 const values = [{
   icon: Target,
   title: "Innovation First",
-  description: "We push boundaries with cutting-edge AI, robotics, and clean-tech solutions that redefine what's possible."
+  description: "We push boundaries with cutting-edge AI, robotics, and clean-tech solutions that redefine what's possible.",
+  link: "/values/innovation-first"
 }, {
   icon: Eye,
   title: "Vision for India",
-  description: "Building technology that transforms 1.4 billion lives and positions India as the global tech superpower."
+  description: "Building technology that transforms 1.4 billion lives and positions India as the global tech superpower.",
+  link: "/values/vision-for-india"
 }, {
   icon: Heart,
   title: "Customer Obsession",
-  description: "Every product is crafted with passion, designed with precision, and built for the people who matter most."
+  description: "Every product is crafted with passion, designed with precision, and built for the people who matter most.",
+  link: "/values/customer-obsession"
 }, {
   icon: TrendingUp,
   title: "Future-Driven Excellence",
-  description: "We build for tomorrow, anticipating needs and crafting solutions that stand the test of time."
+  description: "We build for tomorrow, anticipating needs and crafting solutions that stand the test of time.",
+  link: "/values/future-driven-excellence"
 }];
 
 const team = [{
@@ -531,26 +535,27 @@ export default function About() {
             variants={containerVariants}
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
-            {values.map((value, index) => (
-              <motion.div 
-                key={value.title} 
-                variants={itemVariants}
-                whileHover={{ y: -12, scale: 1.02 }}
-                className="glass-card p-8 text-center group cursor-pointer relative overflow-hidden"
-              >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                />
+          {values.map((value, index) => (
+              <Link key={value.title} to={value.link}>
                 <motion.div 
-                  className="w-14 h-14 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-accent/20 transition-colors duration-300"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
+                  variants={itemVariants}
+                  whileHover={{ y: -12, scale: 1.02 }}
+                  className="glass-card p-8 text-center group cursor-pointer relative overflow-hidden h-full"
                 >
-                  <value.icon className="w-7 h-7 text-accent" />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  />
+                  <motion.div 
+                    className="w-14 h-14 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-accent/20 transition-colors duration-300"
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <value.icon className="w-7 h-7 text-accent" />
+                  </motion.div>
+                  <h3 className="font-display text-xl font-semibold mb-3">{value.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{value.description}</p>
                 </motion.div>
-                <h3 className="font-display text-xl font-semibold mb-3">{value.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{value.description}</p>
-              </motion.div>
+              </Link>
             ))}
           </motion.div>
         </div>
