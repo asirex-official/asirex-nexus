@@ -11,6 +11,7 @@ import AquaRiverPurifier from "./pages/AquaRiverPurifier";
 import Events from "./pages/Events";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
+import AuthorityLogin from "./pages/AuthorityLogin";
 import NotFound from "./pages/NotFound";
 import SupportUs from "./pages/SupportUs";
 import PublicCustomers from "./pages/customers/PublicCustomers";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/events" element={<Events />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/authority-login" element={<AuthorityLogin />} />
             <Route path="/support-us" element={<SupportUs />} />
             <Route path="/customers/public" element={<PublicCustomers />} />
             <Route path="/customers/private" element={<PrivateCompanies />} />
