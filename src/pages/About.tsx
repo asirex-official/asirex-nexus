@@ -109,7 +109,7 @@ const team = [{
   slug: "open-position-rd"
 }, {
   name: "Vaibhav Ghatwal",
-  role: "Product Manager and Production Head",
+  role: "Production Head and Manager",
   emoji: "🌱",
   slug: "vaibhav-ghatwal"
 }];

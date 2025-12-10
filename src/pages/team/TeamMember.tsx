@@ -74,7 +74,7 @@ const teamData: Record<string, {
   },
   "vaibhav-ghatwal": {
     name: "Vaibhav Ghatwal",
-    role: "Product Manager and Production Head",
+    role: "Production Head and Manager",
     emoji: "🌱",
     title: "Operations Expert",
     bio: "Vaibhav Ghatwal oversees all product development and production operations at ASIREX. His meticulous attention to detail and operational excellence ensures that every product that leaves ASIREX meets the highest quality standards.",
