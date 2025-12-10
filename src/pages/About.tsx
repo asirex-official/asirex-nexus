@@ -90,23 +90,28 @@ const values = [{
 const team = [{
   name: "Kapeesh Sorout",
   role: "CEO & Founder",
-  emoji: "👨‍💼"
+  emoji: "👨‍💼",
+  slug: "kapeesh-sorout"
 }, {
   name: "Ayush Soni",
   role: "Website Admin and SWE",
-  emoji: "👩‍💻"
+  emoji: "👩‍💻",
+  slug: "ayush-soni"
 }, {
   name: "It can be you",
   role: "Sales Manager and Head",
-  emoji: "🧠+"
+  emoji: "🧠+",
+  slug: "open-position-sales"
 }, {
   name: "It can be you",
   role: "Engineering and Research & Development Lead",
-  emoji: "+"
+  emoji: "+",
+  slug: "open-position-rd"
 }, {
   name: "Vaibhav Ghatwal",
   role: "Product Manager and Production Head",
-  emoji: "🌱"
+  emoji: "🌱",
+  slug: "vaibhav-ghatwal"
 }];
 
 const openPositions = [{
@@ -586,24 +591,26 @@ export default function About() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="flex justify-center mb-10"
           >
-            <motion.div 
-              whileHover={{ y: -8 }}
-              className="glass-card p-8 text-center max-w-sm relative overflow-hidden group"
-            >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              />
+            <Link to="/team/kapeesh-sorout">
               <motion.div 
-                className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-5xl relative"
-                animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0)", "0 0 0 20px rgba(var(--primary), 0)"] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                whileHover={{ y: -8 }}
+                className="glass-card p-8 text-center max-w-sm relative overflow-hidden group cursor-pointer"
               >
-                {team[0].emoji}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                />
+                <motion.div 
+                  className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-5xl relative"
+                  animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0)", "0 0 0 20px rgba(var(--primary), 0)"] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {team[0].emoji}
+                </motion.div>
+                <h3 className="font-display text-xl font-semibold">{team[0].name}</h3>
+                <p className="text-muted-foreground">{team[0].role}</p>
+                <p className="text-sm text-primary mt-2 font-medium">Visionary Leader</p>
               </motion.div>
-              <h3 className="font-display text-xl font-semibold">{team[0].name}</h3>
-              <p className="text-muted-foreground">{team[0].role}</p>
-              <p className="text-sm text-primary mt-2 font-medium">Visionary Leader</p>
-            </motion.div>
+            </Link>
           </motion.div>
 
           {/* Animated Arrow Connector */}
@@ -681,36 +688,37 @@ export default function About() {
           {/* Other Pillars - Below CEO */}
           <div className="flex flex-row justify-center gap-4 max-w-5xl mx-auto px-2">
             {team.slice(1).map((member, index) => (
-              <motion.div 
-                key={`${member.name}-${index}`}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -8 }}
-                className="glass-card p-4 sm:p-5 lg:p-7 text-center flex-1 min-w-0 group"
-              >
-                {member.name === "It can be you" ? (
-                  <motion.div 
-                    className="w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 rounded-full border-2 border-dashed border-primary/50 flex items-center justify-center mx-auto mb-3 sm:mb-4"
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  >
-                    <span className="text-3xl sm:text-4xl lg:text-5xl font-light text-primary/70">+</span>
-                  </motion.div>
-                ) : (
-                  <div className="w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4 text-2xl sm:text-3xl lg:text-4xl group-hover:scale-110 transition-transform duration-300">
-                    {member.emoji}
-                  </div>
-                )}
-                <h3 className="font-display font-semibold text-sm sm:text-base lg:text-lg truncate">{member.name}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">{member.role}</p>
-                {member.name === "It can be you" && (
-                  <Button variant="glass" size="sm" className="mt-3" asChild>
-                    <a href="#careers">Join Us</a>
-                  </Button>
-                )}
-              </motion.div>
+              <Link key={`${member.name}-${index}`} to={`/team/${member.slug}`} className="flex-1 min-w-0">
+                <motion.div 
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -8 }}
+                  className="glass-card p-4 sm:p-5 lg:p-7 text-center group cursor-pointer h-full"
+                >
+                  {member.name === "It can be you" ? (
+                    <motion.div 
+                      className="w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 rounded-full border-2 border-dashed border-primary/50 flex items-center justify-center mx-auto mb-3 sm:mb-4"
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    >
+                      <span className="text-3xl sm:text-4xl lg:text-5xl font-light text-primary/70">+</span>
+                    </motion.div>
+                  ) : (
+                    <div className="w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4 text-2xl sm:text-3xl lg:text-4xl group-hover:scale-110 transition-transform duration-300">
+                      {member.emoji}
+                    </div>
+                  )}
+                  <h3 className="font-display font-semibold text-sm sm:text-base lg:text-lg truncate">{member.name}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{member.role}</p>
+                  {member.name === "It can be you" && (
+                    <Button variant="glass" size="sm" className="mt-3">
+                      Join Us
+                    </Button>
+                  )}
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
