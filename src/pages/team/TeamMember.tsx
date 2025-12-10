@@ -51,7 +51,7 @@ const teamData: Record<string, {
     ],
     education: "Self-taught in AI, Robotics, and Business",
     quote: "The future belongs to those who dare to dream and have the courage to build.",
-    email: "kapeesh@asirex.in"
+    email: "Ceo@asirex.in"
   },
   "ayush-soni": {
     name: "Ayush Soni",
