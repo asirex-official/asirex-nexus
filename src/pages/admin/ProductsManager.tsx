@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Star, X } from "lucide-react";
+import { Plus, Edit, Trash2, Star, X, Package, IndianRupee, Percent, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -22,30 +23,36 @@ import {
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 
-const categories = ["AI Hardware", "Robotics", "Clean Tech", "Developer Tools", "Energy", "IoT"];
+const categories = ["AI Hardware", "Robotics", "Clean Tech", "Developer Tools", "Energy", "IoT", "Accessories", "Gadgets"];
 
 interface ProductForm {
   name: string;
   description: string;
   price: number;
+  original_price: number;
   category: string;
   image_url: string;
   badge: string;
   rating: number;
   stock_status: string;
   is_featured: boolean;
+  features: string[];
+  benefits: string[];
 }
 
 const defaultForm: ProductForm = {
   name: "",
   description: "",
   price: 0,
-  category: "AI Hardware",
+  original_price: 0,
+  category: "Gadgets",
   image_url: "",
   badge: "",
   rating: 0,
   stock_status: "in_stock",
   is_featured: false,
+  features: [""],
+  benefits: [""],
 };
 
 export default function ProductsManager() {
@@ -66,30 +73,67 @@ export default function ProductsManager() {
   };
 
   const openEditDialog = (product: any) => {
+    const specs = product.specs || {};
     setForm({
       name: product.name,
       description: product.description || "",
       price: product.price,
+      original_price: specs.original_price || 0,
       category: product.category,
       image_url: product.image_url || "",
       badge: product.badge || "",
       rating: product.rating || 0,
       stock_status: product.stock_status || "in_stock",
       is_featured: product.is_featured || false,
+      features: specs.features?.length ? specs.features : [""],
+      benefits: specs.benefits?.length ? specs.benefits : [""],
     });
     setEditingId(product.id);
     setIsDialogOpen(true);
   };
 
+  const addFeature = () => setForm({ ...form, features: [...form.features, ""] });
+  const removeFeature = (index: number) => setForm({ ...form, features: form.features.filter((_, i) => i !== index) });
+  const updateFeature = (index: number, value: string) => {
+    const newFeatures = [...form.features];
+    newFeatures[index] = value;
+    setForm({ ...form, features: newFeatures });
+  };
+
+  const addBenefit = () => setForm({ ...form, benefits: [...form.benefits, ""] });
+  const removeBenefit = (index: number) => setForm({ ...form, benefits: form.benefits.filter((_, i) => i !== index) });
+  const updateBenefit = (index: number, value: string) => {
+    const newBenefits = [...form.benefits];
+    newBenefits[index] = value;
+    setForm({ ...form, benefits: newBenefits });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const productData = {
+      name: form.name,
+      description: form.description,
+      price: form.price,
+      category: form.category,
+      image_url: form.image_url,
+      badge: form.badge,
+      rating: form.rating,
+      stock_status: form.stock_status,
+      is_featured: form.is_featured,
+      specs: {
+        original_price: form.original_price || null,
+        features: form.features.filter(f => f.trim()),
+        benefits: form.benefits.filter(b => b.trim()),
+      }
+    };
+    
     try {
       if (editingId) {
-        await updateProduct.mutateAsync({ id: editingId, ...form });
+        await updateProduct.mutateAsync({ id: editingId, ...productData });
         toast({ title: "Product updated successfully" });
       } else {
-        await createProduct.mutateAsync(form);
+        await createProduct.mutateAsync(productData);
         toast({ title: "Product created successfully" });
       }
       setIsDialogOpen(false);
@@ -158,7 +202,21 @@ export default function ProductsManager() {
                 )}
               </div>
               
-              <p className="text-lg font-bold mb-4">₹{product.price?.toLocaleString()}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-lg font-bold">₹{product.price?.toLocaleString()}</p>
+                {(product.specs as any)?.original_price && (
+                  <p className="text-sm text-muted-foreground line-through">
+                    ₹{Number((product.specs as any).original_price).toLocaleString()}
+                  </p>
+                )}
+              </div>
+              <Badge variant={
+                product.stock_status === 'in_stock' ? 'default' : 
+                product.stock_status === 'low_stock' ? 'secondary' : 'destructive'
+              } className="mb-4">
+                {product.stock_status === 'in_stock' ? 'In Stock' : 
+                 product.stock_status === 'low_stock' ? 'Limited Stock' : 'Out of Stock'}
+              </Badge>
               
               <div className="flex gap-2">
                 <Button 
@@ -229,72 +287,156 @@ export default function ProductsManager() {
               />
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Price (₹)</Label>
-                <Input
-                  type="number"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
-                  required
-                />
+            {/* Pricing Section */}
+            <div className="p-4 border border-border rounded-lg space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <IndianRupee className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Pricing</h3>
               </div>
-              
-              <div className="space-y-2">
-                <Label>Rating</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                  value={form.rating}
-                  onChange={(e) => setForm({ ...form, rating: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Badge</Label>
-                <Input
-                  value={form.badge}
-                  onChange={(e) => setForm({ ...form, badge: e.target.value })}
-                  placeholder="e.g., Best Seller"
-                />
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Selling Price (₹)</Label>
+                  <Input
+                    type="number"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Original Price (₹) - for discount</Label>
+                  <Input
+                    type="number"
+                    value={form.original_price}
+                    onChange={(e) => setForm({ ...form, original_price: parseFloat(e.target.value) || 0 })}
+                    placeholder="Leave 0 for no discount"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Badge</Label>
+                  <Input
+                    value={form.badge}
+                    onChange={(e) => setForm({ ...form, badge: e.target.value })}
+                    placeholder="e.g., LIMITED STOCK, NEW"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input
-                value={form.image_url}
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                placeholder="https://..."
-              />
+            {/* Image & Rating */}
+            <div className="p-4 border border-border rounded-lg space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Image className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Image & Rating</h3>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Image URL</Label>
+                  <Input
+                    value={form.image_url}
+                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                    placeholder="https://... or /src/assets/..."
+                  />
+                  {form.image_url && (
+                    <img src={form.image_url} alt="Preview" className="w-20 h-20 object-cover rounded-lg mt-2" />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Rating (0-5)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={form.rating}
+                    onChange={(e) => setForm({ ...form, rating: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Stock Status</Label>
-                <Select 
-                  value={form.stock_status} 
-                  onValueChange={(v) => setForm({ ...form, stock_status: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in_stock">In Stock</SelectItem>
-                    <SelectItem value="low_stock">Low Stock</SelectItem>
-                    <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Stock Status */}
+            <div className="p-4 border border-border rounded-lg space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Stock & Visibility</h3>
               </div>
-              
-              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <Label>Featured Product</Label>
-                <Switch
-                  checked={form.is_featured}
-                  onCheckedChange={(v) => setForm({ ...form, is_featured: v })}
-                />
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Stock Status</Label>
+                  <Select 
+                    value={form.stock_status} 
+                    onValueChange={(v) => setForm({ ...form, stock_status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in_stock">✅ In Stock</SelectItem>
+                      <SelectItem value="low_stock">⚠️ Limited Stock</SelectItem>
+                      <SelectItem value="out_of_stock">❌ Out of Stock</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <Label>Featured on Homepage</Label>
+                  <Switch
+                    checked={form.is_featured}
+                    onCheckedChange={(v) => setForm({ ...form, is_featured: v })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="p-4 border border-border rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Features</h3>
+                <Button type="button" variant="outline" size="sm" onClick={addFeature}>
+                  <Plus className="w-3 h-3 mr-1" /> Add Feature
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {form.features.map((feature, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={feature}
+                      onChange={(e) => updateFeature(index, e.target.value)}
+                      placeholder={`Feature ${index + 1}: e.g., Nano magnet technology`}
+                    />
+                    {form.features.length > 1 && (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeFeature(index)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Benefits */}
+            <div className="p-4 border border-border rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Benefits</h3>
+                <Button type="button" variant="outline" size="sm" onClick={addBenefit}>
+                  <Plus className="w-3 h-3 mr-1" /> Add Benefit
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {form.benefits.map((benefit, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={benefit}
+                      onChange={(e) => updateBenefit(index, e.target.value)}
+                      placeholder={`Benefit ${index + 1}: e.g., Long lasting 5+ hours battery`}
+                    />
+                    {form.benefits.length > 1 && (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeBenefit(index)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
