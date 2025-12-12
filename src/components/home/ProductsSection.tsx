@@ -4,6 +4,7 @@ import { ArrowRight, ShoppingCart, Eye, Star, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useProducts } from "@/hooks/useSiteData";
+import { Badge } from "@/components/ui/badge";
 
 interface ProductCardProps {
   product: any;
@@ -65,6 +66,20 @@ function ProductCard({ product, index }: ProductCardProps) {
             <span className="px-3 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-glow-sm">
               {product.badge}
             </span>
+          </motion.div>
+        )}
+
+        {/* Stock Status Badge */}
+        {product.stock_status && product.stock_status !== 'in_stock' && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="absolute top-4 right-4 z-20"
+          >
+            <Badge variant={product.stock_status === 'out_of_stock' ? 'destructive' : 'secondary'} className="text-xs">
+              {product.stock_status === 'out_of_stock' ? 'Out of Stock' : 'Limited Stock'}
+            </Badge>
           </motion.div>
         )}
 
@@ -146,13 +161,23 @@ function ProductCard({ product, index }: ProductCardProps) {
 
         {/* Price & CTA */}
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-2">
             <span className="font-display text-2xl font-black gradient-text-static">
               ₹{product.price?.toLocaleString()}
             </span>
+            {product.specs?.original_price && (
+              <span className="text-sm text-muted-foreground line-through">
+                ₹{Number(product.specs.original_price).toLocaleString()}
+              </span>
+            )}
           </div>
-          <Button variant="glow" size="sm" className="group/btn">
-            Add to Cart
+          <Button 
+            variant="glow" 
+            size="sm" 
+            className="group/btn"
+            disabled={product.stock_status === 'out_of_stock'}
+          >
+            {product.stock_status === 'out_of_stock' ? 'Sold Out' : 'Add to Cart'}
             <ShoppingCart className="w-4 h-4 ml-1 group-hover/btn:scale-110 transition-transform" />
           </Button>
         </div>
