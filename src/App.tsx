@@ -4,8 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { CartProvider } from "@/hooks/useCart";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Projects from "./pages/Projects";
 import AquaRiverPurifier from "./pages/AquaRiverPurifier";
 import Events from "./pages/Events";
@@ -50,13 +53,16 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/shop" element={<Shop />} />
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/aqua-river-purifier" element={<AquaRiverPurifier />} />
             <Route path="/events" element={<Events />} />
@@ -104,10 +110,11 @@ const App = () => (
               <Route path="settings" element={<SettingsManager />} />
             </Route>
             
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
