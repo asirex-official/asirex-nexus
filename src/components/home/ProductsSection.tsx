@@ -4,29 +4,6 @@ import { ArrowRight, ShoppingCart, Eye, Star, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useProducts } from "@/hooks/useSiteData";
-import spyEarpieceImg from "@/assets/spy-earpiece.png";
-
-// Hardcoded featured products
-const staticProducts = [
-  {
-    id: "spy-earpiece-1",
-    name: "Spy Earpiece",
-    category: "Nano Tech",
-    price: 2000,
-    rating: 4.8,
-    badge: "LIMITED STOCK",
-    image_url: spyEarpieceImg,
-    description: "Ultra-invisible nano magnet earbud. Long lasting 5 hours battery. Specially designed so no one can see it. Perfect for covert communication.",
-    stock_status: "limited",
-    is_featured: true,
-    specs: {
-      battery: "5 hours",
-      visibility: "Invisible to naked eye",
-      magnet: "Nano magnet technology",
-      design: "Specially designed earbud"
-    }
-  }
-];
 
 interface ProductCardProps {
   product: any;
@@ -185,10 +162,7 @@ function ProductCard({ product, index }: ProductCardProps) {
 }
 
 export function ProductsSection() {
-  const { data: dbProducts, isLoading } = useProducts(true);
-  
-  // Combine static products with database products
-  const allProducts = [...staticProducts, ...(dbProducts || [])];
+  const { data: products, isLoading } = useProducts(true);
 
   return (
     <section className="py-28 relative overflow-hidden">
@@ -238,11 +212,17 @@ export function ProductsSection() {
         </motion.div>
 
         {/* Products Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {allProducts.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
-          ))}
-        </div>
+        {products && products.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="min-h-[200px] flex items-center justify-center">
+            <p className="text-muted-foreground text-lg">Products coming soon</p>
+          </div>
+        )}
       </div>
     </section>
   );

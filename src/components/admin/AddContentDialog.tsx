@@ -65,12 +65,24 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
       const { data: userData } = await supabase.auth.getUser();
 
       if (contentType === "product") {
+        // Parse features into specs object
+        const featuresArray = formData.features?.split('\n').filter(f => f.trim()) || [];
+        const specs: Record<string, string> = {};
+        featuresArray.forEach((feature, i) => {
+          specs[`feature_${i + 1}`] = feature.trim();
+        });
+
         const { error } = await supabase.from('products').insert({
           name: formData.name,
-          price: parseFloat(formData.price?.replace(/[₹,]/g, '') || '0'),
+          price: parseFloat(formData.price || '0'),
           category: formData.category || 'General',
           description: formData.description,
           stock_status: formData.stock || 'in_stock',
+          image_url: formData.imageUrl,
+          badge: formData.badge === 'none' ? null : formData.badge,
+          rating: parseFloat(formData.rating || '0'),
+          is_featured: formData.is_featured === 'true',
+          specs: specs,
         });
         if (error) throw error;
       } else if (contentType === "project") {
@@ -138,10 +150,18 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
       case "product":
         return (
           <>
-            <div className="flex justify-center mb-4">
-              <div className="w-24 h-24 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
-                <Upload className="w-8 h-8 text-muted-foreground" />
-              </div>
+            <div className="space-y-2">
+              <Label>Image URL *</Label>
+              <Input
+                placeholder="https://example.com/image.png or /src/assets/image.png"
+                value={formData.imageUrl || ""}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              />
+              {formData.imageUrl && (
+                <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden">
+                  <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Product Name *</Label>
@@ -154,10 +174,11 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" /> Price *
+                  <DollarSign className="w-4 h-4" /> Price (₹) *
                 </Label>
                 <Input
-                  placeholder="₹XXX"
+                  type="number"
+                  placeholder="2000"
                   value={formData.price || ""}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 />
@@ -176,13 +197,52 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
                 </Select>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Badge</Label>
+                <Select value={formData.badge} onValueChange={(v) => setFormData({ ...formData, badge: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select badge" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="NEW">NEW</SelectItem>
+                    <SelectItem value="HOT">HOT</SelectItem>
+                    <SelectItem value="SALE">SALE</SelectItem>
+                    <SelectItem value="LIMITED STOCK">LIMITED STOCK</SelectItem>
+                    <SelectItem value="BESTSELLER">BESTSELLER</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Rating (0-5)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  placeholder="4.5"
+                  value={formData.rating || ""}
+                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>Description *</Label>
               <Textarea
                 placeholder="Product description..."
                 value={formData.description || ""}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Features (one per line)</Label>
+              <Textarea
+                placeholder="5 hours battery life&#10;Invisible to naked eye&#10;Nano magnet technology"
+                value={formData.features || ""}
+                onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+                rows={4}
               />
             </div>
             <div className="space-y-2">
@@ -194,9 +254,20 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
                 <SelectContent>
                   <SelectItem value="in_stock">In Stock</SelectItem>
                   <SelectItem value="low_stock">Low Stock</SelectItem>
+                  <SelectItem value="limited">Limited Stock</SelectItem>
                   <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_featured"
+                checked={formData.is_featured === "true"}
+                onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked ? "true" : "false" })}
+                className="rounded"
+              />
+              <Label htmlFor="is_featured">Show on Homepage (Featured)</Label>
             </div>
           </>
         );
