@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Star, X, Package, IndianRupee, Percent, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Star, X, Package, IndianRupee, Image, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +22,10 @@ import {
 } from "@/components/ui/select";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = ["AI Hardware", "Robotics", "Clean Tech", "Developer Tools", "Energy", "IoT", "Accessories", "Gadgets"];
+const badges = ["", "NEW", "BEST SELLER", "LIMITED STOCK", "HOT", "SALE", "PREMIUM", "TRENDING"];
 
 interface ProductForm {
   name: string;
@@ -65,6 +67,57 @@ export default function ProductsManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(defaultForm);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Invalid file", description: "Please upload an image file", variant: "destructive" });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Image must be less than 5MB", variant: "destructive" });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(data.path);
+
+      setForm({ ...form, image_url: publicUrl });
+      toast({ title: "Image uploaded successfully" });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({ 
+        title: "Upload failed", 
+        description: error.message || "Failed to upload image. Make sure you're logged in as admin.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const openCreateDialog = () => {
     setForm(defaultForm);
@@ -314,11 +367,21 @@ export default function ProductsManager() {
                 </div>
                 <div className="space-y-2">
                   <Label>Badge</Label>
-                  <Input
-                    value={form.badge}
-                    onChange={(e) => setForm({ ...form, badge: e.target.value })}
-                    placeholder="e.g., LIMITED STOCK, NEW"
-                  />
+                  <Select 
+                    value={form.badge} 
+                    onValueChange={(v) => setForm({ ...form, badge: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select badge (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {badges.map((badge) => (
+                        <SelectItem key={badge || "none"} value={badge || "none"}>
+                          {badge || "No Badge"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -330,27 +393,80 @@ export default function ProductsManager() {
                 <h3 className="font-semibold">Image & Rating</h3>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Image URL</Label>
+                <div className="space-y-3">
+                  <Label>Product Image</Label>
+                  
+                  {/* Upload Button */}
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="flex-1"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Image
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {/* OR URL input */}
+                  <div className="text-center text-xs text-muted-foreground">or paste URL</div>
                   <Input
                     value={form.image_url}
                     onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                    placeholder="https://... or /src/assets/..."
+                    placeholder="https://..."
                   />
+                  
+                  {/* Preview */}
                   {form.image_url && (
-                    <img src={form.image_url} alt="Preview" className="w-20 h-20 object-cover rounded-lg mt-2" />
+                    <div className="relative w-24 h-24">
+                      <img src={form.image_url} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 w-6 h-6"
+                        onClick={() => setForm({ ...form, image_url: "" })}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label>Rating (0-5)</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    value={form.rating}
-                    onChange={(e) => setForm({ ...form, rating: parseFloat(e.target.value) || 0 })}
-                  />
+                  <Select 
+                    value={form.rating.toString()} 
+                    onValueChange={(v) => setForm({ ...form, rating: parseFloat(v) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0, 1, 2, 3, 4, 4.5, 5].map((r) => (
+                        <SelectItem key={r} value={r.toString()}>
+                          {"⭐".repeat(Math.floor(r))} {r} Stars
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
