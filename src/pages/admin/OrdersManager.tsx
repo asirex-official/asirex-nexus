@@ -148,16 +148,22 @@ export default function OrdersManager() {
                       <p className="text-muted-foreground">Email</p>
                       <p className="font-medium">{selectedOrder.customer_email}</p>
                     </div>
-                    {selectedOrder.customer_phone && (
-                      <div>
-                        <p className="text-muted-foreground">Phone</p>
-                        <p className="font-medium">{selectedOrder.customer_phone}</p>
-                      </div>
-                    )}
-                    {selectedOrder.shipping_address && (
+                    <div>
+                      <p className="text-muted-foreground">Phone</p>
+                      <p className="font-medium">{selectedOrder.customer_phone || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Payment Method</p>
+                      <p className="font-medium capitalize">{selectedOrder.payment_method || 'Not specified'}</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-muted-foreground">Shipping Address</p>
+                      <p className="font-medium">{selectedOrder.shipping_address || 'Not provided'}</p>
+                    </div>
+                    {selectedOrder.notes && (
                       <div className="sm:col-span-2">
-                        <p className="text-muted-foreground">Address</p>
-                        <p className="font-medium">{selectedOrder.shipping_address}</p>
+                        <p className="text-muted-foreground">Order Notes</p>
+                        <p className="font-medium">{selectedOrder.notes}</p>
                       </div>
                     )}
                   </div>

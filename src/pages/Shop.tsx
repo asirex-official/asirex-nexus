@@ -18,6 +18,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useProducts } from "@/hooks/useSiteData";
+import { useCart } from "@/hooks/useCart";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const categories = ["All", "AI Hardware", "Robotics", "Clean Tech", "Gadgets", "Nano Tech", "Accessories"];
 
@@ -36,11 +39,36 @@ interface Product {
 
 export default function Shop() {
   const { data: products, isLoading } = useProducts();
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const handleAddToCart = (product: Product) => {
+    if (!isInStock(product.stock_status)) return;
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url,
+    });
+    toast({ title: "Added to Cart", description: `${product.name} added to your cart` });
+  };
+
+  const handleBuyNow = (product: Product) => {
+    if (!isInStock(product.stock_status)) return;
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url,
+    });
+    navigate("/checkout");
+  };
 
   const filteredProducts = (products || [])
     .filter((p) => selectedCategory === "All" || p.category === selectedCategory)
@@ -215,6 +243,10 @@ export default function Shop() {
                           variant="hero"
                           size="icon"
                           disabled={!isInStock(product.stock_status)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product);
+                          }}
                         >
                           <ShoppingCart className="w-4 h-4" />
                         </Button>
@@ -250,6 +282,10 @@ export default function Shop() {
                           variant="glow"
                           size="sm"
                           disabled={!isInStock(product.stock_status)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product);
+                          }}
                         >
                           Add to Cart
                         </Button>
@@ -329,11 +365,22 @@ export default function Shop() {
                       variant="hero"
                       className="flex-1"
                       disabled={!isInStock(selectedProduct.stock_status)}
+                      onClick={() => {
+                        handleAddToCart(selectedProduct);
+                        setSelectedProduct(null);
+                      }}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button variant="premium" className="flex-1">
+                    <Button 
+                      variant="premium" 
+                      className="flex-1"
+                      onClick={() => {
+                        handleBuyNow(selectedProduct);
+                        setSelectedProduct(null);
+                      }}
+                    >
                       Buy Now
                     </Button>
                   </div>
