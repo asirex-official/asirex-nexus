@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +21,7 @@ import { useState } from "react";
 
 const navItems = [
   { path: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
+  { path: "/admin/users", icon: Users, label: "Users" },
   { path: "/admin/products", icon: Package, label: "Products" },
   { path: "/admin/projects", icon: FolderKanban, label: "Projects" },
   { path: "/admin/events", icon: Calendar, label: "Events" },
