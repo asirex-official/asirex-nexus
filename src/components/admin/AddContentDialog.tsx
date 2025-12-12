@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Package, FolderKanban, Calendar, Briefcase, Upload, DollarSign, MapPin, Clock } from "lucide-react";
+import { Package, FolderKanban, Calendar, Briefcase, Upload, DollarSign, MapPin, Clock, ImagePlus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type ContentType = "product" | "project" | "event" | "job";
@@ -53,6 +53,48 @@ const jobDepartments = ["Technology & Development", "Sales & Marketing", "Produc
 export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: AddContentDialogProps) {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, imageUrl: publicUrl });
+      toast.success('Image uploaded successfully!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const config = contentConfig[contentType];
   const Icon = config.icon;
@@ -151,14 +193,37 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
         return (
           <>
             <div className="space-y-2">
-              <Label>Image URL *</Label>
-              <Input
-                placeholder="https://example.com/image.png or /src/assets/image.png"
-                value={formData.imageUrl || ""}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              />
+              <Label>Product Image *</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter URL or upload image"
+                  value={formData.imageUrl || ""}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  className="flex-1"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="shrink-0"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
               {formData.imageUrl && (
-                <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden">
+                <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden border">
                   <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
