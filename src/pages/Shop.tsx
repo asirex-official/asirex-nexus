@@ -17,9 +17,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import spyEarpieceImg from "@/assets/spy-earpiece.png";
 
 const products: Array<{
-  id: number;
+  id: number | string;
   name: string;
   category: string;
   price: number;
@@ -31,7 +32,29 @@ const products: Array<{
   description: string;
   specs: string[];
   inStock: boolean;
-}> = [];
+}> = [
+  {
+    id: "spy-earpiece-1",
+    name: "Spy Earpiece",
+    category: "Nano Tech",
+    price: 2000,
+    originalPrice: null,
+    rating: 4.8,
+    reviews: 127,
+    image: spyEarpieceImg,
+    badge: "LIMITED STOCK",
+    description: "Ultra-invisible nano magnet earbud. Long lasting 5 hours battery. Specially designed so no one can see it. Perfect for covert communication.",
+    specs: [
+      "5 hours battery life",
+      "Invisible to naked eye",
+      "Nano magnet technology",
+      "Specially designed earbud",
+      "Wireless connectivity",
+      "Ultra lightweight"
+    ],
+    inStock: true
+  }
+];
 
 const categories = ["All", "AI Hardware", "Robotics", "Clean Tech", "Developer Tools"];
 
@@ -179,7 +202,7 @@ export default function Shop() {
                         Out of Stock
                       </span>
                     )}
-                    <span className="text-6xl">{product.image}</span>
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
 
                     {/* Hover Actions */}
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
@@ -270,8 +293,8 @@ export default function Shop() {
                 </DialogTitle>
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6 mt-4">
-                <div className="aspect-square rounded-xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
-                  <span className="text-8xl">{selectedProduct.image}</span>
+                <div className="aspect-square rounded-xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center overflow-hidden">
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-primary uppercase tracking-wider mb-2">
