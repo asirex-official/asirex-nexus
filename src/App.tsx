@@ -31,6 +31,7 @@ import ContentManager from "./pages/admin/ContentManager";
 import MessagesManager from "./pages/admin/MessagesManager";
 import OrdersManager from "./pages/admin/OrdersManager";
 import SettingsManager from "./pages/admin/SettingsManager";
+import UsersManager from "./pages/admin/UsersManager";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -93,6 +94,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
+              <Route path="users" element={<UsersManager />} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="projects" element={<ProjectsManager />} />
               <Route path="events" element={<EventsManager />} />
