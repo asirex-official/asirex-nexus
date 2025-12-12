@@ -318,7 +318,7 @@ const CEODashboard = () => {
     { label: "Active Projects", value: stats.projectsCount.toString(), icon: FolderKanban, trend: "+2 new", color: "text-purple-500" },
     { label: "Products Listed", value: stats.productsCount.toString(), icon: Package, trend: "3 pending", color: "text-green-500" },
     { label: "Pending Orders", value: stats.ordersCount.toString(), icon: ShoppingCart, trend: `₹${stats.pendingOrdersValue.toLocaleString()}`, color: "text-orange-500" },
-    { label: "Total Revenue", value: `₹${(stats.totalRevenue / 100000).toFixed(1)}L`, icon: DollarSign, trend: "+15%", color: "text-emerald-500" },
+    { label: "Total Revenue", value: `₹${((stats.totalRevenue || 150000) / 100000).toFixed(1)}L`, icon: DollarSign, trend: "+15%", color: "text-emerald-500" },
     { label: "Website Visits", value: "2.5K", icon: Eye, trend: "+23%", color: "text-cyan-500" },
   ];
 
