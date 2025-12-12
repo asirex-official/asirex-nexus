@@ -128,6 +128,9 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
         });
         if (error) throw error;
       } else if (contentType === "project") {
+        // Parse features into array
+        const featuresArray = formData.features?.split('\n').filter(f => f.trim()).map(f => f.trim()) || [];
+        
         const { error } = await supabase.from('projects').insert({
           title: formData.title,
           tagline: formData.tagline,
@@ -135,6 +138,9 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
           status: formData.status || 'In Development',
           progress_percentage: parseInt(formData.progress || '0'),
           launch_date: formData.launchDate,
+          image_url: formData.imageUrl,
+          features: featuresArray,
+          impact: formData.impact,
         });
         if (error) throw error;
       } else if (contentType === "event") {
@@ -151,6 +157,8 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
           location: formData.location,
           capacity: formData.capacity ? parseInt(formData.capacity) : null,
           ticket_price: formData.ticketPrice === 'Free' ? 0 : parseFloat(formData.ticketPrice?.replace(/[₹,]/g, '') || '0'),
+          image_url: formData.imageUrl,
+          is_featured: formData.is_featured === 'true',
         });
         if (error) throw error;
       } else if (contentType === "job") {
@@ -341,6 +349,42 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
         return (
           <>
             <div className="space-y-2">
+              <Label>Project Image</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter URL or upload image"
+                  value={formData.imageUrl || ""}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  className="flex-1"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="shrink-0"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+              {formData.imageUrl && (
+                <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden border">
+                  <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
               <Label>Project Title *</Label>
               <Input
                 placeholder="Enter project title"
@@ -362,6 +406,15 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
                 placeholder="Detailed project description..."
                 value={formData.description || ""}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Features (one per line)</Label>
+              <Textarea
+                placeholder="AI-powered detection&#10;Autonomous operation&#10;Real-time monitoring"
+                value={formData.features || ""}
+                onChange={(e) => setFormData({ ...formData, features: e.target.value })}
                 rows={3}
               />
             </div>
@@ -399,12 +452,57 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
                 onChange={(e) => setFormData({ ...formData, launchDate: e.target.value })}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Impact Statement</Label>
+              <Textarea
+                placeholder="What impact will this project have?"
+                value={formData.impact || ""}
+                onChange={(e) => setFormData({ ...formData, impact: e.target.value })}
+                rows={2}
+              />
+            </div>
           </>
         );
 
       case "event":
         return (
           <>
+            <div className="space-y-2">
+              <Label>Event Image</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter URL or upload image"
+                  value={formData.imageUrl || ""}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  className="flex-1"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="shrink-0"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+              {formData.imageUrl && (
+                <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden border">
+                  <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
               <Label>Event Name *</Label>
               <Input
@@ -472,6 +570,16 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
                   onChange={(e) => setFormData({ ...formData, ticketPrice: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_featured_event"
+                checked={formData.is_featured === "true"}
+                onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked ? "true" : "false" })}
+                className="rounded"
+              />
+              <Label htmlFor="is_featured_event">Featured Event</Label>
             </div>
           </>
         );
