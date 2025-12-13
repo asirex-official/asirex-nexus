@@ -5,6 +5,7 @@ import { ArrowLeft, Key, Usb, Eye, EyeOff, Shield, Fingerprint } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const CardLogin = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const CardLogin = () => {
   const id = searchParams.get("id") || "ASX-0000-000";
   const department = searchParams.get("department") || "Department";
   const role = searchParams.get("role") || "member";
+  const email = searchParams.get("email") || "";
   
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,22 +40,36 @@ const CardLogin = () => {
       toast.error("Please enter your password");
       return;
     }
+
+    if (!email) {
+      toast.error("No email associated with this account");
+      return;
+    }
     
     setIsLoading(true);
     
-    // Authenticate with password
-    setTimeout(() => {
-      if (password === "Jaath@0422") {
-        setIsLoading(false);
-        toast.success(`Welcome back, ${name.split(" ")[0]}!`);
-        navigate(getDashboardRoute());
-      } else {
-        setIsLoading(false);
-        toast.error("Invalid password", {
-          description: "Please check your credentials and try again."
+    try {
+      // Authenticate via Supabase Auth
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) {
+        toast.error("Invalid credentials", {
+          description: error.message
         });
+        setIsLoading(false);
+        return;
       }
-    }, 1500);
+
+      toast.success(`Welcome back, ${name.split(" ")[0]}!`);
+      navigate(getDashboardRoute());
+    } catch (err) {
+      toast.error("Authentication failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleUSBPasskey = () => {
