@@ -34,20 +34,10 @@ const CardLogin = () => {
     return `/dashboard/core-pillar?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
   };
 
-  const ADMIN_PASSWORD = "Jaath@0422";
-
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
       toast.error("Please enter your password");
-      return;
-    }
-
-    // Verify against fixed admin password
-    if (password !== ADMIN_PASSWORD) {
-      toast.error("Invalid credentials", {
-        description: "The password you entered is incorrect"
-      });
       return;
     }
 
@@ -62,53 +52,27 @@ const CardLogin = () => {
       // Sign out any existing session first
       await supabase.auth.signOut();
 
-      // Try to sign in with Supabase
+      // Authenticate with Supabase using the user's actual password
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
       });
 
       if (error) {
-        // If user doesn't exist, create them
         if (error.message.includes("Invalid login credentials")) {
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-              emailRedirectTo: `${window.location.origin}/`,
-              data: { 
-                full_name: name,
-                role: role 
-              }
-            }
+          toast.error("Invalid credentials", {
+            description: "The email or password you entered is incorrect. Please contact Support@asirex.in if you need access."
           });
-
-          if (signUpError) {
-            toast.error("Authentication failed", {
-              description: signUpError.message
-            });
-            setIsLoading(false);
-            return;
-          }
-
-          // After signup, assign admin role
-          if (signUpData.user) {
-            await assignAdminRole(signUpData.user.id);
-          }
-
-          toast.success(`Account created! Welcome, ${name.split(" ")[0]}!`);
-          navigate(getDashboardRoute());
-          return;
+        } else {
+          toast.error("Authentication failed", {
+            description: error.message
+          });
         }
-
-        toast.error("Authentication failed", {
-          description: error.message
-        });
         setIsLoading(false);
         return;
       }
 
-      // Verify user has admin role, if not assign it
+      // Verify user has appropriate role
       if (data.user) {
         const { data: roleData } = await supabase
           .from('user_roles')
@@ -117,7 +81,12 @@ const CardLogin = () => {
           .single();
 
         if (!roleData) {
-          await assignAdminRole(data.user.id);
+          toast.error("Access denied", {
+            description: "Your account does not have the required permissions. Please contact Support@asirex.in"
+          });
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
         }
       }
 
@@ -128,28 +97,6 @@ const CardLogin = () => {
       toast.error("Authentication failed");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const assignAdminRole = async (userId: string) => {
-    try {
-      const roleToAssign = role === 'ceo' ? 'super_admin' : 
-                          role === 'developer' ? 'developer' : 
-                          role === 'manager' ? 'manager' : 'admin';
-
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: roleToAssign as any,
-          department: department
-        });
-
-      if (error && !error.message.includes('duplicate')) {
-        console.error('Error assigning role:', error);
-      }
-    } catch (err) {
-      console.error('Role assignment error:', err);
     }
   };
 
