@@ -54,15 +54,26 @@ export default function Auth() {
   const [showAdminOptions, setShowAdminOptions] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, roles, isAdmin, isSuperAdmin, isStaff, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Redirect based on role after login
   useEffect(() => {
-    if (user) {
-      navigate("/");
+    if (user && !authLoading && roles.length > 0) {
+      // Determine redirect based on role
+      if (isSuperAdmin) {
+        navigate("/dashboards/ceo");
+      } else if (isAdmin) {
+        navigate("/admin");
+      } else if (isStaff) {
+        navigate("/dashboards/core-pillar");
+      } else {
+        // Regular users go to home
+        navigate("/");
+      }
     }
-  }, [user, navigate]);
+  }, [user, roles, isAdmin, isSuperAdmin, isStaff, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
