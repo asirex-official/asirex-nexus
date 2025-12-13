@@ -6,7 +6,7 @@ import {
   Shield, TrendingUp, Briefcase, Megaphone, FileText, Video, LogOut, Crown, Zap, Globe,
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
-  Award, Gift, Target, BarChart3, Trash2,
+  Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,10 @@ import { PostNoticeDialog, Notice } from "@/components/admin/PostNoticeDialog";
 import { AddContentDialog } from "@/components/admin/AddContentDialog";
 import { StartMeetingDialog } from "@/components/admin/StartMeetingDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Task {
   id: string;
@@ -35,6 +39,18 @@ interface DashboardStats {
   ordersCount: number;
   totalRevenue: number;
   pendingOrdersValue: number;
+  usersCount: number;
+}
+
+interface AppUser {
+  id: string;
+  email: string;
+  fullName: string | null;
+  phone: string | null;
+  birthdate: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+  roles: { role: string; department: string | null }[];
 }
 
 const CEODashboard = () => {
@@ -61,7 +77,16 @@ const CEODashboard = () => {
     ordersCount: 0,
     totalRevenue: 0,
     pendingOrdersValue: 0,
+    usersCount: 0,
   });
+  
+  // Users management state
+  const [users, setUsers] = useState<AppUser[]>([]);
+  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [editForm, setEditForm] = useState({ fullName: '', phone: '', birthdate: '' });
+  const [newRole, setNewRole] = useState<string>('user');
 
   // Fetch data from Supabase
   useEffect(() => {
@@ -130,17 +155,43 @@ const CEODashboard = () => {
         })));
       }
 
-      // Fetch stats
-      const [projectsRes, productsRes, ordersRes] = await Promise.all([
+      // Fetch stats and users
+      const [projectsRes, productsRes, ordersRes, profilesRes] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact' }),
         supabase.from('products').select('id', { count: 'exact' }),
         supabase.from('orders').select('total_amount, order_status'),
+        supabase.from('profiles').select('*'),
       ]);
 
       const orders = ordersRes.data || [];
       const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
       const pendingOrders = orders.filter(o => o.order_status === 'pending');
       const pendingValue = pendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+      // Fetch user roles for all profiles
+      const profiles = profilesRes.data || [];
+      const userIds = profiles.map(p => p.user_id);
+      
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role, department')
+        .in('user_id', userIds);
+
+      const mappedUsers: AppUser[] = profiles.map(p => ({
+        id: p.user_id,
+        email: '', // Will be filled from auth if needed
+        fullName: p.full_name,
+        phone: p.phone,
+        birthdate: p.birthdate,
+        avatarUrl: p.avatar_url,
+        createdAt: p.created_at,
+        roles: rolesData?.filter(r => r.user_id === p.user_id).map(r => ({
+          role: r.role,
+          department: r.department
+        })) || []
+      }));
+      
+      setUsers(mappedUsers);
 
       setStats({
         teamCount: teamData?.length || 0,
@@ -149,6 +200,7 @@ const CEODashboard = () => {
         ordersCount: pendingOrders.length,
         totalRevenue,
         pendingOrdersValue: pendingValue,
+        usersCount: profiles.length,
       });
 
     } catch (error) {
@@ -267,6 +319,81 @@ const CEODashboard = () => {
   const handleAddContent = () => {
     // Refresh stats after adding content
     fetchDashboardData();
+  };
+
+  // User management handlers
+  const handleEditUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: editForm.fullName || null,
+          phone: editForm.phone || null,
+          birthdate: editForm.birthdate || null
+        })
+        .eq('user_id', selectedUser.id);
+
+      if (error) throw error;
+
+      setUsers(users.map(u => 
+        u.id === selectedUser.id 
+          ? { ...u, fullName: editForm.fullName, phone: editForm.phone, birthdate: editForm.birthdate }
+          : u
+      ));
+      
+      setShowEditUser(false);
+      toast.success('User profile updated');
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast.error(error.message || 'Failed to update user');
+    }
+  };
+
+  const handleUpdateRole = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      // Check if user already has a role entry
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', selectedUser.id)
+        .single();
+
+      if (existingRole) {
+        // Update existing role
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: newRole as any })
+          .eq('user_id', selectedUser.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: selectedUser.id,
+            role: newRole as any
+          });
+
+        if (error) throw error;
+      }
+
+      setUsers(users.map(u => 
+        u.id === selectedUser.id 
+          ? { ...u, roles: [{ role: newRole, department: null }] }
+          : u
+      ));
+      
+      setShowRoleDialog(false);
+      toast.success('User role updated');
+    } catch (error: any) {
+      console.error('Error updating role:', error);
+      toast.error(error.message || 'Failed to update role');
+    }
   };
 
   // Actions config
@@ -417,9 +544,10 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="website">Website</TabsTrigger>
             <TabsTrigger value="notices">Notices</TabsTrigger>
@@ -631,6 +759,74 @@ const CEODashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2"><UserCog className="w-5 h-5 text-blue-500" />Registered Users ({stats.usersCount})</CardTitle>
+                <Badge variant="outline" className="gap-1"><ShieldCheck className="w-3 h-3" />Role Management</Badge>
+              </CardHeader>
+              <CardContent>
+                {users.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No registered users yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {users.map((user) => (
+                      <div key={user.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-blue-500/20 flex items-center justify-center text-primary font-bold text-lg">
+                          {user.fullName?.charAt(0) || user.id.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold truncate">{user.fullName || 'Unnamed User'}</p>
+                            {user.roles.map((r, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs capitalize">{r.role.replace('_', ' ')}</Badge>
+                            ))}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">ID: {user.id.slice(0, 8)}...</p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            {user.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{user.phone}</span>}
+                            {user.birthdate && <span>Age: {calculateAge(user.birthdate)}</span>}
+                            <span>Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-1"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditForm({
+                                fullName: user.fullName || '',
+                                phone: user.phone || '',
+                                birthdate: user.birthdate || ''
+                              });
+                              setShowEditUser(true);
+                            }}
+                          >
+                            <Edit className="w-3 h-3" />Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-1"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setNewRole(user.roles[0]?.role || 'user');
+                              setShowRoleDialog(true);
+                            }}
+                          >
+                            <Key className="w-3 h-3" />Role
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -645,8 +841,94 @@ const CEODashboard = () => {
       {contentType && (
         <AddContentDialog open={!!contentType} onOpenChange={(open) => !open && setContentType(null)} contentType={contentType} onAdd={handleAddContent} />
       )}
+
+      {/* Edit User Dialog */}
+      <Dialog open={showEditUser} onOpenChange={setShowEditUser}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Edit className="w-5 h-5" />Edit User Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input 
+                value={editForm.fullName} 
+                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                placeholder="Enter full name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone Number</Label>
+              <Input 
+                value={editForm.phone} 
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Birthdate</Label>
+              <Input 
+                type="date"
+                value={editForm.birthdate} 
+                onChange={(e) => setEditForm({ ...editForm, birthdate: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditUser(false)}>Cancel</Button>
+            <Button onClick={handleEditUser}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Management Dialog */}
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5" />Manage User Role</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Change role for: <span className="font-medium text-foreground">{selectedUser?.fullName || 'User'}</span>
+            </p>
+            <div className="space-y-2">
+              <Label>Select Role</Label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="core_member">Core Member</SelectItem>
+                  <SelectItem value="developer">Developer</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRoleDialog(false)}>Cancel</Button>
+            <Button onClick={handleUpdateRole}>Update Role</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+};
+
+// Helper function to calculate age from birthdate
+const calculateAge = (birthdate: string): number => {
+  const today = new Date();
+  const birth = new Date(birthdate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
 };
 
 export default CEODashboard;
