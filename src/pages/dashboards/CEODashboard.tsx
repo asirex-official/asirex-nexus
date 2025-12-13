@@ -70,36 +70,11 @@ interface ActivityLog {
 const CEODashboard = () => {
   const navigate = useNavigate();
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
+  
+  // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
   const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(true);
   const [isPinVerified, setIsPinVerified] = useState(false);
-  
-  // Redirect non-super_admin users
-  useEffect(() => {
-    if (!authLoading && (!user || !isSuperAdmin)) {
-      toast.error("Unauthorized access");
-      navigate("/auth");
-    }
-  }, [user, isSuperAdmin, authLoading, navigate]);
-
-  // If not verified with PIN, show PIN verification screen
-  if (!authLoading && user && isSuperAdmin && !isPinVerified) {
-    return (
-      <PinVerification 
-        userId={user.id} 
-        onVerified={() => setIsPinVerified(true)} 
-      />
-    );
-  }
-
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
   
   // Dialog states
   const [showAddMember, setShowAddMember] = useState(false);
@@ -136,6 +111,33 @@ const CEODashboard = () => {
 
   // Enable real-time order notifications
   useRealtimeOrders(true);
+  
+  // Redirect non-super_admin users
+  useEffect(() => {
+    if (!authLoading && (!user || !isSuperAdmin)) {
+      toast.error("Unauthorized access");
+      navigate("/auth");
+    }
+  }, [user, isSuperAdmin, authLoading, navigate]);
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // If not verified with PIN, show PIN verification screen
+  if (user && isSuperAdmin && !isPinVerified) {
+    return (
+      <PinVerification 
+        userId={user.id} 
+        onVerified={() => setIsPinVerified(true)} 
+      />
+    );
+  }
 
   // Fetch data from Supabase
   useEffect(() => {
