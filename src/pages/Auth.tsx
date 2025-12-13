@@ -60,18 +60,22 @@ export default function Auth() {
 
   // Redirect based on role after login
   useEffect(() => {
-    if (user && !authLoading && roles.length > 0) {
-      // Determine redirect based on role
-      if (isSuperAdmin) {
-        navigate("/dashboards/ceo");
-      } else if (isAdmin) {
-        navigate("/admin");
-      } else if (isStaff) {
-        navigate("/dashboards/core-pillar");
-      } else {
-        // Regular users go to home
-        navigate("/");
-      }
+    if (user && !authLoading) {
+      // Wait a moment for roles to be fetched, then redirect
+      const redirectTimer = setTimeout(() => {
+        if (isSuperAdmin) {
+          navigate("/dashboards/ceo");
+        } else if (isAdmin) {
+          navigate("/admin");
+        } else if (isStaff) {
+          navigate("/dashboards/core-pillar");
+        } else {
+          // Regular users go to home
+          navigate("/");
+        }
+      }, 500);
+      
+      return () => clearTimeout(redirectTimer);
     }
   }, [user, roles, isAdmin, isSuperAdmin, isStaff, authLoading, navigate]);
 
