@@ -75,7 +75,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-border hidden lg:block">
-          <Link to="/" className="font-display text-xl font-bold gradient-text">
+          <Link to="/admin" className="font-display text-xl font-bold gradient-text">
             ASIREX Admin
           </Link>
         </div>
