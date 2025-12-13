@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Package, User, Calendar, CreditCard, Truck } from "lucide-react";
+import { Package, User, Calendar, CreditCard, Truck, MapPin, Send, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -21,23 +22,53 @@ import { format } from "date-fns";
 
 const orderStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatuses = ["pending", "paid", "failed", "refunded"];
+const trackingProviders = ["Delhivery", "BlueDart", "DTDC", "India Post", "FedEx", "Other"];
 
 export default function OrdersManager() {
   const { data: orders, isLoading } = useOrders();
   const updateStatus = useUpdateOrderStatus();
   const { toast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingProvider, setTrackingProvider] = useState("Delhivery");
 
-  const handleUpdateStatus = async (id: string, field: string, value: string) => {
+  const handleUpdateStatus = async (id: string, updates: Record<string, any>) => {
     try {
-      await updateStatus.mutateAsync({ 
-        id, 
-        [field]: value 
-      });
-      toast({ title: "Order updated" });
+      await updateStatus.mutateAsync({ id, ...updates });
+      if (selectedOrder?.id === id) {
+        setSelectedOrder({ ...selectedOrder, ...updates });
+      }
+      toast({ title: "Order updated successfully" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to update order", variant: "destructive" });
     }
+  };
+
+  const handleMarkAsShipped = async () => {
+    if (!selectedOrder) return;
+    
+    const updates: Record<string, any> = {
+      order_status: "shipped",
+      shipped_at: new Date().toISOString()
+    };
+    
+    if (trackingNumber.trim()) {
+      updates.tracking_number = trackingNumber.trim();
+      updates.tracking_provider = trackingProvider;
+    }
+    
+    await handleUpdateStatus(selectedOrder.id, updates);
+    setTrackingNumber("");
+  };
+
+  const handleAddTracking = async () => {
+    if (!selectedOrder || !trackingNumber.trim()) return;
+    
+    await handleUpdateStatus(selectedOrder.id, {
+      tracking_number: trackingNumber.trim(),
+      tracking_provider: trackingProvider
+    });
+    setTrackingNumber("");
   };
 
   const getStatusColor = (status: string) => {
@@ -84,7 +115,11 @@ export default function OrdersManager() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03 }}
-              onClick={() => setSelectedOrder(order)}
+              onClick={() => {
+                setSelectedOrder(order);
+                setTrackingNumber((order as any).tracking_number || "");
+                setTrackingProvider((order as any).tracking_provider || "Delhivery");
+              }}
               className="glass-card p-4 cursor-pointer transition-all hover:bg-muted/50"
             >
               <div className="flex items-center justify-between">
@@ -95,6 +130,12 @@ export default function OrdersManager() {
                   <div>
                     <h3 className="font-semibold">{order.customer_name}</h3>
                     <p className="text-sm text-muted-foreground">{order.customer_email}</p>
+                    {(order as any).tracking_number && (
+                      <p className="text-xs text-cyan-500 flex items-center gap-1 mt-1">
+                        <MapPin className="w-3 h-3" />
+                        {(order as any).tracking_provider}: {(order as any).tracking_number}
+                      </p>
+                    )}
                   </div>
                 </div>
                 
@@ -107,10 +148,10 @@ export default function OrdersManager() {
                   </div>
                   
                   <div className="flex flex-col gap-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.order_status)}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.order_status || '')}`}>
                       {order.order_status}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.payment_status)}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.payment_status || '')}`}>
                       {order.payment_status}
                     </span>
                   </div>
@@ -189,6 +230,75 @@ export default function OrdersManager() {
                   </div>
                 </div>
 
+                {/* Tracking & Shipping */}
+                <div className="glass-card p-4 bg-cyan-500/5 border border-cyan-500/20">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2 text-cyan-400">
+                    <Truck className="w-4 h-4" />
+                    Shipping & Tracking
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Tracking Provider</label>
+                        <Select value={trackingProvider} onValueChange={setTrackingProvider}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {trackingProviders.map((provider) => (
+                              <SelectItem key={provider} value={provider}>{provider}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Tracking Number</label>
+                        <Input
+                          placeholder="Enter tracking number..."
+                          value={trackingNumber}
+                          onChange={(e) => setTrackingNumber(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {selectedOrder.order_status !== "shipped" && selectedOrder.order_status !== "delivered" && (
+                        <Button 
+                          onClick={handleMarkAsShipped}
+                          className="bg-cyan-600 hover:bg-cyan-700"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Mark as Shipped
+                        </Button>
+                      )}
+                      
+                      {trackingNumber.trim() && trackingNumber !== selectedOrder.tracking_number && (
+                        <Button variant="outline" onClick={handleAddTracking}>
+                          <MapPin className="w-4 h-4 mr-2" />
+                          Update Tracking
+                        </Button>
+                      )}
+                      
+                      {selectedOrder.order_status === "shipped" && (
+                        <Button 
+                          onClick={() => handleUpdateStatus(selectedOrder.id, { order_status: "delivered" })}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Mark as Delivered
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {selectedOrder.shipped_at && (
+                      <p className="text-sm text-muted-foreground">
+                        Shipped on: {format(new Date(selectedOrder.shipped_at), 'MMMM d, yyyy • h:mm a')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Status Management */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -198,7 +308,7 @@ export default function OrdersManager() {
                     </label>
                     <Select
                       value={selectedOrder.order_status}
-                      onValueChange={(v) => handleUpdateStatus(selectedOrder.id, 'order_status', v)}
+                      onValueChange={(v) => handleUpdateStatus(selectedOrder.id, { order_status: v })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -220,7 +330,7 @@ export default function OrdersManager() {
                     </label>
                     <Select
                       value={selectedOrder.payment_status}
-                      onValueChange={(v) => handleUpdateStatus(selectedOrder.id, 'payment_status', v)}
+                      onValueChange={(v) => handleUpdateStatus(selectedOrder.id, { payment_status: v })}
                     >
                       <SelectTrigger>
                         <SelectValue />
