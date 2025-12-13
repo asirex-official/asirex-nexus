@@ -324,7 +324,8 @@ const CEODashboard = () => {
 
   const pendingTasks = tasks.filter(t => t.status !== 'completed').slice(0, 4);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
     navigate("/");
     toast.success("Signed out successfully");
   };
