@@ -53,31 +53,51 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [showAdminOptions, setShowAdminOptions] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
   
   const { signIn, signUp, user, roles, isAdmin, isSuperAdmin, isStaff, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check if this is an OAuth callback (URL has access_token or code)
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const queryParams = new URLSearchParams(window.location.search);
+    
+    if (hashParams.get('access_token') || queryParams.get('code')) {
+      setIsProcessingOAuth(true);
+    }
+  }, []);
+
   // Redirect based on role after login
   useEffect(() => {
     if (user && !authLoading) {
+      // Show success message for OAuth users
+      if (isProcessingOAuth) {
+        toast({
+          title: "Welcome to ASIREX!",
+          description: "You have successfully signed in with Google.",
+        });
+        setIsProcessingOAuth(false);
+      }
+      
       // Wait a moment for roles to be fetched, then redirect
       const redirectTimer = setTimeout(() => {
         if (isSuperAdmin) {
-          navigate("/dashboards/ceo");
+          navigate("/dashboards/ceo", { replace: true });
         } else if (isAdmin) {
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         } else if (isStaff) {
-          navigate("/dashboards/core-pillar");
+          navigate("/dashboards/core-pillar", { replace: true });
         } else {
           // Regular users go to home
-          navigate("/");
+          navigate("/", { replace: true });
         }
-      }, 500);
+      }, 800);
       
       return () => clearTimeout(redirectTimer);
     }
-  }, [user, roles, isAdmin, isSuperAdmin, isStaff, authLoading, navigate]);
+  }, [user, roles, isAdmin, isSuperAdmin, isStaff, authLoading, navigate, isProcessingOAuth, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,6 +164,28 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  // Show loading state during OAuth processing
+  if (isProcessingOAuth || (user && !authLoading)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6" />
+          <h2 className="font-display text-2xl font-bold gradient-text mb-2">
+            {isProcessingOAuth ? "Completing Sign In..." : "Redirecting..."}
+          </h2>
+          <p className="text-muted-foreground">
+            {isProcessingOAuth ? "Please wait while we verify your account" : "Taking you to your dashboard"}
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
