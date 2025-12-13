@@ -8,7 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { Link } from "react-router-dom";
+import { useSubmitContactMessage } from "@/hooks/useSiteData";
+import { z } from "zod";
 
+// Input validation schema
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  message: z.string().trim().min(1, "Message is required").max(2000, "Message must be less than 2000 characters")
+});
 // Animation variants for smooth staggered animations
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -177,6 +185,9 @@ export default function About() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<typeof openPositions[0] | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
+  const submitContactMessage = useSubmitContactMessage();
 
   const handleApply = (position: typeof openPositions[0]) => {
     setSelectedPosition(position);
@@ -185,19 +196,53 @@ export default function About() {
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors({});
+    
+    // Validate input
+    const result = contactSchema.safeParse(contactForm);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setFormErrors(errors);
+      toast({
+        title: "Validation Error",
+        description: "Please check your input and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you within 24 hours."
-    });
-    setContactForm({
-      name: "",
-      email: "",
-      message: ""
-    });
-    setIsSubmitting(false);
+    try {
+      await submitContactMessage.mutateAsync({
+        name: result.data.name,
+        email: result.data.email,
+        message: result.data.message
+      });
+      
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you within 24 hours."
+      });
+      setContactForm({
+        name: "",
+        email: "",
+        message: ""
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

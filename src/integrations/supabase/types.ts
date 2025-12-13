@@ -640,7 +640,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      team_members_public: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          designation: string | null
+          email: string | null
+          hired_at: string | null
+          id: string | null
+          is_core_pillar: boolean | null
+          name: string | null
+          profile_image: string | null
+          role: string | null
+          serial_number: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          designation?: string | null
+          email?: string | null
+          hired_at?: string | null
+          id?: string | null
+          is_core_pillar?: boolean | null
+          name?: string | null
+          profile_image?: string | null
+          role?: string | null
+          serial_number?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          designation?: string | null
+          email?: string | null
+          hired_at?: string | null
+          id?: string | null
+          is_core_pillar?: boolean | null
+          name?: string | null
+          profile_image?: string | null
+          role?: string | null
+          serial_number?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
