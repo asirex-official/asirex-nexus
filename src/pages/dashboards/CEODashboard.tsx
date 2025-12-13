@@ -29,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import PinVerification from "@/components/admin/PinVerification";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
+import ChangePinDialog from "@/components/admin/ChangePinDialog";
 
 interface Task {
   id: string;
@@ -82,6 +83,7 @@ const CEODashboard = () => {
   const [showFireMember, setShowFireMember] = useState(false);
   const [showMeeting, setShowMeeting] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
+  const [showChangePin, setShowChangePin] = useState(false);
   const [teamActionType, setTeamActionType] = useState<"role" | "promotion" | "bonus" | "salary" | "work" | null>(null);
   const [contentType, setContentType] = useState<"product" | "project" | "event" | "job" | null>(null);
 
@@ -595,6 +597,11 @@ const CEODashboard = () => {
     { label: "Share Update", icon: Share2, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Share update feature coming soon") },
   ];
 
+  const securityActions = [
+    { label: "Change PIN", icon: Key, color: "bg-amber-500/10 text-amber-500", action: () => setShowChangePin(true) },
+    { label: "Security Logs", icon: ShieldCheck, color: "bg-red-500/10 text-red-500", action: () => toast.info("Security logs coming soon") },
+  ];
+
   const dashboardStats = [
     { label: "Team Members", value: stats.teamCount.toString(), icon: Users, trend: stats.teamCount > 0 ? "Active" : "No members", color: "text-blue-500" },
     { label: "Active Projects", value: stats.projectsCount.toString(), icon: FolderKanban, trend: stats.projectsCount > 0 ? "In progress" : "None yet", color: "text-purple-500" },
@@ -908,6 +915,20 @@ const CEODashboard = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-amber-500" />Security Settings</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {securityActions.map((action, index) => (
+                    <motion.button key={action.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }} onClick={action.action} className={`flex flex-col items-center gap-2 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}>
+                      <action.icon className="w-6 h-6" />
+                      <span className="text-xs font-medium text-center">{action.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="notices" className="space-y-6">
@@ -1058,8 +1079,16 @@ const CEODashboard = () => {
       {contentType && (
         <AddContentDialog open={!!contentType} onOpenChange={(open) => !open && setContentType(null)} contentType={contentType} onAdd={handleAddContent} />
       )}
+      
+      {/* Change PIN Dialog */}
+      {user && (
+        <ChangePinDialog 
+          userId={user.id} 
+          open={showChangePin} 
+          onOpenChange={setShowChangePin} 
+        />
+      )}
 
-      {/* Edit User Dialog */}
       <Dialog open={showEditUser} onOpenChange={setShowEditUser}>
         <DialogContent>
           <DialogHeader>
