@@ -21,6 +21,7 @@ import { useProducts } from "@/hooks/useSiteData";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const categories = ["All", "AI Hardware", "Robotics", "Clean Tech", "Gadgets", "Nano Tech", "Accessories"];
 
@@ -42,6 +43,7 @@ export default function Shop() {
   const { addToCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,6 +52,18 @@ export default function Shop() {
 
   const handleAddToCart = (product: Product) => {
     if (!isInStock(product.stock_status)) return;
+    
+    // Check if user is logged in
+    if (!user) {
+      toast({ 
+        title: "Login Required", 
+        description: "Please sign in to add items to cart",
+        variant: "destructive" 
+      });
+      navigate("/auth?redirect=/shop");
+      return;
+    }
+    
     addToCart({
       id: product.id,
       name: product.name,
@@ -61,6 +75,18 @@ export default function Shop() {
 
   const handleBuyNow = (product: Product) => {
     if (!isInStock(product.stock_status)) return;
+    
+    // Check if user is logged in
+    if (!user) {
+      toast({ 
+        title: "Login Required", 
+        description: "Please sign in to purchase",
+        variant: "destructive" 
+      });
+      navigate("/auth?redirect=/shop");
+      return;
+    }
+    
     addToCart({
       id: product.id,
       name: product.name,
