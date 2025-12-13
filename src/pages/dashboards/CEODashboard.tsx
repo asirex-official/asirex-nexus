@@ -6,8 +6,9 @@ import {
   Shield, TrendingUp, Briefcase, Megaphone, FileText, Video, LogOut, Crown, Zap, Globe,
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
-  Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck,
+  Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea,
 } from "lucide-react";
+import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -645,8 +646,9 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-1"><ChartArea className="w-3 h-3" />Analytics</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
@@ -714,6 +716,10 @@ const CEODashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <DashboardAnalytics />
           </TabsContent>
 
           <TabsContent value="team" className="space-y-6">
