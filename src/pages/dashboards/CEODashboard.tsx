@@ -111,39 +111,8 @@ const CEODashboard = () => {
 
   // Enable real-time order notifications
   useRealtimeOrders(true);
-  
-  // Redirect non-super_admin users
-  useEffect(() => {
-    if (!authLoading && (!user || !isSuperAdmin)) {
-      toast.error("Unauthorized access");
-      navigate("/auth");
-    }
-  }, [user, isSuperAdmin, authLoading, navigate]);
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // If not verified with PIN, show PIN verification screen
-  if (user && isSuperAdmin && !isPinVerified) {
-    return (
-      <PinVerification 
-        userId={user.id} 
-        onVerified={() => setIsPinVerified(true)} 
-      />
-    );
-  }
-
-  // Fetch data from Supabase
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
+  // Fetch data from Supabase - this useEffect MUST be before early returns
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
@@ -278,6 +247,38 @@ const CEODashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (isPinVerified) {
+      fetchDashboardData();
+    }
+  }, [isPinVerified]);
+  
+  // Redirect non-super_admin users
+  useEffect(() => {
+    if (!authLoading && (!user || !isSuperAdmin)) {
+      toast.error("Unauthorized access");
+      navigate("/auth");
+    }
+  }, [user, isSuperAdmin, authLoading, navigate]);
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // If not verified with PIN, show PIN verification screen
+  if (user && isSuperAdmin && !isPinVerified) {
+    return (
+      <PinVerification 
+        userId={user.id} 
+        onVerified={() => setIsPinVerified(true)} 
+      />
+    );
+  }
   // Handlers
   const handleAddMember = (member: TeamMember) => {
     setTeamMembers([member, ...teamMembers]);
