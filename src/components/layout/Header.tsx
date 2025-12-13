@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import asirexLogo from "@/assets/asirex-logo.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -119,10 +117,14 @@ export function Header() {
                     Track Order
                   </Link>
                 </Button>
+                <Button asChild variant="glass" size="icon">
+                  <Link to="/settings">
+                    <Settings className="w-4 h-4" />
+                  </Link>
+                </Button>
                 {isStaff && (
                   <Button asChild variant="glass" size="sm">
                     <Link to="/admin">
-                      <Settings className="w-4 h-4 mr-2" />
                       Admin
                     </Link>
                   </Button>
@@ -194,31 +196,36 @@ export function Header() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: navLinks.length * 0.1 }}
-                className="pt-4 flex gap-3"
+                className="pt-4 flex flex-col gap-3"
               >
                 {user ? (
                   <>
-                    <Button asChild variant="glass" className="flex-1">
+                    <Button asChild variant="glass" className="w-full">
+                      <Link to="/settings">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Link>
+                    </Button>
+                    <Button asChild variant="glass" className="w-full">
                       <Link to="/track-order">
                         <Package className="w-4 h-4 mr-2" />
                         Track Order
                       </Link>
                     </Button>
                     {isStaff && (
-                      <Button asChild variant="glass" className="flex-1">
+                      <Button asChild variant="glass" className="w-full">
                         <Link to="/admin">
-                          <Settings className="w-4 h-4 mr-2" />
                           Admin Panel
                         </Link>
                       </Button>
                     )}
-                    <Button variant="hero" className="flex-1" onClick={() => signOut()}>
+                    <Button variant="hero" className="w-full" onClick={() => signOut()}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </Button>
                   </>
                 ) : (
-                  <Button asChild variant="hero" className="flex-1">
+                  <Button asChild variant="hero" className="w-full">
                     <Link to="/auth">
                       <User className="w-4 h-4 mr-2" />
                       Sign In
