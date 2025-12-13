@@ -26,6 +26,8 @@ import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
+import PinVerification from "@/components/admin/PinVerification";
 
 interface Task {
   id: string;
@@ -67,8 +69,37 @@ interface ActivityLog {
 
 const CEODashboard = () => {
   const navigate = useNavigate();
+  const { user, isSuperAdmin, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(true);
+  const [isPinVerified, setIsPinVerified] = useState(false);
+  
+  // Redirect non-super_admin users
+  useEffect(() => {
+    if (!authLoading && (!user || !isSuperAdmin)) {
+      toast.error("Unauthorized access");
+      navigate("/auth");
+    }
+  }, [user, isSuperAdmin, authLoading, navigate]);
+
+  // If not verified with PIN, show PIN verification screen
+  if (!authLoading && user && isSuperAdmin && !isPinVerified) {
+    return (
+      <PinVerification 
+        userId={user.id} 
+        onVerified={() => setIsPinVerified(true)} 
+      />
+    );
+  }
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   
   // Dialog states
   const [showAddMember, setShowAddMember] = useState(false);
