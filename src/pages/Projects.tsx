@@ -3,12 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import aquaPurifier1 from "@/assets/aqua-purifier-1.png";
 import aquaPurifier2 from "@/assets/aqua-purifier-2.png";
-import { Calendar, ArrowRight, Bell, Clock, AlertTriangle } from "lucide-react";
+import { Calendar, ArrowRight, Bell, Clock, AlertTriangle, Lock } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { CyclingProjectImage } from "@/components/projects/CyclingProjectImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+
 // Helper to get stage status
 const getStageStatus = (currentStage: string, stage: string) => {
   const stages = ['Planning', 'Prototype', 'Development', 'Testing', 'Production'];
@@ -210,10 +213,12 @@ export default function Projects() {
   type Project = typeof projects[0];
   type CompletedProject = typeof completedProjects[0];
   const navigate = useNavigate();
+  const { user, isStaff, loading } = useAuth();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedCompletedProject, setSelectedCompletedProject] = useState<CompletedProject | null>(null);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  
   const handleNotify = () => {
     if (notifyEmail) {
       setIsSubscribed(true);
@@ -221,6 +226,54 @@ export default function Projects() {
       setTimeout(() => setIsSubscribed(false), 3000);
     }
   };
+
+  // Show restricted access message for non-staff
+  if (!loading && (!user || !isStaff)) {
+    return (
+      <Layout>
+        <section className="py-20 lg:py-32">
+          <div className="container mx-auto px-4 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-lg mx-auto text-center"
+            >
+              <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-10 h-10 text-destructive" />
+              </div>
+              <h1 className="font-display text-3xl lg:text-4xl font-bold mb-4">
+                Restricted Access
+              </h1>
+              <p className="text-muted-foreground mb-8">
+                Project information is classified and only accessible to authorized ASIREX staff members.
+                If you believe you should have access, please contact your administrator.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button onClick={() => navigate("/auth")} variant="default">
+                  Staff Login
+                </Button>
+                <Button onClick={() => navigate("/")} variant="outline">
+                  Return Home
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Show loading
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return <Layout>
       <section className="py-12 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8">
