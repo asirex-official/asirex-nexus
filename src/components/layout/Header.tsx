@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle } from "lucide-react";
+import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import asirexLogo from "@/assets/asirex-logo.png";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,12 @@ export function Header() {
             
             {user ? (
               <>
+                <Button asChild variant="glass" size="sm">
+                  <Link to="/track-order">
+                    <Package className="w-4 h-4 mr-2" />
+                    Track Order
+                  </Link>
+                </Button>
                 {isStaff && (
                   <Button asChild variant="glass" size="sm">
                     <Link to="/admin">
@@ -192,6 +198,12 @@ export function Header() {
               >
                 {user ? (
                   <>
+                    <Button asChild variant="glass" className="flex-1">
+                      <Link to="/track-order">
+                        <Package className="w-4 h-4 mr-2" />
+                        Track Order
+                      </Link>
+                    </Button>
                     {isStaff && (
                       <Button asChild variant="glass" className="flex-1">
                         <Link to="/admin">

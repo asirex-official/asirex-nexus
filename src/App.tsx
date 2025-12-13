@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import TrackOrder from "./pages/TrackOrder";
 import Projects from "./pages/Projects";
 import AquaRiverPurifier from "./pages/AquaRiverPurifier";
 import Events from "./pages/Events";
@@ -63,6 +64,7 @@ const App = () => (
               <Route path="/shop" element={<Shop />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/track-order" element={<TrackOrder />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/aqua-river-purifier" element={<AquaRiverPurifier />} />
             <Route path="/events" element={<Events />} />
