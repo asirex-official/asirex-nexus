@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import PinVerification from "@/components/admin/PinVerification";
+import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 
 interface Task {
   id: string;
@@ -111,6 +112,20 @@ const CEODashboard = () => {
 
   // Enable real-time order notifications
   useRealtimeOrders(true);
+
+  // Session timeout - lock after 1 minute of inactivity
+  const handleSessionTimeout = useCallback(() => {
+    if (isPinVerified) {
+      setIsPinVerified(false);
+      toast.warning("Session locked due to inactivity. Please re-enter your PIN.");
+    }
+  }, [isPinVerified]);
+
+  useIdleTimeout({
+    timeout: 60000, // 1 minute
+    onIdle: handleSessionTimeout,
+    enabled: isPinVerified,
+  });
 
   // Fetch data from Supabase - this useEffect MUST be before early returns
   const fetchDashboardData = async () => {
