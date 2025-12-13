@@ -48,7 +48,7 @@ import CEODashboard from "./pages/dashboards/CEODashboard";
 import DeveloperDashboard from "./pages/dashboards/DeveloperDashboard";
 import CorePillarDashboard from "./pages/dashboards/CorePillarDashboard";
 import VisualEditor from "./pages/admin/VisualEditor";
-
+import Settings from "./pages/Settings";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -70,6 +70,7 @@ const App = () => (
             <Route path="/events" element={<Events />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/authority-login" element={<AuthorityLogin />} />
             <Route path="/card-login" element={<CardLogin />} />
