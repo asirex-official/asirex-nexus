@@ -103,7 +103,7 @@ export default function Checkout() {
         image_url: item.image_url,
       }));
 
-      const { error } = await supabase.from('orders').insert({
+      const { data: orderData, error } = await supabase.from('orders').insert({
         user_id: user.id,
         customer_name: form.fullName,
         customer_email: form.email || user.email,
@@ -115,9 +115,27 @@ export default function Checkout() {
         payment_status: form.paymentMethod === 'cod' ? 'pending' : 'pending',
         order_status: 'pending',
         notes: form.notes || null,
-      });
+      }).select('id').single();
 
       if (error) throw error;
+
+      // Send order notification email (non-blocking)
+      try {
+        await supabase.functions.invoke('send-order-notification', {
+          body: {
+            orderId: orderData.id,
+            customerName: form.fullName,
+            customerEmail: form.email || user.email,
+            customerPhone: form.phone,
+            shippingAddress: shippingAddress,
+            items: orderItems,
+            totalAmount: totalPrice,
+            paymentMethod: form.paymentMethod,
+          }
+        });
+      } catch (emailError) {
+        console.log('Email notification skipped:', emailError);
+      }
 
       clearCart();
       setOrderSuccess(true);
