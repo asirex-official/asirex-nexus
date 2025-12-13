@@ -51,6 +51,16 @@ interface AppUser {
   avatarUrl: string | null;
   createdAt: string;
   roles: { role: string; department: string | null }[];
+  ordersCount: number;
+  totalSpent: number;
+}
+
+interface ActivityLog {
+  id: string;
+  userId: string;
+  actionType: string;
+  actionDetails: Record<string, any>;
+  createdAt: string;
 }
 
 const CEODashboard = () => {
@@ -85,6 +95,9 @@ const CEODashboard = () => {
   const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
   const [showEditUser, setShowEditUser] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [showDeleteUser, setShowDeleteUser] = useState(false);
+  const [showUserActivity, setShowUserActivity] = useState(false);
+  const [userActivities, setUserActivities] = useState<ActivityLog[]>([]);
   const [editForm, setEditForm] = useState({ fullName: '', phone: '', birthdate: '' });
   const [newRole, setNewRole] = useState<string>('user');
 
@@ -156,14 +169,16 @@ const CEODashboard = () => {
       }
 
       // Fetch stats and users
-      const [projectsRes, productsRes, ordersRes, profilesRes] = await Promise.all([
+      const [projectsRes, productsRes, ordersRes, profilesRes, allOrdersRes] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact' }),
         supabase.from('products').select('id', { count: 'exact' }),
         supabase.from('orders').select('total_amount, order_status'),
         supabase.from('profiles').select('*'),
+        supabase.from('orders').select('user_id, total_amount'),
       ]);
 
       const orders = ordersRes.data || [];
+      const allOrders = allOrdersRes.data || [];
       const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
       const pendingOrders = orders.filter(o => o.order_status === 'pending');
       const pendingValue = pendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
@@ -175,11 +190,23 @@ const CEODashboard = () => {
       const { data: rolesData } = await supabase
         .from('user_roles')
         .select('user_id, role, department')
-        .in('user_id', userIds);
+        .in('user_id', userIds.length > 0 ? userIds : ['none']);
+
+      // Calculate orders per user
+      const userOrderStats = allOrders.reduce((acc, order) => {
+        if (order.user_id) {
+          if (!acc[order.user_id]) {
+            acc[order.user_id] = { count: 0, total: 0 };
+          }
+          acc[order.user_id].count++;
+          acc[order.user_id].total += order.total_amount || 0;
+        }
+        return acc;
+      }, {} as Record<string, { count: number; total: number }>);
 
       const mappedUsers: AppUser[] = profiles.map(p => ({
         id: p.user_id,
-        email: '', // Will be filled from auth if needed
+        email: '',
         fullName: p.full_name,
         phone: p.phone,
         birthdate: p.birthdate,
@@ -188,7 +215,9 @@ const CEODashboard = () => {
         roles: rolesData?.filter(r => r.user_id === p.user_id).map(r => ({
           role: r.role,
           department: r.department
-        })) || []
+        })) || [],
+        ordersCount: userOrderStats[p.user_id]?.count || 0,
+        totalSpent: userOrderStats[p.user_id]?.total || 0,
       }));
       
       setUsers(mappedUsers);
@@ -393,6 +422,69 @@ const CEODashboard = () => {
     } catch (error: any) {
       console.error('Error updating role:', error);
       toast.error(error.message || 'Failed to update role');
+    }
+  };
+
+  const handleViewActivity = async (user: AppUser) => {
+    setSelectedUser(user);
+    try {
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      setUserActivities((data || []).map(log => ({
+        id: log.id,
+        userId: log.user_id,
+        actionType: log.action_type,
+        actionDetails: log.action_details as Record<string, any>,
+        createdAt: log.created_at,
+      })));
+      setShowUserActivity(true);
+    } catch (error: any) {
+      console.error('Error fetching activity:', error);
+      toast.error('Failed to load activity log');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      // Delete user's roles first
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', selectedUser.id);
+
+      // Delete user's activity logs
+      await supabase
+        .from('activity_logs')
+        .delete()
+        .eq('user_id', selectedUser.id);
+
+      // Delete user's profile
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', selectedUser.id);
+
+      if (error) throw error;
+
+      // Note: The actual auth.users record cannot be deleted from client side
+      // It would require an admin API or edge function with service role
+
+      setUsers(users.filter(u => u.id !== selectedUser.id));
+      setStats(prev => ({ ...prev, usersCount: prev.usersCount - 1 }));
+      setShowDeleteUser(false);
+      toast.success('User data deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.message || 'Failed to delete user');
     }
   };
 
@@ -764,7 +856,10 @@ const CEODashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2"><UserCog className="w-5 h-5 text-blue-500" />Registered Users ({stats.usersCount})</CardTitle>
-                <Badge variant="outline" className="gap-1"><ShieldCheck className="w-3 h-3" />Role Management</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="gap-1"><ShieldCheck className="w-3 h-3" />Full Access</Badge>
+                  <Badge variant="outline" className="gap-1 text-yellow-500 border-yellow-500/30"><Key className="w-3 h-3" />Passwords Hashed</Badge>
+                </div>
               </CardHeader>
               <CardContent>
                 {users.length === 0 ? (
@@ -773,7 +868,7 @@ const CEODashboard = () => {
                   <div className="space-y-3">
                     {users.map((user) => (
                       <div key={user.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-blue-500/20 flex items-center justify-center text-primary font-bold text-lg">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-blue-500/20 flex items-center justify-center text-primary font-bold text-xl">
                           {user.fullName?.charAt(0) || user.id.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -783,14 +878,24 @@ const CEODashboard = () => {
                               <Badge key={idx} variant="outline" className="text-xs capitalize">{r.role.replace('_', ' ')}</Badge>
                             ))}
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">ID: {user.id.slice(0, 8)}...</p>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                          <p className="text-sm text-muted-foreground truncate">ID: {user.id}</p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
                             {user.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{user.phone}</span>}
                             {user.birthdate && <span>Age: {calculateAge(user.birthdate)}</span>}
                             <span>Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
+                            <span className="flex items-center gap-1 text-green-500"><ShoppingCart className="w-3 h-3" />{user.ordersCount} orders</span>
+                            <span className="flex items-center gap-1 text-emerald-500"><DollarSign className="w-3 h-3" />₹{user.totalSpent.toLocaleString()} spent</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-1"
+                            onClick={() => handleViewActivity(user)}
+                          >
+                            <Activity className="w-3 h-3" />Activity
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -818,6 +923,17 @@ const CEODashboard = () => {
                             }}
                           >
                             <Key className="w-3 h-3" />Role
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-1 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowDeleteUser(true);
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" />Delete
                           </Button>
                         </div>
                       </div>
@@ -912,6 +1028,90 @@ const CEODashboard = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRoleDialog(false)}>Cancel</Button>
             <Button onClick={handleUpdateRole}>Update Role</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={showDeleteUser} onOpenChange={setShowDeleteUser}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-500"><Trash2 className="w-5 h-5" />Delete User Account</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-sm text-red-500 font-medium mb-2">⚠️ Warning: This action cannot be undone!</p>
+              <p className="text-sm text-muted-foreground">
+                You are about to delete the account for <span className="font-semibold text-foreground">{selectedUser?.fullName || 'User'}</span>.
+              </p>
+            </div>
+            <div className="space-y-2 text-sm">
+              <p><strong>User ID:</strong> {selectedUser?.id}</p>
+              <p><strong>Orders placed:</strong> {selectedUser?.ordersCount || 0}</p>
+              <p><strong>Total spent:</strong> ₹{selectedUser?.totalSpent?.toLocaleString() || 0}</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              This will delete the user's profile, roles, and activity logs. Their order history will be preserved for business records.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteUser(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteUser} className="gap-2">
+              <Trash2 className="w-4 h-4" />Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Activity Log Dialog */}
+      <Dialog open={showUserActivity} onOpenChange={setShowUserActivity}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Activity className="w-5 h-5 text-blue-500" />Activity Log - {selectedUser?.fullName || 'User'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
+            {userActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-muted-foreground">No activity recorded yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {userActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      activity.actionType === 'order_placed' ? 'bg-green-500/20 text-green-500' :
+                      activity.actionType === 'login' ? 'bg-blue-500/20 text-blue-500' :
+                      activity.actionType === 'profile_updated' ? 'bg-yellow-500/20 text-yellow-500' :
+                      'bg-muted text-muted-foreground'
+                    }`}>
+                      {activity.actionType === 'order_placed' ? <ShoppingCart className="w-4 h-4" /> :
+                       activity.actionType === 'login' ? <Key className="w-4 h-4" /> :
+                       <Activity className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium capitalize">{activity.actionType.replace(/_/g, ' ')}</p>
+                      {activity.actionDetails && Object.keys(activity.actionDetails).length > 0 && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {activity.actionType === 'order_placed' && activity.actionDetails.total_amount && (
+                            <span>Order amount: ₹{activity.actionDetails.total_amount.toLocaleString()}</span>
+                          )}
+                          {activity.actionDetails.items_count && (
+                            <span className="ml-2">• {activity.actionDetails.items_count} items</span>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(activity.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUserActivity(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
