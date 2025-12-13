@@ -505,6 +505,15 @@ const CEODashboard = () => {
     { label: "Manage Orders", icon: ShoppingCart, color: "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20", action: () => navigate("/admin/orders") },
   ];
 
+  const managerActions = [
+    { label: "Manage Products", icon: Package, color: "bg-blue-500", count: stats.productsCount, action: () => navigate("/admin/products") },
+    { label: "Manage Projects", icon: FolderKanban, color: "bg-purple-500", count: stats.projectsCount, action: () => navigate("/admin/projects") },
+    { label: "Manage Events", icon: Calendar, color: "bg-orange-500", count: 0, action: () => navigate("/admin/events") },
+    { label: "Manage Orders", icon: ShoppingCart, color: "bg-pink-500", count: stats.ordersCount, action: () => navigate("/admin/orders") },
+    { label: "Manage Users", icon: UserCog, color: "bg-cyan-500", count: stats.usersCount, action: () => navigate("/admin/users") },
+    { label: "Manage Messages", icon: MessageSquare, color: "bg-green-500", count: 0, action: () => navigate("/admin/messages") },
+  ];
+
   const teamActions = [
     { label: "Change Role", icon: Shield, color: "bg-purple-500/10 text-purple-500", action: () => setTeamActionType("role") },
     { label: "Give Promotion", icon: Award, color: "bg-yellow-500/10 text-yellow-500", action: () => setTeamActionType("promotion") },
@@ -755,8 +764,41 @@ const CEODashboard = () => {
           </TabsContent>
 
           <TabsContent value="content" className="space-y-6">
+            {/* Full Management Section */}
             <Card>
-              <CardHeader><CardTitle>Content Publishing</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-yellow-500" />
+                  Full Management Control
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {managerActions.map((action, index) => (
+                    <motion.button
+                      key={action.label}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={action.action}
+                      className={`relative p-4 rounded-xl border border-border hover:border-primary/50 bg-card hover:bg-muted/50 transition-all hover:scale-105 flex flex-col items-center gap-3`}
+                    >
+                      <div className={`w-12 h-12 rounded-xl ${action.color}/20 flex items-center justify-center`}>
+                        <action.icon className={`w-6 h-6 ${action.color.replace('bg-', 'text-')}`} />
+                      </div>
+                      <span className="text-sm font-medium text-center">{action.label}</span>
+                      {action.count > 0 && (
+                        <Badge variant="outline" className="absolute -top-2 -right-2 text-xs">{action.count}</Badge>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Add Content */}
+            <Card>
+              <CardHeader><CardTitle>Quick Add Content</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
@@ -767,10 +809,10 @@ const CEODashboard = () => {
                   ].map((item) => (
                     <Card key={item.label} className="cursor-pointer hover:border-primary/50 transition-all" onClick={item.action}>
                       <CardContent className="p-6 text-center">
-                        <item.icon className={`w-10 h-10 mx-auto mb-3 ${item.color}`} />
-                        <p className="text-2xl font-bold">{item.count}</p>
-                        <p className="text-sm text-muted-foreground">{item.label}</p>
-                        <Button variant="outline" size="sm" className="mt-3 w-full">Add New</Button>
+                        <item.icon className={`w-8 h-8 ${item.color} mx-auto mb-2`} />
+                        <p className="font-semibold">{item.label}</p>
+                        <p className="text-2xl font-bold text-primary mt-1">{item.count}</p>
+                        <p className="text-xs text-muted-foreground">Click to add new</p>
                       </CardContent>
                     </Card>
                   ))}
