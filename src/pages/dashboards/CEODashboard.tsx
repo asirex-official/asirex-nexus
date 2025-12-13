@@ -22,6 +22,7 @@ import { AddContentDialog } from "@/components/admin/AddContentDialog";
 import { StartMeetingDialog } from "@/components/admin/StartMeetingDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -101,6 +102,9 @@ const CEODashboard = () => {
   const [userActivities, setUserActivities] = useState<ActivityLog[]>([]);
   const [editForm, setEditForm] = useState({ fullName: '', phone: '', birthdate: '' });
   const [newRole, setNewRole] = useState<string>('user');
+
+  // Enable real-time order notifications
+  useRealtimeOrders(true);
 
   // Fetch data from Supabase
   useEffect(() => {
