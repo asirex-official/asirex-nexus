@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package, Bell } from "lucide-react";
+import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package, Bell, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
+import { useLiveChat } from "@/hooks/useLiveChat";
+import { toast } from "@/hooks/use-toast";
 
 const navLinks = [
   { name: "Shop", href: "/shop" },
@@ -18,8 +20,42 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isStaff, signOut } = useAuth();
   const { totalItems } = useCart();
+  const { openChat } = useLiveChat();
+
+  const handleTrackOrder = () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please sign in to track your orders.",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+            Sign In
+          </Button>
+        )
+      });
+      return;
+    }
+    navigate("/track-order");
+  };
+
+  const handleLiveChat = () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please sign in to use live chat for customer support.",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+            Sign In
+          </Button>
+        )
+      });
+      return;
+    }
+    openChat();
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -109,6 +145,17 @@ export function Header() {
               </Link>
             </Button>
             
+            {/* Track Order - for all users */}
+            <Button variant="glass" size="sm" onClick={handleTrackOrder}>
+              <Package className="w-4 h-4 mr-2" />
+              Track Order
+            </Button>
+            
+            {/* Live Chat - for all users */}
+            <Button variant="glass" size="icon" onClick={handleLiveChat}>
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+            
             {user ? (
               <>
                 <Button asChild variant="glass" size="icon" className="relative">
@@ -117,12 +164,6 @@ export function Header() {
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
                       3
                     </span>
-                  </Link>
-                </Button>
-                <Button asChild variant="glass" size="sm">
-                  <Link to="/track-order">
-                    <Package className="w-4 h-4 mr-2" />
-                    Track Order
                   </Link>
                 </Button>
                 <Button asChild variant="glass" size="icon">
@@ -206,6 +247,16 @@ export function Header() {
                 transition={{ delay: navLinks.length * 0.1 }}
                 className="pt-4 flex flex-col gap-3"
               >
+                {/* Track Order and Live Chat - for all users */}
+                <Button variant="glass" className="w-full" onClick={handleTrackOrder}>
+                  <Package className="w-4 h-4 mr-2" />
+                  Track Order
+                </Button>
+                <Button variant="glass" className="w-full" onClick={handleLiveChat}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Live Chat
+                </Button>
+                
                 {user ? (
                   <>
                     <Button asChild variant="glass" className="w-full">
@@ -218,12 +269,6 @@ export function Header() {
                       <Link to="/settings">
                         <Settings className="w-4 h-4 mr-2" />
                         Settings
-                      </Link>
-                    </Button>
-                    <Button asChild variant="glass" className="w-full">
-                      <Link to="/track-order">
-                        <Package className="w-4 h-4 mr-2" />
-                        Track Order
                       </Link>
                     </Button>
                     {isStaff && (
