@@ -567,7 +567,8 @@ const CEODashboard = () => {
     { label: "Manage Events", icon: Calendar, color: "bg-orange-500", count: 0, action: () => navigate("/admin/events") },
     { label: "Manage Orders", icon: ShoppingCart, color: "bg-pink-500", count: stats.ordersCount, action: () => navigate("/admin/orders") },
     { label: "Manage Users", icon: UserCog, color: "bg-cyan-500", count: stats.usersCount, action: () => navigate("/admin/users") },
-    { label: "Manage Messages", icon: MessageSquare, color: "bg-green-500", count: 0, action: () => navigate("/admin/messages") },
+    { label: "Contact Messages", icon: Mail, color: "bg-green-500", count: 0, action: () => navigate("/admin/messages") },
+    { label: "Live Chats", icon: MessageSquare, color: "bg-indigo-500", count: 0, action: () => navigate("/admin/chats") },
   ];
 
   const teamActions = [
