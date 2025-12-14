@@ -84,11 +84,11 @@ export default function Auth() {
       // Wait a moment for roles to be fetched, then redirect
       const redirectTimer = setTimeout(() => {
         if (isSuperAdmin) {
-          navigate("/dashboards/ceo", { replace: true });
+          navigate("/dashboard/ceo", { replace: true });
         } else if (isAdmin) {
           navigate("/admin", { replace: true });
         } else if (isStaff) {
-          navigate("/dashboards/core-pillar", { replace: true });
+          navigate("/dashboard/core-pillar", { replace: true });
         } else {
           // Regular users go to home
           navigate("/", { replace: true });
