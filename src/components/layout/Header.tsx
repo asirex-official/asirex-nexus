@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package } from "lucide-react";
+import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -111,6 +111,14 @@ export function Header() {
             
             {user ? (
               <>
+                <Button asChild variant="glass" size="icon" className="relative">
+                  <Link to="/notifications">
+                    <Bell className="w-4 h-4" />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                      3
+                    </span>
+                  </Link>
+                </Button>
                 <Button asChild variant="glass" size="sm">
                   <Link to="/track-order">
                     <Package className="w-4 h-4 mr-2" />
@@ -200,6 +208,12 @@ export function Header() {
               >
                 {user ? (
                   <>
+                    <Button asChild variant="glass" className="w-full">
+                      <Link to="/notifications">
+                        <Bell className="w-4 h-4 mr-2" />
+                        Notifications
+                      </Link>
+                    </Button>
                     <Button asChild variant="glass" className="w-full">
                       <Link to="/settings">
                         <Settings className="w-4 h-4 mr-2" />
