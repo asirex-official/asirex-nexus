@@ -34,6 +34,7 @@ import ProjectsManager from "./pages/admin/ProjectsManager";
 import EventsManager from "./pages/admin/EventsManager";
 import ContentManager from "./pages/admin/ContentManager";
 import MessagesManager from "./pages/admin/MessagesManager";
+import ChatManager from "./pages/admin/ChatManager";
 import OrdersManager from "./pages/admin/OrdersManager";
 import SettingsManager from "./pages/admin/SettingsManager";
 import UsersManager from "./pages/admin/UsersManager";
@@ -114,6 +115,7 @@ const App = () => (
               <Route path="events" element={<EventsManager />} />
               <Route path="content" element={<ContentManager />} />
               <Route path="messages" element={<MessagesManager />} />
+              <Route path="chats" element={<ChatManager />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="settings" element={<SettingsManager />} />
             </Route>

@@ -1,66 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, User, Bot, Loader2 } from "lucide-react";
+import { X, Send, User, Bot, Loader2, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLiveChat } from "@/hooks/useLiveChat";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "bot";
-  timestamp: Date;
-}
-
-const initialMessages: Message[] = [
-  {
-    id: "1",
-    text: "👋 Hi! Welcome to ASIREX Support. How can we help you today?",
-    sender: "bot",
-    timestamp: new Date()
-  }
-];
+import { useChatMessages } from "@/hooks/useChatMessages";
+import { useAuth } from "@/hooks/useAuth";
+import { format } from "date-fns";
 
 export function LiveChat() {
   const { isOpen, closeChat } = useLiveChat();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { user } = useAuth();
+  const { conversationId, messages, loading, initConversation, sendMessage } = useChatMessages();
   const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  useEffect(() => {
+    if (isOpen && user && !initialized) {
+      initConversation().then(() => setInitialized(true));
+    }
+  }, [isOpen, user, initialized]);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputValue,
-      sender: "user",
-      timestamp: new Date()
-    };
+  useEffect(() => {
+    if (!isOpen) {
+      setInitialized(false);
+    }
+  }, [isOpen]);
 
-    setMessages(prev => [...prev, userMessage]);
+  const handleSend = async () => {
+    if (!inputValue.trim() || !conversationId) return;
+    await sendMessage(inputValue);
     setInputValue("");
-    setIsTyping(true);
+  };
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponses = [
-        "Thank you for reaching out! Our team will get back to you shortly.",
-        "I've noted your query. For urgent matters, please email support@asirex.in",
-        "Great question! Let me connect you with our support team.",
-        "Thanks for your patience. A team member will assist you soon.",
-        "I understand your concern. Our support team typically responds within 2-4 hours."
-      ];
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: botResponses[Math.floor(Math.random() * botResponses.length)],
-        sender: "bot",
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 1500);
+  const getSenderIcon = (senderType: string) => {
+    switch (senderType) {
+      case "user":
+        return <User className="w-4 h-4" />;
+      case "agent":
+        return <Headphones className="w-4 h-4" />;
+      case "bot":
+        return <Bot className="w-4 h-4" />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -95,43 +78,50 @@ export function LiveChat() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex gap-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {message.sender === "bot" && (
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                )}
-                <div
-                  className={`max-w-[75%] p-3 rounded-2xl text-sm ${
-                    message.sender === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted rounded-bl-sm"
-                  }`}
-                >
-                  {message.text}
-                </div>
-                {message.sender === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4" />
-                  </div>
-                )}
-              </motion.div>
-            ))}
-            {isTyping && (
-              <div className="flex gap-2 items-center">
-                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="bg-muted p-3 rounded-2xl rounded-bl-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                </div>
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
+            ) : messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p>Start a conversation...</p>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-2 ${message.sender_type === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  {message.sender_type !== "user" && (
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      message.sender_type === "agent" ? "bg-primary/20" : "bg-muted"
+                    }`}>
+                      {getSenderIcon(message.sender_type)}
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                      message.sender_type === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : message.sender_type === "agent"
+                        ? "bg-accent/30 rounded-bl-sm"
+                        : "bg-muted rounded-bl-sm"
+                    }`}
+                  >
+                    <p>{message.message}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {format(new Date(message.created_at), "h:mm a")}
+                    </p>
+                  </div>
+                  {message.sender_type === "user" && (
+                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                      {getSenderIcon(message.sender_type)}
+                    </div>
+                  )}
+                </motion.div>
+              ))
             )}
           </div>
 
@@ -149,8 +139,9 @@ export function LiveChat() {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Type your message..."
                 className="flex-1"
+                disabled={loading || !conversationId}
               />
-              <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+              <Button type="submit" size="icon" disabled={!inputValue.trim() || loading || !conversationId}>
                 <Send className="w-4 h-4" />
               </Button>
             </form>

@@ -8,6 +8,7 @@ import {
   Calendar, 
   FileText, 
   Mail,
+  MessageSquare,
   ShoppingCart,
   Settings,
   LogOut,
@@ -26,7 +27,8 @@ const navItems = [
   { path: "/admin/projects", icon: FolderKanban, label: "Projects" },
   { path: "/admin/events", icon: Calendar, label: "Events" },
   { path: "/admin/content", icon: FileText, label: "Site Content" },
-  { path: "/admin/messages", icon: Mail, label: "Messages" },
+  { path: "/admin/messages", icon: Mail, label: "Contact Messages" },
+  { path: "/admin/chats", icon: MessageSquare, label: "Live Chats" },
   { path: "/admin/orders", icon: ShoppingCart, label: "Orders" },
   { path: "/admin/settings", icon: Settings, label: "Settings" },
 ];
