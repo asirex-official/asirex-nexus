@@ -151,9 +151,10 @@ export function useChatMessages() {
 }
 
 // Hook for admin to manage all chats
-export function useAdminChats() {
+export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: string) => void) {
   const [conversations, setConversations] = useState<(ChatConversation & { user_email?: string; last_message?: string })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newMessageCount, setNewMessageCount] = useState(0);
 
   const loadConversations = async () => {
     setLoading(true);
@@ -239,11 +240,15 @@ export function useAdminChats() {
     await loadConversations();
   };
 
+  const clearNewMessageCount = () => {
+    setNewMessageCount(0);
+  };
+
   useEffect(() => {
     loadConversations();
 
     // Subscribe to new conversations
-    const channel = supabase
+    const conversationChannel = supabase
       .channel("admin-chats")
       .on(
         "postgres_changes",
@@ -252,17 +257,60 @@ export function useAdminChats() {
       )
       .subscribe();
 
+    // Subscribe to new messages from users (not from agents)
+    const messageChannel = supabase
+      .channel("admin-new-messages")
+      .on(
+        "postgres_changes",
+        { 
+          event: "INSERT", 
+          schema: "public", 
+          table: "chat_messages"
+        },
+        async (payload) => {
+          const newMessage = payload.new as ChatMessage;
+          
+          // Only notify for user messages, not agent or bot messages
+          if (newMessage.sender_type === "user") {
+            setNewMessageCount(prev => prev + 1);
+            
+            // Get user name for notification
+            let userName = "User";
+            if (newMessage.sender_id) {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("full_name")
+                .eq("user_id", newMessage.sender_id)
+                .single();
+              userName = profile?.full_name || "User";
+            }
+            
+            // Call the callback if provided
+            if (onNewMessage) {
+              onNewMessage(newMessage, userName);
+            }
+            
+            // Refresh conversations list
+            loadConversations();
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(conversationChannel);
+      supabase.removeChannel(messageChannel);
     };
-  }, []);
+  }, [onNewMessage]);
 
   return {
     conversations,
     loading,
+    newMessageCount,
     loadConversations,
     getConversationMessages,
     sendAgentReply,
     closeConversation,
+    clearNewMessageCount,
   };
 }
