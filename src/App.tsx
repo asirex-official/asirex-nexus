@@ -49,6 +49,7 @@ import DeveloperDashboard from "./pages/dashboards/DeveloperDashboard";
 import CorePillarDashboard from "./pages/dashboards/CorePillarDashboard";
 import VisualEditor from "./pages/admin/VisualEditor";
 import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/authority-login" element={<AuthorityLogin />} />
             <Route path="/card-login" element={<CardLogin />} />

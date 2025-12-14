@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload, Rocket, Sparkles, Zap, Globe, Shield, Award, Star, TrendingUp, ArrowRight } from "lucide-react";
+import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload, Rocket, Sparkles, Zap, Globe, Shield, Award, Star, TrendingUp, ArrowRight, AlertCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSubmitContactMessage } from "@/hooks/useSiteData";
+import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 
 // Input validation schema
@@ -186,8 +187,11 @@ export default function About() {
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<typeof openPositions[0] | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showLoginWarning, setShowLoginWarning] = useState(false);
   
   const submitContactMessage = useSubmitContactMessage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleApply = (position: typeof openPositions[0]) => {
     setSelectedPosition(position);
@@ -197,6 +201,12 @@ export default function About() {
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
+    
+    // Show login warning for non-logged in users
+    if (!user && !showLoginWarning) {
+      setShowLoginWarning(true);
+      return;
+    }
     
     // Validate input
     const result = contactSchema.safeParse(contactForm);
@@ -227,13 +237,16 @@ export default function About() {
       
       toast({
         title: "Message Sent!",
-        description: "We'll get back to you within 24 hours."
+        description: user 
+          ? "We'll get back to you within 24 hours. Check your notifications for replies."
+          : "We'll get back to you within 24 hours."
       });
       setContactForm({
         name: "",
         email: "",
         message: ""
       });
+      setShowLoginWarning(false);
     } catch (error) {
       toast({
         title: "Error",
@@ -927,6 +940,44 @@ export default function About() {
             >
               <form onSubmit={handleContactSubmit} className="glass-card p-8 lg:p-10">
                 <h3 className="font-display text-2xl font-bold mb-6">Send us a message</h3>
+                
+                {/* Login Warning for non-logged in users */}
+                {showLoginWarning && !user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm text-yellow-500">You're not logged in</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Without an account, you won't be able to see replies to your message. 
+                          Login to receive notifications about responses.
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate("/auth")}
+                          >
+                            Sign In
+                          </Button>
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="sm"
+                          >
+                            Continue Anyway
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                
                 <div className="space-y-5">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Name</label>
