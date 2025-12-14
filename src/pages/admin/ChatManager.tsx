@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
-import { MessageSquare, Send, X, User, Bot, Headphones, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { MessageSquare, Send, X, User, Bot, Headphones, Clock, CheckCircle, AlertCircle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,17 +20,50 @@ interface ChatMessage {
 
 export default function ChatManager() {
   const { user } = useAuth();
-  const { conversations, loading, getConversationMessages, sendAgentReply, closeConversation } = useAdminChats();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [replyText, setReplyText] = useState("");
   const [loadingMessages, setLoadingMessages] = useState(false);
+
+  // Callback for new message notifications
+  const handleNewMessage = useCallback((message: ChatMessage, userName: string) => {
+    // Play notification sound
+    const audio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onq2Zt5lqaYh+ZF1zY3SGlZWZhW9eYHN8hZWanZCFend9gXt1cXl/iIx9b2tzgYuPkoyGfnpyb29ydXd9gIWJjIqCd21paHB5hI2TkoyEeXBqaW5zeH+GjI+NhXptZ2duc3t/ho2Sko2FfHNsamlrbHN6g4qQko2Ge3JsaWlpbHJ6goqQkY2Ge3Jsa2lpam5zeYCIj5KNhntzb2xpam1xd3+HjpGOiIJ7d3NwcHN2eX6ChoeFgHp1cXBwcXN2eX2Bg4aDf3p1cnBwcXN1eHx/goOCf3t3dHJxcnN1d3p9gIGBf3t4dXNycnN1d3p8foCAf3x5dnRzc3N1d3l8fn9/fnx5dnV0dHR1d3l7fX5+fXt5dnV0dHV2eHp8fX19fHp4dnV1dXZ3eXt8fX18e3l3dnV1dnZ4eXt8fX18e3l4d3Z2dnZ4eXt8fHx7enl4d3Z2dnd4eXp7fHx7enl4d3d3d3d4eXp7e3t6eXl4d3d3d3h5enp7e3p6eXl4eHd3d3h5enp6enp5eXl4eHh4eHl5enp6enl5eXl4eHh4eXl5enp6eXl5eXl4eHh4");
+    audio.volume = 0.3;
+    audio.play().catch(() => {}); // Ignore autoplay errors
+    
+    // Show toast notification
+    toast.info(
+      `New message from ${userName}`,
+      {
+        description: message.message.length > 50 
+          ? message.message.substring(0, 50) + "..." 
+          : message.message,
+        duration: 5000,
+        action: {
+          label: "View",
+          onClick: () => setSelectedConvId(message.conversation_id),
+        },
+      }
+    );
+  }, []);
+
+  const { 
+    conversations, 
+    loading, 
+    newMessageCount,
+    getConversationMessages, 
+    sendAgentReply, 
+    closeConversation,
+    clearNewMessageCount 
+  } = useAdminChats(handleNewMessage);
 
   const loadMessages = async (convId: string) => {
     setLoadingMessages(true);
     try {
       const msgs = await getConversationMessages(convId);
       setMessages(msgs);
+      clearNewMessageCount();
     } catch (error) {
       toast.error("Failed to load messages");
     } finally {
@@ -103,10 +136,18 @@ export default function ChatManager() {
           <h1 className="text-2xl font-bold">Live Chat Support</h1>
           <p className="text-muted-foreground">Manage customer chat conversations</p>
         </div>
-        <Badge variant="secondary" className="text-lg px-4 py-2">
-          <MessageSquare className="w-4 h-4 mr-2" />
-          {conversations.filter(c => c.status === "pending").length} Pending
-        </Badge>
+        <div className="flex items-center gap-3">
+          {newMessageCount > 0 && (
+            <Badge variant="destructive" className="text-lg px-4 py-2 animate-pulse">
+              <Bell className="w-4 h-4 mr-2" />
+              {newMessageCount} New
+            </Badge>
+          )}
+          <Badge variant="secondary" className="text-lg px-4 py-2">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            {conversations.filter(c => c.status === "pending").length} Pending
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-250px)]">
