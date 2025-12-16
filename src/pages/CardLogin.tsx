@@ -22,31 +22,36 @@ const CardLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const getDashboardRoute = () => {
+  const getDashboardRoute = (roles: string[]) => {
     const titleLower = title.toLowerCase();
     const deptLower = department.toLowerCase();
-    
-    // CEO/Founder routes to CEO dashboard
-    if (role === "ceo" || titleLower.includes("ceo") || titleLower.includes("founder")) {
+
+    // CEO dashboard ONLY for super_admin (prevents URL param manipulation)
+    if (roles.includes("super_admin")) {
       return "/dashboard/ceo";
     }
-    
-    // Developer/SWE routes to Developer dashboard
-    if (role === "developer" || titleLower.includes("developer") || titleLower.includes("swe") || titleLower.includes("website admin")) {
+
+    // Admin panel for admin/manager
+    if (roles.some(r => r === "admin" || r === "manager")) {
+      return "/admin";
+    }
+
+    // Developer dashboard
+    if (roles.includes("developer")) {
       return "/dashboard/developer";
     }
-    
-    // Production Head/Manager routes to Production dashboard
+
+    // Production dashboard
     if (titleLower.includes("production") || deptLower.includes("production") || deptLower.includes("manufacturing")) {
       return `/dashboard/production?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
     }
-    
-    // Sales Lead/Manager routes to Sales dashboard
+
+    // Sales dashboard
     if (titleLower.includes("sales") || deptLower.includes("sales") || deptLower.includes("marketing")) {
       return `/dashboard/sales?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
     }
-    
-    // All other Core Pillars go to their generic dashboard with params
+
+    // Default staff dashboard
     return `/dashboard/core-pillar?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
   };
 
@@ -88,15 +93,14 @@ const CardLogin = () => {
         return;
       }
 
-      // Verify user has appropriate role
+      // Verify user has appropriate role and route based on REAL backend roles
       if (data.user) {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .single();
+        const { data: roleRows, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id);
 
-        if (!roleData) {
+        if (roleError || !roleRows || roleRows.length === 0) {
           toast.error("Access denied", {
             description: "Your account does not have the required permissions. Please contact Support@asirex.in"
           });
@@ -104,10 +108,15 @@ const CardLogin = () => {
           setIsLoading(false);
           return;
         }
+
+        const roles = roleRows.map(r => r.role);
+        toast.success(`Welcome back, ${name.split(" ")[0]}!`);
+        navigate(getDashboardRoute(roles));
+        return;
       }
 
       toast.success(`Welcome back, ${name.split(" ")[0]}!`);
-      navigate(getDashboardRoute());
+      navigate("/");
     } catch (err) {
       console.error('Auth error:', err);
       toast.error("Authentication failed");
