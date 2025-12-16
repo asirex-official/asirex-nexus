@@ -210,6 +210,9 @@ export function useEvents() {
       if (error) throw error;
       return data;
     },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 }
 
