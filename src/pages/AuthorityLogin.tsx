@@ -171,11 +171,12 @@ export default function AuthorityLogin() {
 
         // Create admin role cards by merging templates with actual team members
         const adminCards: RoleCard[] = adminPositionTemplates.map(template => {
-          // Find matching team member by role/title
+          // Find matching team member by role/title/serial number
           const member = teamMembers?.find(m => 
+            m.serial_number === template.id ||
             m.role === template.title || 
             m.designation === template.title ||
-            (template.title.includes("CEO") && m.role?.includes("CEO"))
+            (template.title.includes("CEO") && (m.role?.includes("CEO") || m.designation?.includes("CEO")))
           );
           
           return {
