@@ -4,6 +4,7 @@ import whatsappLogo from "@/assets/whatsapp-logo.png";
 import instagramLogo from "@/assets/instagram-logo.png";
 import gmailLogo from "@/assets/gmail-logo.png";
 import twitterLogo from "@/assets/twitter-logo.png";
+import { useCompanyInfo } from "@/hooks/useSiteData";
 
 const footerLinks = {
   Products: [
@@ -38,14 +39,22 @@ type SocialLink = {
   label: string;
 };
 
-const socialLinks: SocialLink[] = [
+const defaultSocialLinks: SocialLink[] = [
   { image: whatsappLogo, href: "#", label: "WhatsApp" },
   { image: instagramLogo, href: "#", label: "Instagram" },
   { image: twitterLogo, href: "#", label: "Twitter" },
   { image: gmailLogo, href: "#", label: "Email" },
 ];
-
 export function Footer() {
+  const { data: companyInfo } = useCompanyInfo();
+
+  const socialLinks: SocialLink[] = [
+    { image: whatsappLogo, href: "#", label: "WhatsApp" },
+    { image: instagramLogo, href: companyInfo?.social_instagram || "#", label: "Instagram" },
+    { image: twitterLogo, href: companyInfo?.social_twitter || "#", label: "Twitter" },
+    { image: gmailLogo, href: companyInfo?.contact_email ? `mailto:${companyInfo.contact_email}` : "#", label: "Email" },
+  ];
+
   return (
     <footer className="relative bg-card border-t border-border">
       {/* Glow effect */}
