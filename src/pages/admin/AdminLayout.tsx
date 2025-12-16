@@ -67,7 +67,7 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-background">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
-        <Link to="/admin" className="font-display text-xl font-bold gradient-text">
+        <Link to="/dashboard/ceo" className="font-display text-xl font-bold gradient-text">
           ASIREX Admin
         </Link>
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -78,7 +78,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-border hidden lg:block">
-          <Link to="/admin" className="font-display text-xl font-bold gradient-text">
+          <Link to="/dashboard/ceo" className="font-display text-xl font-bold gradient-text">
             ASIREX Admin
           </Link>
         </div>
