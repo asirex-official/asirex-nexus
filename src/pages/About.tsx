@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { Link, useNavigate } from "react-router-dom";
-import { useSubmitContactMessage } from "@/hooks/useSiteData";
+import { useSubmitContactMessage, useCompanyInfo } from "@/hooks/useSiteData";
 import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 
@@ -190,6 +190,7 @@ export default function About() {
   const [showLoginWarning, setShowLoginWarning] = useState(false);
   
   const submitContactMessage = useSubmitContactMessage();
+  const { data: companyInfo } = useCompanyInfo();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -908,9 +909,9 @@ export default function About() {
 
               <div className="space-y-6">
                 {[
-                  { icon: Mail, label: "Email", value: "Asirex.official@gmail.com" },
-                  { icon: Phone, label: "Phone", value: "Coming soon!" },
-                  { icon: MapPin, label: "Headquarters", value: "Noida, India" }
+                  { icon: Mail, label: "Email", value: companyInfo?.contact_email || "support@asirex.in" },
+                  { icon: Phone, label: "Phone", value: companyInfo?.contact_phone || "Coming soon!" },
+                  { icon: MapPin, label: "Headquarters", value: companyInfo?.address || "Noida, India" }
                 ].map((contact, i) => (
                   <motion.div 
                     key={contact.label}
