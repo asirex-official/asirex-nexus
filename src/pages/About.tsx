@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload, Rocket, Sparkles, Zap, Globe, Shield, Award, Star, TrendingUp, ArrowRight, AlertCircle } from "lucide-react";
+import { Target, Eye, Heart, Users, MapPin, Mail, Phone, Send, Briefcase, Upload, Rocket, Sparkles, Zap, Globe, Shield, Award, Star, TrendingUp, ArrowRight, AlertCircle, User } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { Link, useNavigate } from "react-router-dom";
 import { useSubmitContactMessage, useCompanyInfo } from "@/hooks/useSiteData";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { z } from "zod";
 
 // Input validation schema
@@ -96,32 +97,14 @@ const values = [{
   link: "/values/future-driven-excellence"
 }];
 
-const team = [{
-  name: "Kapeesh Sorout",
-  role: "CEO & Founder",
-  emoji: "👨‍💼",
-  slug: "kapeesh-sorout"
-}, {
-  name: "It can be you",
-  role: "Website Admin and SWE",
-  emoji: "+",
-  slug: "open-position-swe"
-}, {
-  name: "It can be you",
-  role: "Sales Manager and Head",
-  emoji: "🧠+",
-  slug: "open-position-sales"
-}, {
-  name: "It can be you",
-  role: "Engineering and Research & Development Lead",
-  emoji: "+",
-  slug: "open-position-rd"
-}, {
-  name: "Vaibhav Ghatwal",
-  role: "Production Head and Manager",
-  emoji: "🌱",
-  slug: "vaibhav-ghatwal"
-}];
+// Default team structure - will be merged with database data
+const defaultTeamPositions = [
+  { role: "CEO & Founder", defaultName: "Kapeesh Sorout", emoji: "👨‍💼", slug: "kapeesh-sorout", isCeo: true },
+  { role: "Website Admin and SWE", defaultName: "It can be you", emoji: "+", slug: "open-position-swe", isCeo: false },
+  { role: "Sales Lead and Head", defaultName: "It can be you", emoji: "🧠+", slug: "open-position-sales", isCeo: false },
+  { role: "Engineering and R&D Lead", defaultName: "It can be you", emoji: "+", slug: "open-position-rd", isCeo: false },
+  { role: "Production Head and Manager", defaultName: "Vaibhav Ghatwal", emoji: "🌱", slug: "vaibhav-ghatwal", isCeo: false },
+];
 
 const openPositions = [{
   title: "Senior AI Engineer",
@@ -193,6 +176,45 @@ export default function About() {
   const { data: companyInfo } = useCompanyInfo();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: dbTeamMembers } = useTeamMembers();
+
+  // Build team from database + defaults
+  const team = useMemo(() => {
+    return defaultTeamPositions.map(position => {
+      // Find matching team member from database
+      const dbMember = dbTeamMembers?.find(m => 
+        m.role === position.role || 
+        m.designation === position.role ||
+        (position.role.includes("CEO") && (m.role?.includes("CEO") || m.role?.includes("Founder"))) ||
+        (position.role.includes("Production") && m.role?.includes("Production")) ||
+        (position.role.includes("Sales") && m.role?.includes("Sales")) ||
+        (position.role.includes("Engineering") && m.role?.includes("Engineering")) ||
+        (position.role.includes("Website") && (m.role?.includes("Website") || m.role?.includes("SWE")))
+      );
+
+      if (dbMember) {
+        return {
+          name: dbMember.name,
+          role: dbMember.designation || dbMember.role,
+          emoji: position.emoji,
+          slug: dbMember.name.toLowerCase().replace(/\s+/g, '-'),
+          isCeo: position.isCeo,
+          isHired: true,
+          profileImage: dbMember.profile_image,
+        };
+      }
+
+      return {
+        name: position.defaultName,
+        role: position.role,
+        emoji: position.emoji,
+        slug: position.slug,
+        isCeo: position.isCeo,
+        isHired: position.defaultName !== "It can be you",
+        profileImage: null,
+      };
+    });
+  }, [dbTeamMembers]);
 
   const handleApply = (position: typeof openPositions[0]) => {
     setSelectedPosition(position);
@@ -650,7 +672,7 @@ export default function About() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="flex justify-center mb-10"
           >
-            <Link to="/team/kapeesh-sorout">
+            <Link to={`/team/${team[0]?.slug || 'kapeesh-sorout'}`}>
               <motion.div 
                 whileHover={{ y: -8 }}
                 className="glass-card p-8 text-center max-w-sm relative overflow-hidden group cursor-pointer"
@@ -658,15 +680,21 @@ export default function About() {
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 />
-                <motion.div 
-                  className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-5xl relative"
-                  animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0)", "0 0 0 20px rgba(var(--primary), 0)"] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  {team[0].emoji}
-                </motion.div>
-                <h3 className="font-display text-xl font-semibold">{team[0].name}</h3>
-                <p className="text-muted-foreground">{team[0].role}</p>
+                {team[0]?.profileImage ? (
+                  <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4">
+                    <img src={team[0].profileImage} alt={team[0].name} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <motion.div 
+                    className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4 text-5xl relative"
+                    animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0)", "0 0 0 20px rgba(var(--primary), 0)"] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    {team[0]?.emoji}
+                  </motion.div>
+                )}
+                <h3 className="font-display text-xl font-semibold">{team[0]?.name}</h3>
+                <p className="text-muted-foreground">{team[0]?.role}</p>
                 <p className="text-sm text-primary mt-2 font-medium">Visionary Leader</p>
               </motion.div>
             </Link>
@@ -764,6 +792,10 @@ export default function About() {
                     >
                       <span className="text-3xl sm:text-4xl lg:text-5xl font-light text-primary/70">+</span>
                     </motion.div>
+                  ) : member.profileImage ? (
+                    <div className="w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 rounded-full overflow-hidden mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <img src={member.profileImage} alt={member.name} className="w-full h-full object-cover" />
+                    </div>
                   ) : (
                     <div className="w-14 h-14 sm:w-18 sm:h-18 lg:w-22 lg:h-22 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4 text-2xl sm:text-3xl lg:text-4xl group-hover:scale-110 transition-transform duration-300">
                       {member.emoji}

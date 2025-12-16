@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, Shield, Users, Briefcase, LockKeyhole, User } from "lucide-react";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const authorityTypes = {
   admin: {
@@ -30,163 +31,114 @@ const authorityTypes = {
   },
 };
 
-// Admin role cards - Core Pillars and Website Admin/SWE
-const adminRoleCards = [
+// Default position templates for admin roles (positions that should always appear)
+const adminPositionTemplates = [
   {
     id: "ASX-2025-000",
     title: "CEO and Founder",
-    name: "Kapeesh Sorout",
-    email: "ceo@asirex.in",
     coreType: "Founding Core",
     department: "Executive Leadership",
-    isHired: true,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-001",
     title: "Production Head and Manager",
-    name: "Vaibhav Ghatwal",
-    email: "vaibhav.phm@asirex.in",
     coreType: "Core Pillar",
     department: "Production & Operations",
-    isHired: true,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-014",
     title: "Core Members and Managing Team Lead",
-    name: null,
-    email: null,
     coreType: "Core Pillar",
     department: "Management",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-013",
     title: "Engineering and R&D Lead",
-    name: null,
-    email: null,
     coreType: "Core Pillar",
     department: "Research & Development",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-012",
     title: "Sales Lead and Head",
-    name: null,
-    email: null,
     coreType: "Core Pillar",
     department: "Sales",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-011",
     title: "Website Admin and SWE",
-    name: null,
-    email: null,
     coreType: "Developer",
     department: "Software Engineering",
-    isHired: false,
-    photoUrl: null,
   },
 ];
 
-// Manager role cards - Managers, Developers, Core Members (excluding Core Pillars)
-const managerRoleCards = [
+// Default position templates for manager roles
+const managerPositionTemplates = [
   {
     id: "ASX-2025-002",
     title: "Senior AI Engineer",
-    name: null,
-    email: null,
     coreType: "Core Member",
     department: "AI & Machine Learning",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-003",
     title: "Robotics Software Developer",
-    name: null,
-    email: null,
     coreType: "Developer",
     department: "Robotics Engineering",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-004",
     title: "Product Designer",
-    name: null,
-    email: null,
     coreType: "Core Member",
     department: "Design & UX",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-005",
     title: "Machine Learning Engineer",
-    name: null,
-    email: null,
     coreType: "Developer",
     department: "AI & Machine Learning",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-006",
     title: "Embedded Systems Developer",
-    name: null,
-    email: null,
     coreType: "Developer",
     department: "Hardware Engineering",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-007",
     title: "Marketing Manager",
-    name: null,
-    email: null,
     coreType: "Manager",
     department: "Marketing & Growth",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-008",
     title: "Hardware Engineer",
-    name: null,
-    email: null,
     coreType: "Developer",
     department: "Hardware Engineering",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-009",
     title: "Content Writer & Social Media",
-    name: null,
-    email: null,
     coreType: "Core Member",
     department: "Marketing & Growth",
-    isHired: false,
-    photoUrl: null,
   },
   {
     id: "ASX-2025-010",
     title: "Business Development Executive",
-    name: null,
-    email: null,
     coreType: "Manager",
     department: "Business Development",
-    isHired: false,
-    photoUrl: null,
   },
 ];
+
+interface RoleCard {
+  id: string;
+  title: string;
+  name: string | null;
+  email: string | null;
+  coreType: string;
+  department: string;
+  isHired: boolean;
+  photoUrl: string | null;
+}
 
 export default function AuthorityLogin() {
   const [searchParams] = useSearchParams();
@@ -197,10 +149,108 @@ export default function AuthorityLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [adminRoleCards, setAdminRoleCards] = useState<RoleCard[]>([]);
+  const [managerRoleCards, setManagerRoleCards] = useState<RoleCard[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
   
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch team members from database and merge with templates
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      setIsLoadingCards(true);
+      try {
+        const { data: teamMembers, error } = await supabase
+          .from("team_members")
+          .select("*")
+          .eq("status", "active");
+
+        if (error) throw error;
+
+        // Create admin role cards by merging templates with actual team members
+        const adminCards: RoleCard[] = adminPositionTemplates.map(template => {
+          // Find matching team member by role/title
+          const member = teamMembers?.find(m => 
+            m.role === template.title || 
+            m.designation === template.title ||
+            (template.title.includes("CEO") && m.role?.includes("CEO"))
+          );
+          
+          return {
+            id: member?.serial_number || template.id,
+            title: template.title,
+            name: member?.name || null,
+            email: member?.email || null,
+            coreType: template.coreType,
+            department: template.department,
+            isHired: !!member,
+            photoUrl: member?.profile_image || null,
+          };
+        });
+
+        // Create manager role cards
+        const managerCards: RoleCard[] = managerPositionTemplates.map(template => {
+          const member = teamMembers?.find(m => 
+            m.role === template.title || 
+            m.designation === template.title
+          );
+          
+          return {
+            id: member?.serial_number || template.id,
+            title: template.title,
+            name: member?.name || null,
+            email: member?.email || null,
+            coreType: template.coreType,
+            department: template.department,
+            isHired: !!member,
+            photoUrl: member?.profile_image || null,
+          };
+        });
+
+        // Also add any team members that don't match templates (newly added positions)
+        teamMembers?.forEach(member => {
+          const isAdmin = member.is_core_pillar || 
+            ["CEO & Founder", "Production Head and Manager", "Sales Lead and Head", 
+             "Core Members and Managing Team Lead", "Engineering and R&D Lead", "Website Admin and SWE"].some(r => 
+              member.role?.includes(r) || member.designation?.includes(r)
+            );
+          
+          const existsInAdmin = adminCards.some(c => c.email === member.email);
+          const existsInManager = managerCards.some(c => c.email === member.email);
+          
+          if (!existsInAdmin && !existsInManager) {
+            const card: RoleCard = {
+              id: member.serial_number || `ASX-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`,
+              title: member.designation || member.role,
+              name: member.name,
+              email: member.email,
+              coreType: member.is_core_pillar ? "Core Pillar" : "Team Member",
+              department: member.department || "General",
+              isHired: true,
+              photoUrl: member.profile_image,
+            };
+            
+            if (isAdmin) {
+              adminCards.push(card);
+            } else {
+              managerCards.push(card);
+            }
+          }
+        });
+
+        setAdminRoleCards(adminCards);
+        setManagerRoleCards(managerCards);
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+      } finally {
+        setIsLoadingCards(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +276,7 @@ export default function AuthorityLogin() {
     }
   };
 
-  const handleRoleCardClick = (card: typeof adminRoleCards[0]) => {
+  const handleRoleCardClick = (card: RoleCard) => {
     if (!card.isHired) {
       toast({
         title: "Position Vacant",
