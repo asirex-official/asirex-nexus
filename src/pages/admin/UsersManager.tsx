@@ -230,29 +230,29 @@ export default function UsersManager() {
     if (!selectedUser) return;
     
     try {
-      // Delete user's roles first
-      await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", selectedUser.user_id);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ user_id: selectedUser.user_id }),
+        }
+      );
 
-      // Delete user's activity logs
-      await supabase
-        .from("activity_logs")
-        .delete()
-        .eq("user_id", selectedUser.user_id);
-
-      // Delete user's profile
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("user_id", selectedUser.user_id);
-
-      if (error) throw error;
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete user");
+      }
 
       queryClient.invalidateQueries({ queryKey: ["users-with-details"] });
       setShowDeleteDialog(false);
-      toast.success("User data deleted successfully");
+      toast.success("User deleted completely from database");
     } catch (error: any) {
       toast.error(error.message || "Failed to delete user");
     }
