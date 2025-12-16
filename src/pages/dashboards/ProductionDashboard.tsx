@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -21,6 +21,8 @@ import {
   Target,
   Users,
   Wrench,
+  Video,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,33 +31,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 const ProductionDashboard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const { orders, meetings, notices, notifications, unreadCount, isLoading, markAsRead, refetch } = useRealtimeNotifications();
 
   const name = searchParams.get("name") || "Production Head";
   const title = searchParams.get("title") || "Production Head and Manager";
   const department = searchParams.get("department") || "Production & Operations";
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      
-      if (!error && data) {
-        setOrders(data);
-      }
-      setIsLoading(false);
-    };
-    fetchOrders();
-  }, []);
 
   const stats = [
     { label: "Products in Queue", value: orders.filter(o => o.order_status === "pending").length.toString(), icon: Box, color: "text-blue-500" },
@@ -88,7 +75,7 @@ const ProductionDashboard = () => {
       toast.error("Failed to update order status");
     } else {
       toast.success(`Order status updated to ${newStatus}`);
-      setOrders(orders.map(o => o.id === orderId ? { ...o, order_status: newStatus } : o));
+      refetch(); // Refresh data after update
     }
   };
 
@@ -107,11 +94,13 @@ const ProductionDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative" onClick={() => setActiveTab("notifications")}>
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] flex items-center justify-center text-white">
-                {orders.filter(o => o.order_status === "pending").length}
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] flex items-center justify-center text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Button>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />
@@ -166,11 +155,12 @@ const ProductionDashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full max-w-lg">
+          <TabsList className="grid grid-cols-5 w-full max-w-xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="queue">Queue</TabsTrigger>
-            <TabsTrigger value="quality">Quality</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="meetings">Meetings</TabsTrigger>
+            <TabsTrigger value="notices">Notices</TabsTrigger>
+            <TabsTrigger value="notifications">Alerts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -290,46 +280,123 @@ const ProductionDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="quality" className="space-y-6">
+          <TabsContent value="meetings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Quality Control Dashboard</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="w-5 h-5 text-blue-500" />
+                  Upcoming Meetings
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {qualityMetrics.map((metric) => (
-                    <div key={metric.label} className="p-4 bg-muted/50 rounded-xl">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium">{metric.label}</h3>
-                        <Badge variant={
-                          metric.inverse 
-                            ? (metric.value <= metric.target ? "default" : "destructive")
-                            : (metric.value >= metric.target ? "default" : "destructive")
-                        }>
-                          {metric.inverse ? "Lower is better" : "Target: {metric.target}%"}
-                        </Badge>
+                {meetings.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No scheduled meetings</p>
+                ) : (
+                  <div className="space-y-3">
+                    {meetings.map((meeting) => (
+                      <div key={meeting.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                          <Video className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{meeting.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(meeting.meeting_date).toLocaleString()} • {meeting.duration_minutes} mins
+                          </p>
+                        </div>
+                        {meeting.meeting_link && (
+                          <Button size="sm" onClick={() => window.open(meeting.meeting_link, '_blank')}>
+                            Join
+                          </Button>
+                        )}
                       </div>
-                      <p className="text-4xl font-bold mb-2">{metric.value}%</p>
-                      <Progress value={metric.value} className="h-3" />
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="inventory" className="space-y-6">
+          <TabsContent value="notices" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Inventory Management</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Megaphone className="w-5 h-5 text-yellow-500" />
+                  Company Notices
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Inventory Module</h3>
-                  <p className="text-muted-foreground">Track raw materials, packaging supplies, and finished products</p>
-                  <Button variant="outline" className="mt-4">Coming Soon</Button>
-                </div>
+                {notices.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No active notices</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notices.map((notice) => (
+                      <div key={notice.id} className={`p-4 rounded-xl border ${
+                        notice.priority === 'high' ? 'bg-red-500/10 border-red-500/30' :
+                        notice.priority === 'medium' ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-muted/50 border-border'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold">{notice.title}</h3>
+                          <Badge variant={notice.priority === 'high' ? 'destructive' : notice.priority === 'medium' ? 'secondary' : 'outline'}>
+                            {notice.priority}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{notice.content}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(notice.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-orange-500" />
+                  Real-time Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {notifications.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No new notifications</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notifications.map((notification) => (
+                      <div 
+                        key={notification.id} 
+                        className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors ${
+                          notification.read ? 'bg-muted/30' : 'bg-orange-500/10 border border-orange-500/30'
+                        }`}
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          notification.type === 'order' ? 'bg-green-500/10 text-green-500' :
+                          notification.type === 'task' ? 'bg-blue-500/10 text-blue-500' :
+                          notification.type === 'meeting' ? 'bg-purple-500/10 text-purple-500' : 'bg-yellow-500/10 text-yellow-500'
+                        }`}>
+                          {notification.type === 'order' ? <Package className="w-5 h-5" /> :
+                           notification.type === 'task' ? <ClipboardList className="w-5 h-5" /> :
+                           notification.type === 'meeting' ? <Video className="w-5 h-5" /> : <Megaphone className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">{notification.title}</p>
+                          <p className="text-sm text-muted-foreground">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {notification.timestamp.toLocaleString()}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 rounded-full bg-orange-500" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

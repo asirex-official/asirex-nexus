@@ -20,17 +20,22 @@ import {
   CheckCircle,
   AlertCircle,
   Star,
+  Megaphone,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 const CorePillarDashboard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
+
+  const { meetings, notices, notifications, unreadCount, markAsRead, tasks } = useRealtimeNotifications();
 
   const name = searchParams.get("name") || "Core Member";
   const title = searchParams.get("title") || "Core Pillar";
@@ -96,12 +101,13 @@ const CorePillarDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative" onClick={() => setActiveTab("notifications")}>
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-destructive-foreground">5</span>
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Settings className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-destructive-foreground">
+                  {unreadCount}
+                </span>
+              )}
             </Button>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />
@@ -179,11 +185,12 @@ const CorePillarDashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full max-w-lg">
+          <TabsList className="grid grid-cols-5 w-full max-w-xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="info">My Info</TabsTrigger>
+            <TabsTrigger value="meetings">Meetings</TabsTrigger>
+            <TabsTrigger value="notices">Notices</TabsTrigger>
+            <TabsTrigger value="notifications">Alerts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -283,92 +290,125 @@ const CorePillarDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="events" className="space-y-6">
+          <TabsContent value="meetings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Upcoming Events</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="w-5 h-5 text-blue-500" />
+                  Upcoming Meetings
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {upcomingEvents.map((event) => (
-                    <div key={event.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-primary" />
+                {meetings.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No scheduled meetings</p>
+                ) : (
+                  <div className="space-y-3">
+                    {meetings.map((meeting) => (
+                      <div key={meeting.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                          <Video className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{meeting.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(meeting.meeting_date).toLocaleString()} • {meeting.duration_minutes} mins
+                          </p>
+                        </div>
+                        {meeting.meeting_link && (
+                          <Button size="sm" onClick={() => window.open(meeting.meeting_link, '_blank')}>
+                            Join
+                          </Button>
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{event.title}</h3>
-                        <p className="text-sm text-muted-foreground">{event.date} • {event.location}</p>
-                      </div>
-                      <Button variant="outline" size="sm">Details</Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="info" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Salary & Bonus */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-green-500" />
-                    Salary & Bonus
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Current Month Salary</span>
-                    <span className="font-bold text-green-500">{salaryInfo.currentMonth}</span>
+          <TabsContent value="notices" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Megaphone className="w-5 h-5 text-yellow-500" />
+                  Company Notices
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {notices.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No active notices</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notices.map((notice) => (
+                      <div key={notice.id} className={`p-4 rounded-xl border ${
+                        notice.priority === 'high' ? 'bg-red-500/10 border-red-500/30' :
+                        notice.priority === 'medium' ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-muted/50 border-border'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold">{notice.title}</h3>
+                          <Badge variant={notice.priority === 'high' ? 'destructive' : notice.priority === 'medium' ? 'secondary' : 'outline'}>
+                            {notice.priority}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{notice.content}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(notice.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Performance Bonus</span>
-                    <span className="font-bold text-yellow-500">{salaryInfo.bonus}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Next Payment</span>
-                    <span className="font-medium">{salaryInfo.nextPayment}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant="outline" className="text-green-500 border-green-500/30">{salaryInfo.status}</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {/* Performance */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-yellow-500" />
-                    Performance & Growth
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Overall Rating</span>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`w-4 h-4 ${star <= 4 ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"}`} />
-                      ))}
-                    </div>
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-primary" />
+                  Real-time Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {notifications.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No new notifications</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notifications.map((notification) => (
+                      <div 
+                        key={notification.id} 
+                        className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors ${
+                          notification.read ? 'bg-muted/30' : 'bg-primary/10 border border-primary/30'
+                        }`}
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          notification.type === 'order' ? 'bg-green-500/10 text-green-500' :
+                          notification.type === 'task' ? 'bg-blue-500/10 text-blue-500' :
+                          notification.type === 'meeting' ? 'bg-purple-500/10 text-purple-500' : 'bg-yellow-500/10 text-yellow-500'
+                        }`}>
+                          {notification.type === 'order' ? <Package className="w-5 h-5" /> :
+                           notification.type === 'task' ? <ClipboardList className="w-5 h-5" /> :
+                           notification.type === 'meeting' ? <Video className="w-5 h-5" /> : <Megaphone className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">{notification.title}</p>
+                          <p className="text-sm text-muted-foreground">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {notification.timestamp.toLocaleString()}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 rounded-full bg-primary" />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Tasks Completed</span>
-                    <span className="font-medium">156 / 160</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Attendance</span>
-                    <span className="font-medium">98%</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Next Promotion Review</span>
-                    <span className="font-medium text-green-500">Mar 2025</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>

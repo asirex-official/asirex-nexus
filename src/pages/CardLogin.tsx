@@ -23,14 +23,30 @@ const CardLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const getDashboardRoute = () => {
-    // Route based on role type
-    if (role === "ceo" || title.toLowerCase().includes("ceo") || title.toLowerCase().includes("founder")) {
+    const titleLower = title.toLowerCase();
+    const deptLower = department.toLowerCase();
+    
+    // CEO/Founder routes to CEO dashboard
+    if (role === "ceo" || titleLower.includes("ceo") || titleLower.includes("founder")) {
       return "/dashboard/ceo";
     }
-    if (role === "developer" || title.toLowerCase().includes("developer") || title.toLowerCase().includes("swe") || title.toLowerCase().includes("website admin")) {
+    
+    // Developer/SWE routes to Developer dashboard
+    if (role === "developer" || titleLower.includes("developer") || titleLower.includes("swe") || titleLower.includes("website admin")) {
       return "/dashboard/developer";
     }
-    // All other Core Pillars go to their dashboard with params
+    
+    // Production Head/Manager routes to Production dashboard
+    if (titleLower.includes("production") || deptLower.includes("production") || deptLower.includes("manufacturing")) {
+      return `/dashboard/production?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
+    }
+    
+    // Sales Lead/Manager routes to Sales dashboard
+    if (titleLower.includes("sales") || deptLower.includes("sales") || deptLower.includes("marketing")) {
+      return `/dashboard/sales?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
+    }
+    
+    // All other Core Pillars go to their generic dashboard with params
     return `/dashboard/core-pillar?name=${encodeURIComponent(name)}&title=${encodeURIComponent(title)}&department=${encodeURIComponent(department)}`;
   };
 
