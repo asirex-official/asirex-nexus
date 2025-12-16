@@ -35,7 +35,7 @@ export function HeroSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   return (
-    <section ref={containerRef} className="relative min-h-screen flex items-center overflow-hidden bg-background">
+    <section ref={containerRef} className="relative min-h-screen flex items-center overflow-hidden bg-background" style={{ position: 'relative' }}>
       {/* Static mesh gradient for performance */}
       <div className="absolute inset-0 bg-mesh-gradient" />
       <div className="absolute inset-0 tech-grid opacity-20" />
