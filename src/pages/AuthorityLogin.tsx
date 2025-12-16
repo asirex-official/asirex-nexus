@@ -178,6 +178,20 @@ export default function AuthorityLogin() {
             m.designation === template.title ||
             (template.title.includes("CEO") && (m.role?.includes("CEO") || m.designation?.includes("CEO")))
           );
+
+          // If DB is not readable here (RLS returns []), keep CEO card alive like before
+          if (!member && template.id === "ASX-2025-000") {
+            return {
+              id: template.id,
+              title: template.title,
+              name: "Kapeesh Sorout",
+              email: "ceo@asirex.in",
+              coreType: template.coreType,
+              department: template.department,
+              isHired: true,
+              photoUrl: null,
+            };
+          }
           
           return {
             id: member?.serial_number || template.id,
@@ -190,7 +204,6 @@ export default function AuthorityLogin() {
             photoUrl: member?.profile_image || null,
           };
         });
-
         // Create manager role cards
         const managerCards: RoleCard[] = managerPositionTemplates.map(template => {
           const member = teamMembers?.find(m => 

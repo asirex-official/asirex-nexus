@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EditorElement {
   id: string;
@@ -35,6 +36,26 @@ const VisualEditor = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const pageName = searchParams.get("page") || "homepage";
+  const { user, isSuperAdmin, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && (!user || !isSuperAdmin)) {
+      toast.error("Unauthorized access");
+      navigate("/auth");
+    }
+  }, [user, isSuperAdmin, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user || !isSuperAdmin) {
+    return null;
+  }
 
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
