@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users, Clock, Filter, Ticket, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Filter, Ticket, ArrowRight, CheckCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useEventRegistration } from "@/hooks/useEventRegistration";
+
 import {
   Select,
   SelectContent,
@@ -136,15 +140,47 @@ const cities = ["All Locations", "Noida", "Delhi", "Gurugram", "Faridabad", "Mum
 const types = ["All Types", "Conference", "Workshop", "Meetup", "Launch"];
 
 export default function Events() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isRegistered, registerForEvent, loading: registering } = useEventRegistration();
   const [selectedCity, setSelectedCity] = useState("All Locations");
   const [selectedType, setSelectedType] = useState("All Types");
   const [selectedEvent, setSelectedEvent] = useState<typeof events[0] | null>(null);
+
+  // Auto-register after login redirect
+  useEffect(() => {
+    const pendingEventId = sessionStorage.getItem("pendingEventRegistration");
+    if (user && pendingEventId) {
+      sessionStorage.removeItem("pendingEventRegistration");
+      // Only register if not already registered
+      if (!isRegistered(pendingEventId)) {
+        registerForEvent(pendingEventId);
+      }
+    }
+  }, [user, isRegistered, registerForEvent]);
 
   const filteredEvents = events.filter((event) => {
     const cityMatch = selectedCity === "All Locations" || event.location.includes(selectedCity);
     const typeMatch = selectedType === "All Types" || event.type === selectedType;
     return cityMatch && typeMatch;
   });
+
+  const handleRegister = async (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      // Store the event ID to register after login
+      sessionStorage.setItem("pendingEventRegistration", eventId);
+      navigate("/auth");
+      return;
+    }
+
+    if (isRegistered(eventId)) {
+      return; // Already registered
+    }
+
+    await registerForEvent(eventId);
+  };
 
   const getAvailability = (event: typeof events[0]) => {
     const remaining = event.capacity - event.registered;
@@ -288,10 +324,26 @@ export default function Events() {
                               {availability.text}
                             </div>
                           </div>
-                          <Button variant="hero" className="whitespace-nowrap">
-                            Register Now
-                            <ArrowRight className="w-4 h-4 ml-1" />
-                          </Button>
+                          {isRegistered(event.id.toString()) ? (
+                            <Button 
+                              variant="outline" 
+                              className="whitespace-nowrap bg-accent/20 border-accent text-accent hover:bg-accent/30"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Registered!
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="hero" 
+                              className="whitespace-nowrap"
+                              onClick={(e) => handleRegister(e, event.id.toString())}
+                              disabled={registering}
+                            >
+                              Register Now
+                              <ArrowRight className="w-4 h-4 ml-1" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -396,10 +448,26 @@ export default function Events() {
                       {selectedEvent.price === 0 ? "Free" : `₹${selectedEvent.price.toLocaleString()}`}
                     </div>
                   </div>
-                  <Button variant="hero" size="lg">
-                    <Ticket className="w-4 h-4 mr-2" />
-                    Register Now
-                  </Button>
+                  {isRegistered(selectedEvent.id.toString()) ? (
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="bg-accent/20 border-accent text-accent hover:bg-accent/30"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Registered!
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="hero" 
+                      size="lg"
+                      onClick={(e) => handleRegister(e, selectedEvent.id.toString())}
+                      disabled={registering}
+                    >
+                      <Ticket className="w-4 h-4 mr-2" />
+                      Register Now
+                    </Button>
+                  )}
                 </div>
               </div>
             </motion.div>
