@@ -22,6 +22,7 @@ import { AddContentDialog } from "@/components/admin/AddContentDialog";
 import { StartMeetingDialog } from "@/components/admin/StartMeetingDialog";
 import { ScheduleMeetingDialog } from "@/components/admin/ScheduleMeetingDialog";
 import { AssignTaskDialog } from "@/components/admin/AssignTaskDialog";
+import { TaskAnalytics } from "@/components/admin/TaskAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -771,15 +772,20 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-4xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1"><ChartArea className="w-3 h-3" />Analytics</TabsTrigger>
+            <TabsTrigger value="tasks" className="gap-1"><BarChart3 className="w-3 h-3" />Tasks</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="website">Website</TabsTrigger>
             <TabsTrigger value="notices">Notices</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="tasks">
+            <TaskAnalytics />
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <Card>
