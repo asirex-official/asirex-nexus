@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { TaskManagementView } from "@/components/tasks/TaskManagementView";
 
 const DeveloperDashboard = () => {
   const navigate = useNavigate();
@@ -244,35 +245,13 @@ const DeveloperDashboard = () => {
           <TabsContent value="tasks" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Current Tasks</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-cyan-500" />
+                  My Tasks
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {tasks.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks assigned</p>
-                ) : (
-                  <div className="space-y-3">
-                    {tasks.map((task) => (
-                      <div key={task.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                        <div className={`w-3 h-3 rounded-full ${
-                          task.status === "completed" ? "bg-green-500" :
-                          task.status === "in_progress" ? "bg-yellow-500" : "bg-muted-foreground"
-                        }`} />
-                        <div className="flex-1">
-                          <p className="font-medium">{task.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs capitalize">{task.status?.replace("_", " ")}</Badge>
-                            <Badge variant={task.priority === "high" ? "destructive" : task.priority === "medium" ? "default" : "secondary"} className="text-xs">
-                              {task.priority}
-                            </Badge>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <TaskManagementView />
               </CardContent>
             </Card>
           </TabsContent>

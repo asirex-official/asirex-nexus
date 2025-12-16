@@ -33,6 +33,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { TaskManagementView } from "@/components/tasks/TaskManagementView";
 
 const SalesDashboard = () => {
   const navigate = useNavigate();
@@ -164,13 +165,28 @@ const SalesDashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full max-w-xl">
+          <TabsList className="grid grid-cols-6 w-full max-w-2xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="targets">Targets</TabsTrigger>
             <TabsTrigger value="meetings">Meetings</TabsTrigger>
             <TabsTrigger value="notices">Notices</TabsTrigger>
             <TabsTrigger value="notifications">Alerts</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="tasks">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-green-500" />
+                  My Tasks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TaskManagementView />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
