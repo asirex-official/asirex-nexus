@@ -81,6 +81,14 @@ export default function Auth() {
         setIsProcessingOAuth(false);
       }
       
+      // Check for pending event registration
+      const pendingEventId = sessionStorage.getItem("pendingEventRegistration");
+      if (pendingEventId) {
+        sessionStorage.removeItem("pendingEventRegistration");
+        navigate("/events", { replace: true });
+        return;
+      }
+      
       // Wait a moment for roles to be fetched, then redirect
       const redirectTimer = setTimeout(() => {
         if (isSuperAdmin) {
