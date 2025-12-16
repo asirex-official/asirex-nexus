@@ -17,7 +17,9 @@ import {
   Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useState } from "react";
 
 const navItems = [
@@ -28,7 +30,7 @@ const navItems = [
   { path: "/admin/events", icon: Calendar, label: "Events" },
   { path: "/admin/content", icon: FileText, label: "Site Content" },
   { path: "/admin/messages", icon: Mail, label: "Contact Messages" },
-  { path: "/admin/chats", icon: MessageSquare, label: "Live Chats" },
+  { path: "/admin/chats", icon: MessageSquare, label: "Live Chats", showBadge: true },
   { path: "/admin/orders", icon: ShoppingCart, label: "Orders" },
   { path: "/admin/settings", icon: Settings, label: "Settings" },
 ];
@@ -38,6 +40,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { totalUnread: unreadChats } = useUnreadChats();
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -93,7 +96,7 @@ export default function AdminLayout() {
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${
                   isActive 
                     ? 'bg-primary/10 text-primary' 
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -101,6 +104,11 @@ export default function AdminLayout() {
               >
                 <item.icon className="w-5 h-5" />
                 <span className="font-medium">{item.label}</span>
+                {(item as any).showBadge && unreadChats > 0 && (
+                  <Badge className="ml-auto bg-red-500 text-white border-none animate-pulse text-xs px-2">
+                    {unreadChats > 99 ? '99+' : unreadChats}
+                  </Badge>
+                )}
               </Link>
             );
           })}

@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import PinVerification from "@/components/admin/PinVerification";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 import ChangePinDialog from "@/components/admin/ChangePinDialog";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 
 interface Task {
   id: string;
@@ -114,6 +115,9 @@ const CEODashboard = () => {
 
   // Enable real-time order notifications
   useRealtimeOrders(true);
+
+  // Real-time unread chat notifications
+  const { totalUnread: unreadChats, openConversations, pendingConversations } = useUnreadChats();
 
   // Session timeout - lock after 1 minute of inactivity
   const handleSessionTimeout = useCallback(() => {
@@ -568,7 +572,7 @@ const CEODashboard = () => {
     { label: "Manage Orders", icon: ShoppingCart, color: "bg-pink-500", count: stats.ordersCount, action: () => navigate("/admin/orders") },
     { label: "Manage Users", icon: UserCog, color: "bg-cyan-500", count: stats.usersCount, action: () => navigate("/admin/users") },
     { label: "Contact Messages", icon: Mail, color: "bg-green-500", count: 0, action: () => navigate("/admin/messages") },
-    { label: "Live Chats", icon: MessageSquare, color: "bg-indigo-500", count: 0, action: () => navigate("/admin/chats") },
+    { label: "Live Chats", icon: MessageSquare, color: "bg-indigo-500", count: unreadChats, action: () => navigate("/admin/chats"), hasNotification: unreadChats > 0 },
   ];
 
   const teamActions = [
@@ -650,7 +654,19 @@ const CEODashboard = () => {
               <Bell className="w-5 h-5" />
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full text-[10px] flex items-center justify-center text-destructive-foreground font-bold">{notices.length}</span>
             </Button>
-            <Button variant="ghost" size="icon"><MessageSquare className="w-5 h-5" /></Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => navigate('/admin/chats')}
+            >
+              <MessageSquare className="w-5 h-5" />
+              {unreadChats > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-bold animate-pulse">
+                  {unreadChats > 99 ? '99+' : unreadChats}
+                </span>
+              )}
+            </Button>
             <Button variant="ghost" size="icon"><Settings className="w-5 h-5" /></Button>
             <Button variant="outline" onClick={handleSignOut} className="gap-2">
               <LogOut className="w-4 h-4" />Sign Out
@@ -855,7 +871,16 @@ const CEODashboard = () => {
                       </div>
                       <span className="text-sm font-medium text-center">{action.label}</span>
                       {action.count > 0 && (
-                        <Badge variant="outline" className="absolute -top-2 -right-2 text-xs">{action.count}</Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={`absolute -top-2 -right-2 text-xs ${
+                            (action as any).hasNotification 
+                              ? 'bg-red-500 text-white border-red-500 animate-pulse' 
+                              : ''
+                          }`}
+                        >
+                          {action.count}
+                        </Badge>
                       )}
                     </motion.button>
                   ))}
