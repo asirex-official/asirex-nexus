@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users, Clock, Filter, Ticket, ArrowRight, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Filter, ArrowRight, CheckCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useEventRegistration } from "@/hooks/useEventRegistration";
+import { useEvents } from "@/hooks/useSiteData";
+import { format } from "date-fns";
 
 import {
   Select,
@@ -21,147 +23,63 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const events = [
-  {
-    id: 1,
-    title: "The First Step of ASIREX - Towards a Cleaner Nation",
-    type: "Launch",
-    date: "February 17, 2026",
-    time: "10:00 AM - 2:00 PM",
-    location: "Noida, India",
-    venue: "ASIREX Headquarters",
-    description: "Witness the historic moment as ASIREX takes its first step towards transforming India. Experience the unveiling of our Aqua River Purifier prototype - the AI-powered autonomous water purification system that will clean India's sacred rivers. Be part of the revolution that starts with a single bot and grows into a nationwide fleet.",
-    image: "🌊",
-    price: 0,
-    capacity: 1000,
-    registered: 847,
-    tags: ["Launch", "Aqua Purifier", "Free Entry", "Historic"],
-    isFeatured: true,
-  },
-  {
-    id: 2,
-    title: "ASIREX Official Launch Event",
-    type: "Launch",
-    date: "March 15, 2026",
-    time: "11:00 AM - 5:00 PM",
-    location: "Delhi, India",
-    venue: "India Habitat Centre",
-    description: "The grand official launch of ASIREX Technologies. Meet the founders, explore our product lineup, witness live demos of AI-powered solutions, and discover how we're building the new future of India with cutting-edge robotics and clean technology.",
-    image: "🚀",
-    price: 0,
-    capacity: 3000,
-    registered: 2156,
-    tags: ["Launch", "Networking", "Free Entry"],
-    isFeatured: true,
-  },
-  {
-    id: 3,
-    title: "ASIREX Tech Summit 2026",
-    type: "Conference",
-    date: "April 20, 2026",
-    time: "9:00 AM - 6:00 PM",
-    location: "Bangalore, India",
-    venue: "Bangalore International Exhibition Centre",
-    description: "Join 5000+ tech enthusiasts for India's largest AI and robotics conference. Featuring keynotes from industry leaders, hands-on workshops, live Aqua Purifier demonstrations, and exclusive product launches. Got your own product or partnership idea? Get a chance to pitch on stage and share your vision, suggestions, or collaboration proposals with our team and audience!",
-    image: "🎯",
-    price: 2999,
-    capacity: 5000,
-    registered: 3847,
-    tags: ["AI", "Robotics", "Networking"],
-    isFeatured: false,
-  },
-  {
-    id: 4,
-    title: "Developer Workshop: AI Edge Computing",
-    type: "Workshop",
-    date: "March 28, 2026",
-    time: "4:00 PM - 8:00 PM",
-    location: "Gurugram, India",
-    venue: "ASIREX Innovation Lab",
-    description: "Hands-on workshop covering edge AI deployment, neural network optimization, and real-world applications. Learn how we built the AI brain behind the Aqua River Purifier. Limited seats, early registration recommended.",
-    image: "💻",
-    price: 999,
-    capacity: 50,
-    registered: 42,
-    tags: ["Hands-on", "AI", "Edge Computing"],
-    isFeatured: false,
-  },
-  {
-    id: 5,
-    title: "Aqua Purifier First Deployment - Yamuna River",
-    type: "Launch",
-    date: "May 10, 2026",
-    time: "6:00 AM - 12:00 PM",
-    location: "Delhi, India",
-    venue: "Yamuna Ghat, Delhi",
-    description: "Join the first deployment of ASIREX Aqua Purifier bots across India's most polluted river - the Yamuna. Witness history as our AI-powered autonomous water purification fleet begins its mission to restore the sacred river. See real-time results and the future of clean water technology in action.",
-    image: "💧",
-    price: 0,
-    capacity: 500,
-    registered: 289,
-    tags: ["Aqua Purifier", "Launch", "Free Entry"],
-    isFeatured: false,
-  },
-  {
-    id: 6,
-    title: "Smart Air Solutions Workshop",
-    type: "Workshop",
-    date: "April 5, 2026",
-    time: "10:00 AM - 4:00 PM",
-    location: "Faridabad, India",
-    venue: "ASIREX Clean Tech Center",
-    description: "Deep dive into our Smart Air Pollution Reducer technology. Learn about UV purification, HEPA filtration, ionization, and self-cleaning filter systems. Hands-on experience with prototype units.",
-    image: "💨",
-    price: 1499,
-    capacity: 100,
-    registered: 78,
-    tags: ["Air Quality", "Clean Tech", "Hands-on"],
-    isFeatured: false,
-  },
-  {
-    id: 7,
-    title: "ASIREX Partners & Government Collaborate Summit",
-    type: "Conference",
-    date: "June 15, 2026",
-    time: "9:00 AM - 3:00 PM",
-    location: "Delhi, India",
-    venue: "The Oberoi, New Delhi",
-    description: "Exclusive summit for government officials, strategic partners, and collaborators. Explore opportunities to deploy ASIREX clean technology solutions across states. Discover how we can work together to build a cleaner, smarter India.",
-    image: "🤝",
-    price: 0,
-    capacity: 200,
-    registered: 156,
-    tags: ["Government", "B2B", "Collaboration"],
-    isFeatured: false,
-  },
-];
-
 const cities = ["All Locations", "Noida", "Delhi", "Gurugram", "Faridabad", "Mumbai", "Bangalore"];
-const types = ["All Types", "Conference", "Workshop", "Meetup", "Launch"];
+const types = ["All Types", "Conference", "Workshop", "Meetup", "Launch", "Event"];
+
+// Helper to extract type from event name
+const getEventType = (name: string): string => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes("workshop")) return "Workshop";
+  if (lowerName.includes("summit") || lowerName.includes("conference")) return "Conference";
+  if (lowerName.includes("meetup")) return "Meetup";
+  if (lowerName.includes("launch") || lowerName.includes("deployment") || lowerName.includes("first step")) return "Launch";
+  return "Event";
+};
+
+// Helper to generate tags from event data
+const getEventTags = (event: any): string[] => {
+  const tags: string[] = [];
+  if (event.ticket_price === 0) tags.push("Free Entry");
+  if (event.is_featured) tags.push("Featured");
+  return tags;
+};
+
+// Helper to get event icon based on type
+const getEventIcon = (name: string): string => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes("water") || lowerName.includes("aqua") || lowerName.includes("river")) return "🌊";
+  if (lowerName.includes("air") || lowerName.includes("pollution")) return "💨";
+  if (lowerName.includes("tech") || lowerName.includes("summit")) return "🎯";
+  if (lowerName.includes("workshop") || lowerName.includes("developer")) return "💻";
+  if (lowerName.includes("partner") || lowerName.includes("collaborate")) return "🤝";
+  if (lowerName.includes("launch")) return "🚀";
+  return "📅";
+};
 
 export default function Events() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isRegistered, registerForEvent, loading: registering } = useEventRegistration();
+  const { data: dbEvents, isLoading } = useEvents();
   const [selectedCity, setSelectedCity] = useState("All Locations");
   const [selectedType, setSelectedType] = useState("All Types");
-  const [selectedEvent, setSelectedEvent] = useState<typeof events[0] | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
 
   // Auto-register after login redirect
   useEffect(() => {
     const pendingEventId = sessionStorage.getItem("pendingEventRegistration");
     if (user && pendingEventId) {
       sessionStorage.removeItem("pendingEventRegistration");
-      // Only register if not already registered
       if (!isRegistered(pendingEventId)) {
         registerForEvent(pendingEventId);
       }
     }
   }, [user, isRegistered, registerForEvent]);
 
-  const filteredEvents = events.filter((event) => {
-    const cityMatch = selectedCity === "All Locations" || event.location.includes(selectedCity);
-    const typeMatch = selectedType === "All Types" || event.type === selectedType;
+  const filteredEvents = (dbEvents || []).filter((event) => {
+    const eventType = getEventType(event.name);
+    const cityMatch = selectedCity === "All Locations" || (event.location && event.location.includes(selectedCity));
+    const typeMatch = selectedType === "All Types" || eventType === selectedType;
     return cityMatch && typeMatch;
   });
 
@@ -169,25 +87,23 @@ export default function Events() {
     e.stopPropagation();
     
     if (!user) {
-      // Store the event ID to register after login
       sessionStorage.setItem("pendingEventRegistration", eventId);
       navigate("/auth");
       return;
     }
 
     if (isRegistered(eventId)) {
-      return; // Already registered
+      return;
     }
 
     await registerForEvent(eventId);
   };
 
-  const getAvailability = (event: typeof events[0]) => {
-    const remaining = event.capacity - event.registered;
-    const percentage = (event.registered / event.capacity) * 100;
-    if (percentage >= 95) return { text: "Almost Full", color: "text-destructive" };
-    if (percentage >= 70) return { text: "Filling Fast", color: "text-warm-accent" };
-    return { text: `${remaining} spots left`, color: "text-accent" };
+  const getAvailability = (event: any) => {
+    const capacity = event.capacity || 100;
+    const registered = 0; // We don't track registered count in DB yet
+    const remaining = capacity - registered;
+    return { text: `${remaining} spots available`, color: "text-accent" };
   };
 
   return (
@@ -245,124 +161,150 @@ export default function Events() {
             </Select>
           </motion.div>
 
-          {/* Events List */}
-          <div className="space-y-6">
-            {filteredEvents.map((event, index) => {
-              const availability = getAvailability(event);
-              return (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group cursor-pointer"
-                  onClick={() => setSelectedEvent(event)}
-                >
-                  <div className={`glass-card card-hover overflow-hidden ${event.isFeatured ? "ring-1 ring-accent/30" : ""}`}>
-                    {event.isFeatured && (
-                      <div className="bg-gradient-to-r from-accent to-primary px-4 py-1.5">
-                        <span className="text-xs font-semibold text-accent-foreground uppercase tracking-wider">
-                          Featured Event
-                        </span>
-                      </div>
-                    )}
-                    <div className="p-6 lg:p-8">
-                      <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                        {/* Event Icon */}
-                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-5xl flex-shrink-0">
-                          {event.image}
-                        </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
+          )}
 
-                        {/* Event Details */}
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/20 text-secondary">
-                              {event.type}
-                            </span>
-                            {event.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-
-                          <h3 className="font-display text-xl lg:text-2xl font-semibold mb-3 group-hover:text-accent transition-colors">
-                            {event.title}
-                          </h3>
-
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {event.date}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {event.time}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {event.location}
-                            </span>
-                          </div>
-
-                          <p className="text-muted-foreground line-clamp-2">
-                            {event.description}
-                          </p>
-                        </div>
-
-                        {/* Price & CTA */}
-                        <div className="flex flex-row lg:flex-col items-center lg:items-end gap-4 lg:gap-2 flex-shrink-0">
-                          <div className="text-right">
-                            <div className="font-display text-2xl font-bold">
-                              {event.price === 0 ? "Free" : `₹${event.price.toLocaleString()}`}
-                            </div>
-                            <div className={`text-sm ${availability.color}`}>
-                              <Users className="w-3 h-3 inline mr-1" />
-                              {availability.text}
-                            </div>
-                          </div>
-                          {isRegistered(event.id.toString()) ? (
-                            <Button 
-                              variant="outline" 
-                              className="whitespace-nowrap bg-accent/20 border-accent text-accent hover:bg-accent/30"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Registered!
-                            </Button>
-                          ) : (
-                            <Button 
-                              variant="hero" 
-                              className="whitespace-nowrap"
-                              onClick={(e) => handleRegister(e, event.id.toString())}
-                              disabled={registering}
-                            >
-                              Register Now
-                              <ArrowRight className="w-4 h-4 ml-1" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {filteredEvents.length === 0 && (
+          {/* Empty State */}
+          {!isLoading && filteredEvents.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-20"
             >
+              <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No events found</h3>
               <p className="text-muted-foreground text-lg">
-                No events found. Try adjusting your filters.
+                {dbEvents?.length === 0 
+                  ? "Check back soon for upcoming events." 
+                  : "Try adjusting your filters."}
               </p>
             </motion.div>
+          )}
+
+          {/* Events List */}
+          {!isLoading && filteredEvents.length > 0 && (
+            <div className="space-y-6">
+              {filteredEvents.map((event, index) => {
+                const availability = getAvailability(event);
+                const eventType = getEventType(event.name);
+                const tags = getEventTags(event);
+                const icon = getEventIcon(event.name);
+                
+                return (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group cursor-pointer"
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    <div className={`glass-card card-hover overflow-hidden ${event.is_featured ? "ring-1 ring-accent/30" : ""}`}>
+                      {event.is_featured && (
+                        <div className="bg-gradient-to-r from-accent to-primary px-4 py-1.5">
+                          <span className="text-xs font-semibold text-accent-foreground uppercase tracking-wider">
+                            Featured Event
+                          </span>
+                        </div>
+                      )}
+                      <div className="p-6 lg:p-8">
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                          {/* Event Icon/Image */}
+                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-5xl flex-shrink-0 overflow-hidden">
+                            {event.image_url ? (
+                              <img src={event.image_url} alt={event.name} className="w-full h-full object-cover" />
+                            ) : (
+                              icon
+                            )}
+                          </div>
+
+                          {/* Event Details */}
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/20 text-secondary">
+                                {eventType}
+                              </span>
+                              {tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+
+                            <h3 className="font-display text-xl lg:text-2xl font-semibold mb-3 group-hover:text-accent transition-colors">
+                              {event.name}
+                            </h3>
+
+                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {format(new Date(event.event_date), 'MMMM d, yyyy')}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                {format(new Date(event.event_date), 'h:mm a')}
+                              </span>
+                              {event.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  {event.location}
+                                </span>
+                              )}
+                            </div>
+
+                            {event.description && (
+                              <p className="text-muted-foreground line-clamp-2">
+                                {event.description}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Price & CTA */}
+                          <div className="flex flex-row lg:flex-col items-center lg:items-end gap-4 lg:gap-2 flex-shrink-0">
+                            <div className="text-right">
+                              <div className="font-display text-2xl font-bold">
+                                {event.ticket_price === 0 ? "Free" : `₹${event.ticket_price?.toLocaleString()}`}
+                              </div>
+                              <div className={`text-sm ${availability.color}`}>
+                                <Users className="w-3 h-3 inline mr-1" />
+                                {availability.text}
+                              </div>
+                            </div>
+                            {isRegistered(event.id) ? (
+                              <Button 
+                                variant="outline" 
+                                className="whitespace-nowrap bg-accent/20 border-accent text-accent hover:bg-accent/30"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Registered!
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="hero" 
+                                className="whitespace-nowrap"
+                                onClick={(e) => handleRegister(e, event.id)}
+                                disabled={registering}
+                              >
+                                Register Now
+                                <ArrowRight className="w-4 h-4 ml-1" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
         </div>
       </section>
@@ -377,15 +319,19 @@ export default function Events() {
             >
               <DialogHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl">
-                    {selectedEvent.image}
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl overflow-hidden">
+                    {selectedEvent.image_url ? (
+                      <img src={selectedEvent.image_url} alt={selectedEvent.name} className="w-full h-full object-cover" />
+                    ) : (
+                      getEventIcon(selectedEvent.name)
+                    )}
                   </div>
                   <div>
                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/20 text-secondary">
-                      {selectedEvent.type}
+                      {getEventType(selectedEvent.name)}
                     </span>
                     <DialogTitle className="font-display text-xl lg:text-2xl mt-2">
-                      {selectedEvent.title}
+                      {selectedEvent.name}
                     </DialogTitle>
                   </div>
                 </div>
@@ -396,76 +342,72 @@ export default function Events() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="glass-card p-4 bg-muted/30">
                     <div className="text-sm text-muted-foreground mb-1">Date & Time</div>
-                    <div className="font-medium">{selectedEvent.date}</div>
-                    <div className="text-sm text-muted-foreground">{selectedEvent.time}</div>
+                    <div className="font-medium">{format(new Date(selectedEvent.event_date), 'MMMM d, yyyy')}</div>
+                    <div className="text-sm text-muted-foreground">{format(new Date(selectedEvent.event_date), 'h:mm a')}</div>
                   </div>
                   <div className="glass-card p-4 bg-muted/30">
                     <div className="text-sm text-muted-foreground mb-1">Location</div>
-                    <div className="font-medium">{selectedEvent.location}</div>
-                    <div className="text-sm text-muted-foreground">{selectedEvent.venue}</div>
+                    <div className="font-medium">{selectedEvent.location || "TBA"}</div>
                   </div>
                 </div>
 
-                <p className="text-muted-foreground leading-relaxed">
-                  {selectedEvent.description}
-                </p>
+                {selectedEvent.description && (
+                  <p className="text-muted-foreground leading-relaxed">
+                    {selectedEvent.description}
+                  </p>
+                )}
 
                 {/* Capacity */}
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Registration Progress</span>
-                    <span className="font-medium">
-                      {selectedEvent.registered} / {selectedEvent.capacity}
-                    </span>
+                {selectedEvent.capacity && (
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Capacity</span>
+                      <span className="font-medium">{selectedEvent.capacity} attendees</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-primary to-accent w-1/4 rounded-full" />
+                    </div>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(selectedEvent.registered / selectedEvent.capacity) * 100}%` }}
-                      transition={{ duration: 1 }}
-                      className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2">
-                  {selectedEvent.tags.map((tag) => (
+                  {getEventTags(selectedEvent).map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 text-sm rounded-full bg-muted text-muted-foreground"
+                      className="px-3 py-1.5 text-sm rounded-full bg-muted text-muted-foreground"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
 
-                {/* Register */}
+                {/* Price & Register */}
                 <div className="flex items-center justify-between pt-4 border-t border-border">
                   <div>
-                    <div className="text-sm text-muted-foreground">Registration Fee</div>
+                    <div className="text-sm text-muted-foreground">Ticket Price</div>
                     <div className="font-display text-3xl font-bold">
-                      {selectedEvent.price === 0 ? "Free" : `₹${selectedEvent.price.toLocaleString()}`}
+                      {selectedEvent.ticket_price === 0 ? "Free" : `₹${selectedEvent.ticket_price?.toLocaleString()}`}
                     </div>
                   </div>
-                  {isRegistered(selectedEvent.id.toString()) ? (
+                  {isRegistered(selectedEvent.id) ? (
                     <Button 
                       variant="outline" 
-                      size="lg"
+                      size="lg" 
                       className="bg-accent/20 border-accent text-accent hover:bg-accent/30"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Registered!
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      You're Registered!
                     </Button>
                   ) : (
                     <Button 
                       variant="hero" 
                       size="lg"
-                      onClick={(e) => handleRegister(e, selectedEvent.id.toString())}
+                      onClick={(e) => handleRegister(e, selectedEvent.id)}
                       disabled={registering}
                     >
-                      <Ticket className="w-4 h-4 mr-2" />
                       Register Now
+                      <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   )}
                 </div>
