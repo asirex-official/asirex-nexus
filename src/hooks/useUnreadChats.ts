@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,7 +17,7 @@ export const useUnreadChats = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUnreadStats = async () => {
+  const fetchUnreadStats = useCallback(async () => {
     if (!user || !isAdmin) {
       setIsLoading(false);
       return;
@@ -36,7 +36,6 @@ export const useUnreadChats = () => {
       const pendingCount = conversations?.filter(c => c.status === 'pending').length || 0;
 
       // Get unread messages (messages from users that haven't been replied to)
-      // Count messages where sender_type is 'user' in open conversations
       const conversationIds = conversations?.map(c => c.id) || [];
       
       let unreadCount = 0;
@@ -86,7 +85,7 @@ export const useUnreadChats = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, isAdmin]);
 
   useEffect(() => {
     fetchUnreadStats();
@@ -125,7 +124,7 @@ export const useUnreadChats = () => {
     return () => {
       supabase.removeChannel(messagesChannel);
     };
-  }, [user, isAdmin]);
+  }, [fetchUnreadStats]);
 
   return {
     ...stats,

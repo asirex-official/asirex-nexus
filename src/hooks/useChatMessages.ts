@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -25,8 +25,38 @@ export function useChatMessages() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const loadMessages = useCallback(async (convId: string) => {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .select("*")
+      .eq("conversation_id", convId)
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setMessages(data as ChatMessage[]);
+    }
+  }, []);
+
+  const addMessage = useCallback(async (convId: string, text: string, senderType: "user" | "agent" | "bot", senderId?: string) => {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        conversation_id: convId,
+        message: text,
+        sender_type: senderType,
+        sender_id: senderId || null,
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      setMessages((prev) => [...prev, data as ChatMessage]);
+    }
+    return data;
+  }, []);
+
   // Create or get existing conversation
-  const initConversation = async () => {
+  const initConversation = useCallback(async () => {
     if (!user) return null;
 
     setLoading(true);
@@ -68,39 +98,9 @@ export function useChatMessages() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, loadMessages, addMessage]);
 
-  const loadMessages = async (convId: string) => {
-    const { data, error } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("conversation_id", convId)
-      .order("created_at", { ascending: true });
-
-    if (!error && data) {
-      setMessages(data as ChatMessage[]);
-    }
-  };
-
-  const addMessage = async (convId: string, text: string, senderType: "user" | "agent" | "bot", senderId?: string) => {
-    const { data, error } = await supabase
-      .from("chat_messages")
-      .insert({
-        conversation_id: convId,
-        message: text,
-        sender_type: senderType,
-        sender_id: senderId || null,
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      setMessages((prev) => [...prev, data as ChatMessage]);
-    }
-    return data;
-  };
-
-  const sendMessage = async (text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     if (!conversationId || !text.trim()) return;
 
     await addMessage(conversationId, text, "user", user?.id);
@@ -110,7 +110,7 @@ export function useChatMessages() {
       .from("chat_conversations")
       .update({ updated_at: new Date().toISOString(), status: "pending" })
       .eq("id", conversationId);
-  };
+  }, [conversationId, user?.id, addMessage]);
 
   // Subscribe to new messages
   useEffect(() => {
@@ -155,8 +155,12 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
   const [conversations, setConversations] = useState<(ChatConversation & { user_email?: string; last_message?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessageCount, setNewMessageCount] = useState(0);
+  
+  // Use ref to avoid stale closure in realtime callback
+  const onNewMessageRef = useRef(onNewMessage);
+  onNewMessageRef.current = onNewMessage;
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -200,9 +204,9 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getConversationMessages = async (convId: string) => {
+  const getConversationMessages = useCallback(async (convId: string) => {
     const { data, error } = await supabase
       .from("chat_messages")
       .select("*")
@@ -211,9 +215,9 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
 
     if (error) throw error;
     return data as ChatMessage[];
-  };
+  }, []);
 
-  const sendAgentReply = async (convId: string, message: string, agentId: string) => {
+  const sendAgentReply = useCallback(async (convId: string, message: string, agentId: string) => {
     const { error } = await supabase
       .from("chat_messages")
       .insert({
@@ -230,19 +234,19 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
       .from("chat_conversations")
       .update({ status: "open", updated_at: new Date().toISOString() })
       .eq("id", convId);
-  };
+  }, []);
 
-  const closeConversation = async (convId: string) => {
+  const closeConversation = useCallback(async (convId: string) => {
     await supabase
       .from("chat_conversations")
       .update({ status: "closed" })
       .eq("id", convId);
     await loadConversations();
-  };
+  }, [loadConversations]);
 
-  const clearNewMessageCount = () => {
+  const clearNewMessageCount = useCallback(() => {
     setNewMessageCount(0);
-  };
+  }, []);
 
   useEffect(() => {
     loadConversations();
@@ -285,9 +289,9 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
               userName = profile?.full_name || "User";
             }
             
-            // Call the callback if provided
-            if (onNewMessage) {
-              onNewMessage(newMessage, userName);
+            // Call the callback if provided (using ref to avoid stale closure)
+            if (onNewMessageRef.current) {
+              onNewMessageRef.current(newMessage, userName);
             }
             
             // Refresh conversations list
@@ -301,7 +305,7 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
       supabase.removeChannel(conversationChannel);
       supabase.removeChannel(messageChannel);
     };
-  }, [onNewMessage]);
+  }, [loadConversations]);
 
   return {
     conversations,
