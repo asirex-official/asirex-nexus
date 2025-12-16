@@ -48,6 +48,8 @@ import GlobalDeliveryPage from "./pages/features/GlobalDeliveryPage";
 import CEODashboard from "./pages/dashboards/CEODashboard";
 import DeveloperDashboard from "./pages/dashboards/DeveloperDashboard";
 import CorePillarDashboard from "./pages/dashboards/CorePillarDashboard";
+import ProductionDashboard from "./pages/dashboards/ProductionDashboard";
+import SalesDashboard from "./pages/dashboards/SalesDashboard";
 import VisualEditor from "./pages/admin/VisualEditor";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
@@ -103,6 +105,8 @@ const App = () => (
             <Route path="/dashboard/ceo" element={<CEODashboard />} />
             <Route path="/dashboard/developer" element={<DeveloperDashboard />} />
             <Route path="/dashboard/core-pillar" element={<CorePillarDashboard />} />
+            <Route path="/dashboard/production" element={<ProductionDashboard />} />
+            <Route path="/dashboard/sales" element={<SalesDashboard />} />
             <Route path="/admin/visual-editor" element={<VisualEditor />} />
             
             {/* Admin Routes */}

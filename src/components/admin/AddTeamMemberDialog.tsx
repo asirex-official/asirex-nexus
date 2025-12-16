@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserPlus, Upload, Mail, Phone, Building, Briefcase, DollarSign, Key } from "lucide-react";
+import { UserPlus, Upload, Mail, Phone, Building, Briefcase, DollarSign, Key, X, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface TeamMember {
@@ -87,6 +87,9 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
     password: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generateSerialNumber = () => {
     const year = new Date().getFullYear();
@@ -95,8 +98,51 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
   };
 
   const generateTemporaryPassword = () => {
-    // Generate a temporary password
     return `ASIREX@${Math.random().toString(36).slice(-8)}`;
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+      setProfileImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setProfileImage(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadProfileImage = async (teamMemberId: string): Promise<string | null> => {
+    if (!profileImage) return null;
+    
+    const fileExt = profileImage.name.split('.').pop();
+    const fileName = `${teamMemberId}-${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('team-profiles')
+      .upload(fileName, profileImage);
+    
+    if (error) {
+      console.error("Error uploading image:", error);
+      return null;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('team-profiles')
+      .getPublicUrl(fileName);
+    
+    return publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,7 +209,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         }
       }
 
-      // Create team member record
+      // Create team member record first to get the ID
       const { data, error } = await supabase
         .from('team_members')
         .insert({
@@ -183,6 +229,19 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
 
       if (error) throw error;
 
+      // Upload profile image if selected
+      let profileImageUrl: string | null = null;
+      if (profileImage) {
+        profileImageUrl = await uploadProfileImage(data.id);
+        if (profileImageUrl) {
+          // Update team member with profile image URL
+          await supabase
+            .from('team_members')
+            .update({ profile_image: profileImageUrl })
+            .eq('id', data.id);
+        }
+      }
+
       const newMember: TeamMember = {
         id: data.id,
         name: data.name,
@@ -195,6 +254,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         joinDate: new Date().toISOString().split("T")[0],
         coreType: formData.coreType,
         serialNumber: data.serial_number || serialNumber,
+        photo: profileImageUrl || undefined,
       };
 
       onAdd(newMember);
@@ -219,6 +279,8 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         coreType: "",
         password: "",
       });
+      setProfileImage(null);
+      setPreviewUrl(null);
       
       onOpenChange(false);
     } catch (error: any) {
@@ -244,10 +306,41 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           {/* Photo Upload */}
-          <div className="flex justify-center">
-            <div className="w-24 h-24 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
-              <Upload className="w-8 h-8 text-muted-foreground" />
+          <div className="flex flex-col items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative w-28 h-28 rounded-full border-2 border-dashed flex items-center justify-center cursor-pointer transition-all ${
+                previewUrl 
+                  ? "border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50 bg-muted"
+              }`}
+            >
+              {previewUrl ? (
+                <>
+                  <img src={previewUrl} alt="Preview" className="w-full h-full rounded-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); removeImage(); }}
+                    className="absolute -top-1 -right-1 w-6 h-6 bg-destructive rounded-full flex items-center justify-center hover:bg-destructive/80"
+                  >
+                    <X className="w-4 h-4 text-destructive-foreground" />
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Add Photo</span>
+                </div>
+              )}
             </div>
+            <p className="text-xs text-muted-foreground">Click to upload profile photo (Max 5MB)</p>
           </div>
 
           {/* Name */}
