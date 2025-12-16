@@ -20,6 +20,8 @@ import { TeamActionDialog } from "@/components/admin/TeamActionDialog";
 import { PostNoticeDialog, Notice } from "@/components/admin/PostNoticeDialog";
 import { AddContentDialog } from "@/components/admin/AddContentDialog";
 import { StartMeetingDialog } from "@/components/admin/StartMeetingDialog";
+import { ScheduleMeetingDialog } from "@/components/admin/ScheduleMeetingDialog";
+import { AssignTaskDialog } from "@/components/admin/AssignTaskDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -85,6 +87,8 @@ const CEODashboard = () => {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showFireMember, setShowFireMember] = useState(false);
   const [showMeeting, setShowMeeting] = useState(false);
+  const [showScheduleMeeting, setShowScheduleMeeting] = useState(false);
+  const [showAssignTask, setShowAssignTask] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
   const [showChangePin, setShowChangePin] = useState(false);
   const [teamActionType, setTeamActionType] = useState<"role" | "promotion" | "bonus" | "salary" | "work" | null>(null);
@@ -594,8 +598,8 @@ const CEODashboard = () => {
   const primaryActions = [
     { label: "Add Team Member", icon: UserPlus, color: "bg-green-500 hover:bg-green-600 text-white", action: () => setShowAddMember(true) },
     { label: "Fire Team Member", icon: UserMinus, color: "bg-red-500 hover:bg-red-600 text-white", action: () => setShowFireMember(true) },
-    { label: "Start Meeting", icon: Video, color: "bg-blue-500 hover:bg-blue-600 text-white", action: () => setShowMeeting(true) },
-    { label: "Post Notice", icon: Megaphone, color: "bg-yellow-500 hover:bg-yellow-600 text-white", action: () => setShowNotice(true) },
+    { label: "Schedule Meeting", icon: Calendar, color: "bg-blue-500 hover:bg-blue-600 text-white", action: () => setShowScheduleMeeting(true) },
+    { label: "Assign Task", icon: Target, color: "bg-purple-500 hover:bg-purple-600 text-white", action: () => setShowAssignTask(true) },
   ];
 
   const contentActions = [
@@ -622,7 +626,9 @@ const CEODashboard = () => {
     { label: "Give Promotion", icon: Award, color: "bg-yellow-500/10 text-yellow-500", action: () => setTeamActionType("promotion") },
     { label: "Give Bonus", icon: Gift, color: "bg-green-500/10 text-green-500", action: () => setTeamActionType("bonus") },
     { label: "Change Salary", icon: DollarSign, color: "bg-emerald-500/10 text-emerald-500", action: () => setTeamActionType("salary") },
-    { label: "Assign Work", icon: Target, color: "bg-blue-500/10 text-blue-500", action: () => setTeamActionType("work") },
+    { label: "Assign Work", icon: Target, color: "bg-blue-500/10 text-blue-500", action: () => setShowAssignTask(true) },
+    { label: "Schedule Meeting", icon: Calendar, color: "bg-indigo-500/10 text-indigo-500", action: () => setShowScheduleMeeting(true) },
+    { label: "Post Notice", icon: Megaphone, color: "bg-orange-500/10 text-orange-500", action: () => setShowNotice(true) },
     { label: "View Performance", icon: BarChart3, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Performance analytics coming soon") },
   ];
 
@@ -1360,6 +1366,22 @@ const CEODashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Schedule Meeting Dialog */}
+      <ScheduleMeetingDialog
+        open={showScheduleMeeting}
+        onOpenChange={setShowScheduleMeeting}
+        members={teamMembers}
+        onMeetingScheduled={fetchDashboardData}
+      />
+
+      {/* Assign Task Dialog */}
+      <AssignTaskDialog
+        open={showAssignTask}
+        onOpenChange={setShowAssignTask}
+        members={teamMembers}
+        onTaskAssigned={fetchDashboardData}
+      />
     </div>
   );
 };
