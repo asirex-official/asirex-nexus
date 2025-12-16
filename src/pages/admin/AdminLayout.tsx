@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  LayoutDashboard, 
   Package, 
   FolderKanban, 
   Calendar, 
@@ -23,7 +22,6 @@ import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useState } from "react";
 
 const navItems = [
-  { path: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { path: "/admin/users", icon: Users, label: "Users" },
   { path: "/admin/products", icon: Package, label: "Products" },
   { path: "/admin/projects", icon: FolderKanban, label: "Projects" },
@@ -87,9 +85,7 @@ export default function AdminLayout() {
 
         <nav className="p-4 pt-20 lg:pt-4 space-y-1">
           {navItems.map((item) => {
-            const isActive = item.exact 
-              ? location.pathname === item.path 
-              : location.pathname.startsWith(item.path);
+            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             
             return (
               <Link

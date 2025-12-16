@@ -28,7 +28,6 @@ import Vision from "./pages/values/Vision";
 import CoreValue from "./pages/values/CoreValue";
 import TeamMember from "./pages/team/TeamMember";
 import AdminLayout from "./pages/admin/AdminLayout";
-import Dashboard from "./pages/admin/Dashboard";
 import ProductsManager from "./pages/admin/ProductsManager";
 import ProjectsManager from "./pages/admin/ProjectsManager";
 import EventsManager from "./pages/admin/EventsManager";
@@ -108,7 +107,7 @@ const App = () => (
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Dashboard />} />
+              <Route index element={<Navigate to="/admin/products" replace />} />
               <Route path="users" element={<UsersManager />} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="projects" element={<ProjectsManager />} />
