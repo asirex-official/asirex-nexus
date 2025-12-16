@@ -1,20 +1,40 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Calendar, MapPin, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, MapPin, Users, Star, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+
+const eventTypes = ["Launch", "Conference", "Workshop", "Summit", "Meetup", "Event"];
 
 interface EventForm {
   name: string;
@@ -25,6 +45,7 @@ interface EventForm {
   image_url: string;
   capacity: number;
   is_featured: boolean;
+  type: string;
 }
 
 const defaultForm: EventForm = {
@@ -36,6 +57,7 @@ const defaultForm: EventForm = {
   image_url: "",
   capacity: 100,
   is_featured: false,
+  type: "Event",
 };
 
 export default function EventsManager() {
@@ -48,6 +70,7 @@ export default function EventsManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<EventForm>(defaultForm);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const openCreateDialog = () => {
     setForm(defaultForm);
@@ -65,6 +88,7 @@ export default function EventsManager() {
       image_url: event.image_url || "",
       capacity: event.capacity || 100,
       is_featured: event.is_featured || false,
+      type: event.type || "Event",
     });
     setEditingId(event.id);
     setIsDialogOpen(true);
@@ -92,14 +116,26 @@ export default function EventsManager() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+  const handleDelete = async () => {
+    if (!deleteId) return;
     
     try {
-      await deleteEvent.mutateAsync(id);
+      await deleteEvent.mutateAsync(deleteId);
       toast({ title: "Event deleted successfully" });
+      setDeleteId(null);
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete event", variant: "destructive" });
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "Launch": return "bg-green-500/20 text-green-400 border-green-500/30";
+      case "Conference": return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      case "Workshop": return "bg-purple-500/20 text-purple-400 border-purple-500/30";
+      case "Summit": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "Meetup": return "bg-pink-500/20 text-pink-400 border-pink-500/30";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -140,8 +176,19 @@ export default function EventsManager() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="glass-card p-4"
+              className="glass-card p-4 relative"
             >
+              {/* Featured Badge */}
+              {event.is_featured && (
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                    <Star className="w-3 h-3 mr-1 fill-current" />
+                    Featured
+                  </Badge>
+                </div>
+              )}
+
+              {/* Event Image/Icon */}
               <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                 {event.image_url ? (
                   <img 
@@ -153,31 +200,39 @@ export default function EventsManager() {
                   <Calendar className="w-8 h-8 text-muted-foreground" />
                 )}
               </div>
+
+              {/* Type Badge */}
+              <Badge className={`mb-2 ${getTypeColor((event as any).type || 'Event')}`}>
+                {(event as any).type || 'Event'}
+              </Badge>
               
-              <h3 className="font-semibold mb-2">{event.name}</h3>
+              <h3 className="font-semibold mb-2 line-clamp-2">{event.name}</h3>
               
               <div className="space-y-1 mb-4 text-sm text-muted-foreground">
                 <p className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
                   {format(new Date(event.event_date), 'MMM d, yyyy • h:mm a')}
                 </p>
                 {event.location && (
                   <p className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    {event.location}
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{event.location}</span>
                   </p>
                 )}
                 {event.capacity && (
                   <p className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
+                    <Users className="w-4 h-4 flex-shrink-0" />
                     Capacity: {event.capacity}
                   </p>
                 )}
               </div>
               
-              <p className="text-lg font-bold mb-4">
-                {event.ticket_price > 0 ? `₹${event.ticket_price?.toLocaleString()}` : 'Free'}
-              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <Ticket className="w-4 h-4 text-accent" />
+                <span className="text-lg font-bold">
+                  {event.ticket_price > 0 ? `₹${event.ticket_price?.toLocaleString()}` : 'Free'}
+                </span>
+              </div>
               
               <div className="flex gap-2">
                 <Button 
@@ -192,7 +247,7 @@ export default function EventsManager() {
                 <Button 
                   variant="outline" 
                   size="icon"
-                  onClick={() => handleDelete(event.id)}
+                  onClick={() => setDeleteId(event.id)}
                 >
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>
@@ -202,6 +257,7 @@ export default function EventsManager() {
         </div>
       )}
 
+      {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -211,25 +267,34 @@ export default function EventsManager() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label>Event Name</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-
             <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Event Name</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Enter event name"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Event Type</Label>
+                <Select 
+                  value={form.type} 
+                  onValueChange={(v) => setForm({ ...form, type: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventTypes.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label>Event Date & Time</Label>
                 <Input
@@ -239,13 +304,35 @@ export default function EventsManager() {
                   required
                 />
               </div>
-              
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                placeholder="Describe your event..."
+              />
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Location</Label>
                 <Input
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="Venue or Online"
+                  placeholder="City, Venue or Online"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Capacity</Label>
+                <Input
+                  type="number"
+                  value={form.capacity}
+                  onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 100 })}
+                  placeholder="Number of attendees"
                 />
               </div>
             </div>
@@ -262,26 +349,20 @@ export default function EventsManager() {
               </div>
               
               <div className="space-y-2">
-                <Label>Capacity</Label>
+                <Label>Image URL</Label>
                 <Input
-                  type="number"
-                  value={form.capacity}
-                  onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 100 })}
+                  value={form.image_url}
+                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                  placeholder="https://..."
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input
-                value={form.image_url}
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <Label>Featured Event</Label>
+              <div>
+                <Label className="text-base">Featured Event</Label>
+                <p className="text-sm text-muted-foreground">Show this event prominently on the events page</p>
+              </div>
               <Switch
                 checked={form.is_featured}
                 onCheckedChange={(v) => setForm({ ...form, is_featured: v })}
@@ -299,6 +380,27 @@ export default function EventsManager() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Event?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the event and remove it from the website.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

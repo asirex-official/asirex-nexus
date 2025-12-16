@@ -231,6 +231,7 @@ export type Database = {
           location: string | null
           name: string
           ticket_price: number | null
+          type: string | null
           updated_at: string
         }
         Insert: {
@@ -244,6 +245,7 @@ export type Database = {
           location?: string | null
           name: string
           ticket_price?: number | null
+          type?: string | null
           updated_at?: string
         }
         Update: {
@@ -257,6 +259,7 @@ export type Database = {
           location?: string | null
           name?: string
           ticket_price?: number | null
+          type?: string | null
           updated_at?: string
         }
         Relationships: []

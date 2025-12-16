@@ -76,8 +76,8 @@ export default function Events() {
     }
   }, [user, isRegistered, registerForEvent]);
 
-  const filteredEvents = (dbEvents || []).filter((event) => {
-    const eventType = getEventType(event.name);
+  const filteredEvents = (dbEvents || []).filter((event: any) => {
+    const eventType = event.type || getEventType(event.name);
     const cityMatch = selectedCity === "All Locations" || (event.location && event.location.includes(selectedCity));
     const typeMatch = selectedType === "All Types" || eventType === selectedType;
     return cityMatch && typeMatch;
@@ -188,9 +188,9 @@ export default function Events() {
           {/* Events List */}
           {!isLoading && filteredEvents.length > 0 && (
             <div className="space-y-6">
-              {filteredEvents.map((event, index) => {
+              {filteredEvents.map((event: any, index) => {
                 const availability = getAvailability(event);
-                const eventType = getEventType(event.name);
+                const eventType = event.type || getEventType(event.name);
                 const tags = getEventTags(event);
                 const icon = getEventIcon(event.name);
                 
@@ -328,7 +328,7 @@ export default function Events() {
                   </div>
                   <div>
                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/20 text-secondary">
-                      {getEventType(selectedEvent.name)}
+                      {selectedEvent.type || getEventType(selectedEvent.name)}
                     </span>
                     <DialogTitle className="font-display text-xl lg:text-2xl mt-2">
                       {selectedEvent.name}
