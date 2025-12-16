@@ -6,7 +6,7 @@ import {
   Shield, TrendingUp, Briefcase, Megaphone, FileText, Video, LogOut, Crown, Zap, Globe,
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
-  Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea,
+  Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea, Save,
 } from "lucide-react";
 import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,8 @@ import PinVerification from "@/components/admin/PinVerification";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 import ChangePinDialog from "@/components/admin/ChangePinDialog";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
+import { useSiteStats, useUpdateSiteStat } from "@/hooks/useSiteData";
+import { useToast } from "@/hooks/use-toast";
 
 interface Task {
   id: string;
@@ -112,12 +114,20 @@ const CEODashboard = () => {
   const [userActivities, setUserActivities] = useState<ActivityLog[]>([]);
   const [editForm, setEditForm] = useState({ fullName: '', phone: '', birthdate: '' });
   const [newRole, setNewRole] = useState<string>('user');
+  
+  // Homepage stats editing state
+  const [editedStats, setEditedStats] = useState<Record<string, number>>({});
 
   // Enable real-time order notifications
   useRealtimeOrders(true);
 
   // Real-time unread chat notifications
   const { totalUnread: unreadChats, openConversations, pendingConversations } = useUnreadChats();
+  
+  // Site stats hooks
+  const { data: siteStats, isLoading: siteStatsLoading } = useSiteStats();
+  const updateSiteStat = useUpdateSiteStat();
+  const { toast: toastUI } = useToast();
 
   // Session timeout - lock after 1 minute of inactivity
   const handleSessionTimeout = useCallback(() => {
@@ -408,6 +418,38 @@ const CEODashboard = () => {
   const handleAddContent = () => {
     // Refresh stats after adding content
     fetchDashboardData();
+  };
+
+  // Homepage stats handlers
+  const handleStatChange = (id: string, value: string) => {
+    setEditedStats(prev => ({
+      ...prev,
+      [id]: parseInt(value) || 0
+    }));
+  };
+
+  const handleSaveStat = async (id: string) => {
+    const value = editedStats[id];
+    if (value === undefined) return;
+
+    try {
+      await updateSiteStat.mutateAsync({ id, value });
+      setEditedStats(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      toastUI({
+        title: "Stat updated",
+        description: "The homepage stat has been updated successfully.",
+      });
+    } catch (error) {
+      toastUI({
+        title: "Error",
+        description: "Failed to update stat.",
+        variant: "destructive",
+      });
+    }
   };
 
   // User management handlers
@@ -745,6 +787,53 @@ const CEODashboard = () => {
                     </motion.button>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Homepage Stats Editor */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Homepage Stats (Quick Stats Strip)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Edit the counters displayed on the homepage. Changes are reflected immediately.
+                </p>
+                {siteStatsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    {siteStats?.map((stat) => (
+                      <div key={stat.id} className="space-y-2">
+                        <Label>{stat.label}</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            value={editedStats[stat.id] ?? stat.value}
+                            onChange={(e) => handleStatChange(stat.id, e.target.value)}
+                            className="flex-1"
+                          />
+                          <span className="flex items-center px-3 bg-muted rounded-lg text-muted-foreground">
+                            {stat.suffix}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleSaveStat(stat.id)}
+                            disabled={editedStats[stat.id] === undefined}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
