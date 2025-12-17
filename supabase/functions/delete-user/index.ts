@@ -59,13 +59,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Delete related data first
+    // Clean up tasks - nullify assignments to preserve history
+    await supabaseAdmin.from("tasks").update({ assigned_to: null }).eq("assigned_to", user_id);
+    await supabaseAdmin.from("tasks").update({ assigned_by: null }).eq("assigned_by", user_id);
+    
+    // Clean up meetings - remove from attendees
+    const { data: meetings } = await supabaseAdmin.from("meetings").select("id, attendees");
+    if (meetings) {
+      for (const meeting of meetings) {
+        const attendees = meeting.attendees as string[] | null;
+        if (attendees && attendees.includes(user_id)) {
+          const updatedAttendees = attendees.filter((id: string) => id !== user_id);
+          await supabaseAdmin.from("meetings").update({ attendees: updatedAttendees }).eq("id", meeting.id);
+        }
+      }
+    }
+
+    // Clean up team_members if linked
+    await supabaseAdmin.from("team_members").delete().eq("user_id", user_id);
+
+    // Delete related data
     await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
     await supabaseAdmin.from("activity_logs").delete().eq("user_id", user_id);
     await supabaseAdmin.from("profiles").delete().eq("user_id", user_id);
     await supabaseAdmin.from("user_addresses").delete().eq("user_id", user_id);
     await supabaseAdmin.from("event_registrations").delete().eq("user_id", user_id);
     await supabaseAdmin.from("chat_conversations").delete().eq("user_id", user_id);
+    await supabaseAdmin.from("ceo_security").delete().eq("user_id", user_id);
 
     // Delete the auth user
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
