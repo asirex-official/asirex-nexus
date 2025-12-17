@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamMemberProfileCard, TeamMemberProfile, AssignedTask, AssignedProject } from "./TeamMemberProfileCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Upload, X } from "lucide-react";
+import { Loader2, Save, Upload, X, FolderKanban, ListTodo } from "lucide-react";
+import { AssignProjectDialog } from "./AssignProjectDialog";
 
 interface ViewTeamMemberDialogProps {
   open: boolean;
@@ -33,6 +34,7 @@ export function ViewTeamMemberDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
   const [projects, setProjects] = useState<AssignedProject[]>([]);
+  const [showAssignProject, setShowAssignProject] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
@@ -173,8 +175,9 @@ export function ViewTeamMemberDialog({
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Profile Card</TabsTrigger>
+            {canEdit && <TabsTrigger value="assign">Assign Work</TabsTrigger>}
             {canEdit && <TabsTrigger value="edit">Edit Details</TabsTrigger>}
           </TabsList>
 
@@ -187,6 +190,32 @@ export function ViewTeamMemberDialog({
               onEdit={() => setIsEditing(true)}
             />
           </TabsContent>
+
+          {canEdit && (
+            <TabsContent value="assign" className="mt-4 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-24 flex flex-col items-center justify-center gap-2"
+                  onClick={() => setShowAssignProject(true)}
+                >
+                  <FolderKanban className="w-8 h-8 text-primary" />
+                  <span>Assign Projects</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-24 flex flex-col items-center justify-center gap-2"
+                  onClick={() => toast({ title: "Coming soon", description: "Direct task assignment coming soon" })}
+                >
+                  <ListTodo className="w-8 h-8 text-blue-500" />
+                  <span>Assign Tasks</span>
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Assign work directly to {member.name} from here
+              </p>
+            </TabsContent>
+          )}
 
           {canEdit && (
             <TabsContent value="edit" className="mt-4 space-y-6">
@@ -312,6 +341,18 @@ export function ViewTeamMemberDialog({
           )}
         </Tabs>
       </DialogContent>
+
+      {/* Assign Project Dialog */}
+      <AssignProjectDialog
+        open={showAssignProject}
+        onOpenChange={setShowAssignProject}
+        memberId={member.id}
+        memberName={member.name}
+        onAssigned={() => {
+          fetchMemberData(member.id);
+          onUpdate?.();
+        }}
+      />
     </Dialog>
   );
 }

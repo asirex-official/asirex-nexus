@@ -50,9 +50,13 @@ import DeveloperDashboard from "./pages/dashboards/DeveloperDashboard";
 import CorePillarDashboard from "./pages/dashboards/CorePillarDashboard";
 import ProductionDashboard from "./pages/dashboards/ProductionDashboard";
 import SalesDashboard from "./pages/dashboards/SalesDashboard";
+import ManagerDashboard from "./pages/dashboards/ManagerDashboard";
+import EmployeeDashboard from "./pages/dashboards/EmployeeDashboard";
 import VisualEditor from "./pages/admin/VisualEditor";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
+import TeamDirectory from "./pages/TeamDirectory";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -88,6 +92,7 @@ const App = () => (
             <Route path="/values/vision" element={<Vision />} />
             <Route path="/values/:valueId" element={<CoreValue />} />
             <Route path="/team/:memberId" element={<TeamMember />} />
+            <Route path="/team-directory" element={<TeamDirectory />} />
             
             {/* Stats Pages */}
             <Route path="/stats/products-shipped" element={<ProductsShipped />} />
@@ -107,6 +112,8 @@ const App = () => (
             <Route path="/dashboard/core-pillar" element={<CorePillarDashboard />} />
             <Route path="/dashboard/production" element={<ProductionDashboard />} />
             <Route path="/dashboard/sales" element={<SalesDashboard />} />
+            <Route path="/dashboard/manager" element={<ManagerDashboard />} />
+            <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
             <Route path="/admin/visual-editor" element={<VisualEditor />} />
             
             {/* Admin Routes */}
