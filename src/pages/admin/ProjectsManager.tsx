@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,8 @@ import {
 } from "@/components/ui/select";
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
+import { ProjectTeamDialog } from "@/components/admin/ProjectTeamDialog";
+import { useAllProjectAssignments } from "@/hooks/useProjectAssignments";
 
 const statuses = ["Planning", "In Development", "Prototype Ready", "Beta Testing", "Launched"];
 
@@ -52,6 +55,7 @@ const defaultForm: ProjectForm = {
 
 export default function ProjectsManager() {
   const { data: projects, isLoading } = useProjects();
+  const { data: allAssignments } = useAllProjectAssignments();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
@@ -61,6 +65,15 @@ export default function ProjectsManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProjectForm>(defaultForm);
   const [featuresInput, setFeaturesInput] = useState("");
+  const [teamDialogProject, setTeamDialogProject] = useState<{ id: string; title: string } | null>(null);
+
+  // Group assignments by project
+  const assignmentsByProject = (allAssignments || []).reduce((acc, assignment: any) => {
+    const projectId = assignment.project_id;
+    if (!acc[projectId]) acc[projectId] = [];
+    acc[projectId].push(assignment);
+    return acc;
+  }, {} as Record<string, any[]>);
 
   const openCreateDialog = () => {
     setForm(defaultForm);
@@ -171,6 +184,37 @@ export default function ProjectsManager() {
                   />
                 </div>
               </div>
+
+              {/* Team Members Preview */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5" />
+                    Team
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {assignmentsByProject[project.id]?.length || 0} members
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {(assignmentsByProject[project.id] || []).slice(0, 5).map((assignment: any) => (
+                    <Avatar key={assignment.id} className="w-7 h-7 border-2 border-background -ml-1 first:ml-0">
+                      <AvatarImage src={assignment.team_members?.profile_image || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {assignment.team_members?.name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {(assignmentsByProject[project.id]?.length || 0) > 5 && (
+                    <span className="text-xs text-muted-foreground ml-1">
+                      +{(assignmentsByProject[project.id]?.length || 0) - 5}
+                    </span>
+                  )}
+                  {(!assignmentsByProject[project.id] || assignmentsByProject[project.id].length === 0) && (
+                    <span className="text-xs text-muted-foreground">No members assigned</span>
+                  )}
+                </div>
+              </div>
               
               <div className="flex gap-2">
                 <Button 
@@ -181,6 +225,14 @@ export default function ProjectsManager() {
                 >
                   <Edit className="w-4 h-4 mr-1" />
                   Edit
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setTeamDialogProject({ id: project.id, title: project.title })}
+                >
+                  <Users className="w-4 h-4 mr-1" />
+                  Team
                 </Button>
                 <Button 
                   variant="outline" 
@@ -319,6 +371,16 @@ export default function ProjectsManager() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Project Team Dialog */}
+      {teamDialogProject && (
+        <ProjectTeamDialog
+          open={!!teamDialogProject}
+          onOpenChange={(open) => !open && setTeamDialogProject(null)}
+          projectId={teamDialogProject.id}
+          projectTitle={teamDialogProject.title}
+        />
+      )}
     </div>
   );
 }
