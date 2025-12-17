@@ -723,7 +723,9 @@ export type Database = {
           hired_at: string | null
           id: string
           is_core_pillar: boolean | null
+          last_seen: string | null
           name: string
+          phone: string | null
           profile_image: string | null
           role: string
           salary: number | null
@@ -741,7 +743,9 @@ export type Database = {
           hired_at?: string | null
           id?: string
           is_core_pillar?: boolean | null
+          last_seen?: string | null
           name: string
+          phone?: string | null
           profile_image?: string | null
           role: string
           salary?: number | null
@@ -759,7 +763,9 @@ export type Database = {
           hired_at?: string | null
           id?: string
           is_core_pillar?: boolean | null
+          last_seen?: string | null
           name?: string
+          phone?: string | null
           profile_image?: string | null
           role?: string
           salary?: number | null

@@ -7,6 +7,7 @@ import {
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
   Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea, Save,
+  Circle,
 } from "lucide-react";
 import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { StartMeetingDialog } from "@/components/admin/StartMeetingDialog";
 import { ScheduleMeetingDialog } from "@/components/admin/ScheduleMeetingDialog";
 import { AssignTaskDialog } from "@/components/admin/AssignTaskDialog";
 import { TaskAnalytics } from "@/components/admin/TaskAnalytics";
+import { ViewTeamMemberDialog } from "@/components/admin/ViewTeamMemberDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -36,6 +38,8 @@ import ChangePinDialog from "@/components/admin/ChangePinDialog";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useSiteStats, useUpdateSiteStat } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
+import { useTeamMemberPresence } from "@/hooks/useTeamMemberPresence";
+import { differenceInMinutes } from "date-fns";
 
 interface Task {
   id: string;
@@ -92,8 +96,13 @@ const CEODashboard = () => {
   const [showAssignTask, setShowAssignTask] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
   const [showChangePin, setShowChangePin] = useState(false);
+  const [showViewProfile, setShowViewProfile] = useState(false);
+  const [selectedMemberForProfile, setSelectedMemberForProfile] = useState<TeamMember | null>(null);
   const [teamActionType, setTeamActionType] = useState<"role" | "promotion" | "bonus" | "salary" | "work" | null>(null);
   const [contentType, setContentType] = useState<"product" | "project" | "event" | "job" | null>(null);
+  
+  // Track presence for team member
+  useTeamMemberPresence();
 
   // Data states
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -171,6 +180,10 @@ const CEODashboard = () => {
           salary: m.salary ? `₹${m.salary.toLocaleString()}/month` : 'To be decided',
           coreType: m.is_core_pillar ? 'Core Pillar' : 'Employee',
           serialNumber: m.serial_number || '',
+          photo: m.profile_image || undefined,
+          phone: m.phone || undefined,
+          designation: m.designation || undefined,
+          lastSeen: m.last_seen || undefined,
         }));
         setTeamMembers(mappedTeam);
       }
@@ -922,26 +935,74 @@ const CEODashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
-                  {teamMembers.map((member) => (
-                    <div key={member.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl ${member.role === "CEO & Founder" ? "bg-gradient-to-br from-yellow-500 to-orange-500" : "bg-gradient-to-br from-blue-500 to-purple-500"}`}>
-                        {member.name.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold">{member.name}</p>
-                          {member.coreType && <Badge variant="outline" className="text-xs">{member.coreType}</Badge>}
-                          <Badge className={`text-xs ${member.status === "active" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>{member.status}</Badge>
+                  {teamMembers.map((member) => {
+                    // Calculate online status
+                    const getOnlineStatus = () => {
+                      if (!member.lastSeen) return { status: "offline", color: "bg-muted-foreground" };
+                      const minutesAgo = differenceInMinutes(new Date(), new Date(member.lastSeen));
+                      if (minutesAgo < 5) return { status: "online", color: "bg-green-500" };
+                      if (minutesAgo < 30) return { status: "away", color: "bg-yellow-500" };
+                      return { status: "offline", color: "bg-muted-foreground" };
+                    };
+                    const onlineStatus = getOnlineStatus();
+                    
+                    return (
+                      <div 
+                        key={member.id} 
+                        className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors cursor-pointer group"
+                        onClick={() => {
+                          setSelectedMemberForProfile(member);
+                          setShowViewProfile(true);
+                        }}
+                      >
+                        <div className="relative">
+                          {member.photo ? (
+                            <img 
+                              src={member.photo} 
+                              alt={member.name} 
+                              className="w-14 h-14 rounded-full object-cover border-2 border-border"
+                            />
+                          ) : (
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl ${member.role === "CEO & Founder" ? "bg-gradient-to-br from-yellow-500 to-orange-500" : "bg-gradient-to-br from-blue-500 to-purple-500"}`}>
+                              {member.name.charAt(0)}
+                            </div>
+                          )}
+                          {/* Online Status Indicator */}
+                          <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-background ${onlineStatus.color}`} />
                         </div>
-                        <p className="text-sm text-muted-foreground">{member.role}</p>
-                        <p className="text-xs text-muted-foreground">{member.department} • {member.email}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold">{member.name}</p>
+                            {member.coreType && <Badge variant="outline" className="text-xs">{member.coreType}</Badge>}
+                            <Badge className={`text-xs ${member.status === "active" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>{member.status}</Badge>
+                            <span className={`text-xs flex items-center gap-1 ${onlineStatus.status === "online" ? "text-green-500" : "text-muted-foreground"}`}>
+                              <Circle className={`w-2 h-2 ${onlineStatus.status === "online" ? "fill-green-500" : ""}`} />
+                              {onlineStatus.status === "online" ? "Online" : onlineStatus.status === "away" ? "Away" : "Offline"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{member.role}</p>
+                          <p className="text-xs text-muted-foreground">{member.department} • {member.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{member.salary}</p>
+                          <p className="text-xs text-muted-foreground">ID: {member.serialNumber || member.id.slice(0, 8)}</p>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMemberForProfile(member);
+                              setShowViewProfile(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Profile
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{member.salary}</p>
-                        <p className="text-xs text-muted-foreground">ID: {member.serialNumber || member.id.slice(0, 8)}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -1387,6 +1448,32 @@ const CEODashboard = () => {
         onOpenChange={setShowAssignTask}
         members={teamMembers}
         onTaskAssigned={fetchDashboardData}
+      />
+
+      {/* View Team Member Profile Dialog */}
+      <ViewTeamMemberDialog
+        open={showViewProfile}
+        onOpenChange={setShowViewProfile}
+        member={selectedMemberForProfile ? {
+          id: selectedMemberForProfile.id,
+          name: selectedMemberForProfile.name,
+          email: selectedMemberForProfile.email,
+          phone: selectedMemberForProfile.phone || null,
+          role: selectedMemberForProfile.role,
+          department: selectedMemberForProfile.department || null,
+          designation: selectedMemberForProfile.designation || null,
+          serial_number: selectedMemberForProfile.serialNumber || null,
+          is_core_pillar: selectedMemberForProfile.coreType === "Core Pillar",
+          profile_image: selectedMemberForProfile.photo || null,
+          status: selectedMemberForProfile.status || null,
+          hired_at: selectedMemberForProfile.joinDate || null,
+          last_seen: selectedMemberForProfile.lastSeen || null,
+          salary: typeof selectedMemberForProfile.salary === 'string' 
+            ? parseFloat(selectedMemberForProfile.salary.replace(/[₹,]/g, '')) 
+            : selectedMemberForProfile.salary || null,
+        } : null}
+        canEdit={true}
+        onUpdate={fetchDashboardData}
       />
     </div>
   );
