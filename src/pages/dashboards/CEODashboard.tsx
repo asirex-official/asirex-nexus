@@ -7,7 +7,7 @@ import {
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
   Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea, Save,
-  Circle,
+  Circle, Timer, Calculator, Wallet,
 } from "lucide-react";
 import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,10 @@ import { ScheduleMeetingDialog } from "@/components/admin/ScheduleMeetingDialog"
 import { AssignTaskDialog } from "@/components/admin/AssignTaskDialog";
 import { TaskAnalytics } from "@/components/admin/TaskAnalytics";
 import { ViewTeamMemberDialog } from "@/components/admin/ViewTeamMemberDialog";
+import { TeamMemberManagement } from "@/components/admin/TeamMemberManagement";
+import { AttendanceTracker } from "@/components/admin/AttendanceTracker";
+import { BusinessCalculator } from "@/components/admin/BusinessCalculator";
+import { SalaryExpenseTracker } from "@/components/admin/SalaryExpenseTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -785,12 +789,14 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-8 w-full max-w-4xl">
+          <TabsList className="grid grid-cols-10 w-full max-w-5xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1"><ChartArea className="w-3 h-3" />Analytics</TabsTrigger>
             <TabsTrigger value="tasks" className="gap-1"><BarChart3 className="w-3 h-3" />Tasks</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="attendance" className="gap-1"><Timer className="w-3 h-3" />Attendance</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="finance" className="gap-1"><Calculator className="w-3 h-3" />Finance</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="website">Website</TabsTrigger>
             <TabsTrigger value="notices">Notices</TabsTrigger>
@@ -928,84 +934,33 @@ const CEODashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Team Members ({teamMembers.length})</CardTitle>
-                <Button onClick={() => setShowAddMember(true)} className="bg-green-500 hover:bg-green-600 gap-2"><UserPlus className="w-4 h-4" />Add Member</Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {teamMembers.map((member) => {
-                    // Calculate online status
-                    const getOnlineStatus = () => {
-                      if (!member.lastSeen) return { status: "offline", color: "bg-muted-foreground" };
-                      const minutesAgo = differenceInMinutes(new Date(), new Date(member.lastSeen));
-                      if (minutesAgo < 5) return { status: "online", color: "bg-green-500" };
-                      if (minutesAgo < 30) return { status: "away", color: "bg-yellow-500" };
-                      return { status: "offline", color: "bg-muted-foreground" };
-                    };
-                    const onlineStatus = getOnlineStatus();
-                    
-                    return (
-                      <div 
-                        key={member.id} 
-                        className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors cursor-pointer group"
-                        onClick={() => {
-                          setSelectedMemberForProfile(member);
-                          setShowViewProfile(true);
-                        }}
-                      >
-                        <div className="relative">
-                          {member.photo ? (
-                            <img 
-                              src={member.photo} 
-                              alt={member.name} 
-                              className="w-14 h-14 rounded-full object-cover border-2 border-border"
-                            />
-                          ) : (
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl ${member.role === "CEO & Founder" ? "bg-gradient-to-br from-yellow-500 to-orange-500" : "bg-gradient-to-br from-blue-500 to-purple-500"}`}>
-                              {member.name.charAt(0)}
-                            </div>
-                          )}
-                          {/* Online Status Indicator */}
-                          <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-background ${onlineStatus.color}`} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold">{member.name}</p>
-                            {member.coreType && <Badge variant="outline" className="text-xs">{member.coreType}</Badge>}
-                            <Badge className={`text-xs ${member.status === "active" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>{member.status}</Badge>
-                            <span className={`text-xs flex items-center gap-1 ${onlineStatus.status === "online" ? "text-green-500" : "text-muted-foreground"}`}>
-                              <Circle className={`w-2 h-2 ${onlineStatus.status === "online" ? "fill-green-500" : ""}`} />
-                              {onlineStatus.status === "online" ? "Online" : onlineStatus.status === "away" ? "Away" : "Offline"}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{member.role}</p>
-                          <p className="text-xs text-muted-foreground">{member.department} • {member.email}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">{member.salary}</p>
-                          <p className="text-xs text-muted-foreground">ID: {member.serialNumber || member.id.slice(0, 8)}</p>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedMemberForProfile(member);
-                              setShowViewProfile(true);
-                            }}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View Profile
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Integrated Team Member Management */}
+            <TeamMemberManagement 
+              members={teamMembers.map(m => ({
+                id: m.id,
+                name: m.name,
+                email: m.email,
+                role: m.role,
+                department: m.department || null,
+                designation: m.designation || null,
+                serial_number: m.serialNumber || null,
+                is_core_pillar: m.coreType === "Core Pillar",
+                profile_image: m.photo || null,
+                status: m.status || null,
+                last_seen: m.lastSeen || null,
+                phone: m.phone || null,
+              }))}
+              onUpdate={fetchDashboardData}
+            />
+          </TabsContent>
+
+          <TabsContent value="attendance" className="space-y-6">
+            <AttendanceTracker isAdmin={true} />
+          </TabsContent>
+
+          <TabsContent value="finance" className="space-y-6">
+            <BusinessCalculator />
+            <SalaryExpenseTracker />
           </TabsContent>
 
           <TabsContent value="content" className="space-y-6">

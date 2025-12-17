@@ -44,6 +44,66 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance: {
+        Row: {
+          break_end: string | null
+          break_start: string | null
+          clock_in: string
+          clock_out: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          status: string | null
+          team_member_id: string
+          total_hours: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          break_end?: string | null
+          break_start?: string | null
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          team_member_id: string
+          total_hours?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          break_end?: string | null
+          break_start?: string | null
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          team_member_id?: string
+          total_hours?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ceo_security: {
         Row: {
           created_at: string | null
@@ -264,6 +324,48 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          category: string
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          paid_by: string | null
+          receipt_url: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          category: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          paid_by?: string | null
+          receipt_url?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          paid_by?: string | null
+          receipt_url?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_postings: {
         Row: {
           created_at: string
@@ -381,6 +483,39 @@ export type Database = {
           priority?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message: string
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string
+          title?: string
+          type?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -584,6 +719,66 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: []
+      }
+      salary_requests: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          created_at: string
+          id: string
+          month: string
+          notes: string | null
+          paid_at: string | null
+          requested_by: string
+          status: string | null
+          team_member_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          month: string
+          notes?: string | null
+          paid_at?: string | null
+          requested_by: string
+          status?: string | null
+          team_member_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string | null
+          paid_at?: string | null
+          requested_by?: string
+          status?: string | null
+          team_member_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_requests_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_requests_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
