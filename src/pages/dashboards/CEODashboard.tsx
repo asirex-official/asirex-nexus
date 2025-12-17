@@ -29,6 +29,8 @@ import { TeamMemberManagement } from "@/components/admin/TeamMemberManagement";
 import { AttendanceTracker } from "@/components/admin/AttendanceTracker";
 import { BusinessCalculator } from "@/components/admin/BusinessCalculator";
 import { SalaryExpenseTracker } from "@/components/admin/SalaryExpenseTracker";
+import { OnlineStatusPanel } from "@/components/admin/OnlineStatusPanel";
+import { AdminTaskManager } from "@/components/admin/AdminTaskManager";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -802,8 +804,15 @@ const CEODashboard = () => {
             <TabsTrigger value="notices">Notices</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="tasks">
-            <TaskAnalytics />
+          <TabsContent value="tasks" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <AdminTaskManager />
+              </div>
+              <div>
+                <TaskAnalytics />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
@@ -867,6 +876,9 @@ const CEODashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Online Status Panel */}
+            <OnlineStatusPanel />
 
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
