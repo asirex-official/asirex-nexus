@@ -22,6 +22,7 @@ export interface TeamMember {
   coreType?: string;
   designation?: string;
   serialNumber?: string;
+  lastSeen?: string;
 }
 
 interface AddTeamMemberDialogProps {
