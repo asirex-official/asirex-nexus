@@ -3,31 +3,38 @@ import { Layout } from "@/components/layout/Layout";
 import { Heart, Package, Sparkles, Shield, Star, Award, Users, ThumbsUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useSiteStats } from "@/hooks/useSiteData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CustomerSatisfaction() {
+  const { data: siteStats, isLoading } = useSiteStats();
+
+  const satisfactionRate = siteStats?.find(s => s.key === "customer_satisfaction")?.value || 96;
+  const happyCustomers = siteStats?.find(s => s.key === "products_shipped")?.value || 1000;
+
   const satisfactionPillars = [
     {
       icon: Package,
       title: "Premium Packaging",
-      description: "Every product is wrapped with care using eco-friendly, premium materials. Our packaging isn't just protection—it's the first impression of our commitment to excellence.",
+      description: "Every product is wrapped with care using eco-friendly, premium materials.",
       highlights: ["Eco-friendly materials", "Shock-resistant design", "Beautiful unboxing experience"]
     },
     {
       icon: Sparkles,
       title: "Premium Delivery",
-      description: "From our warehouse to your doorstep, we ensure the journey is smooth and trackable. Real-time updates keep you informed every step of the way.",
+      description: "From our warehouse to your doorstep, we ensure the journey is smooth and trackable.",
       highlights: ["Real-time tracking", "Careful handling", "On-time delivery guarantee"]
     },
     {
       icon: Heart,
       title: "Manufactured with Love",
-      description: "Each product goes through rigorous quality checks by our passionate team. We don't just manufacture—we craft experiences that last.",
+      description: "Each product goes through rigorous quality checks by our passionate team.",
       highlights: ["Quality-first approach", "Handpicked components", "Tested before shipping"]
     },
     {
       icon: Shield,
       title: "Premium Products",
-      description: "Innovation meets reliability. Our products are designed to exceed expectations and stand the test of time.",
+      description: "Innovation meets reliability. Our products are designed to exceed expectations.",
       highlights: ["Cutting-edge technology", "Durable construction", "Industry-leading warranty"]
     }
   ];
@@ -74,14 +81,20 @@ export default function CustomerSatisfaction() {
             </motion.div>
             
             <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              <span className="gradient-text">96%</span> Customer Satisfaction
+              {isLoading ? (
+                <Skeleton className="h-16 w-64 mx-auto" />
+              ) : (
+                <>
+                  <span className="gradient-text">{satisfactionRate}%</span> Customer Satisfaction
+                </>
+              )}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-4">
               Where Every Customer Becomes Family
             </p>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Our satisfaction rate isn't just a number—it's a reflection of our relentless commitment 
-              to making every interaction meaningful, every product exceptional, and every customer delighted.
+              to making every interaction meaningful.
             </p>
           </motion.div>
         </div>
@@ -93,12 +106,12 @@ export default function CustomerSatisfaction() {
           <div className="flex flex-wrap justify-center gap-8 md:gap-16">
             <div className="text-center">
               <ThumbsUp className="w-8 h-8 text-primary mx-auto mb-2" />
-              <div className="font-display text-2xl font-bold">96%</div>
+              <div className="font-display text-2xl font-bold">{satisfactionRate}%</div>
               <div className="text-sm text-muted-foreground">Satisfaction Rate</div>
             </div>
             <div className="text-center">
               <Users className="w-8 h-8 text-primary mx-auto mb-2" />
-              <div className="font-display text-2xl font-bold">1000+</div>
+              <div className="font-display text-2xl font-bold">{happyCustomers}+</div>
               <div className="text-sm text-muted-foreground">Happy Customers</div>
             </div>
             <div className="text-center">
@@ -122,9 +135,6 @@ export default function CustomerSatisfaction() {
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
               The <span className="gradient-text">ASIREX Promise</span>
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Four pillars that define our commitment to excellence and customer delight.
-            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -135,7 +145,7 @@ export default function CustomerSatisfaction() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="p-8 rounded-2xl bg-card/40 border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5"
+                className="p-8 rounded-2xl bg-card/40 border border-border/50 hover:border-primary/30 transition-all"
               >
                 <div className="flex items-start gap-5">
                   <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
@@ -175,14 +185,10 @@ export default function CustomerSatisfaction() {
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
               Crafted with Passion, Delivered with Pride
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              At ASIREX, every product starts with a dream and ends with a smile. Our team of dedicated engineers, 
-              designers, and craftsmen pour their hearts into every creation. We believe that when you manufacture 
-              with love, it shows in every detail—from the precision of our components to the care in our packaging.
-            </p>
             <p className="text-lg text-muted-foreground">
-              This isn't just business; it's our contribution to India's technological renaissance. Every satisfied 
-              customer is proof that Indian innovation can compete with the best in the world.
+              At ASIREX, every product starts with a dream and ends with a smile. Our team pours their 
+              hearts into every creation. This isn't just business; it's our contribution to India's 
+              technological renaissance.
             </p>
           </motion.div>
         </div>

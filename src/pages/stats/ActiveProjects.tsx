@@ -1,53 +1,94 @@
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
-import { Rocket, Zap, Globe, Droplets, Brain, Sun, ArrowRight, Target } from "lucide-react";
+import { Rocket, Zap, Globe, Droplets, Brain, Sun, ArrowRight, Target, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useSiteStats } from "@/hooks/useSiteData";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const iconMap: Record<string, LucideIcon> = {
+  Droplets,
+  Brain,
+  Sun,
+  Rocket,
+  Globe,
+};
 
 export default function ActiveProjects() {
-  const projects = [
+  const { data: siteStats, isLoading: statsLoading } = useSiteStats();
+  const { data: dbProjects, isLoading: projectsLoading } = useQuery({
+    queryKey: ["projects-for-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .neq("status", "Completed")
+        .order("display_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const projectCount = siteStats?.find(s => s.key === "active_projects")?.value || dbProjects?.length || 5;
+
+  const defaultProjects = [
     {
-      icon: Droplets,
+      icon: "Droplets",
       title: "Aqua River Purifier",
       status: "In Development",
       progress: 6,
-      description: "AI-powered autonomous water purification system designed to clean India's rivers. Revolutionary technology that can restore the Ganga, Yamuna, and more.",
+      description: "AI-powered autonomous water purification system designed to clean India's rivers.",
       impact: "Clean water for 1 billion+ Indians",
       link: "/projects/aqua-river-purifier"
     },
     {
-      icon: Brain,
+      icon: "Brain",
       title: "Neural Core AI",
       status: "Research Phase",
       progress: 15,
-      description: "Next-generation AI processing units for edge computing, bringing artificial intelligence to every corner of India.",
+      description: "Next-generation AI processing units for edge computing.",
       impact: "Democratizing AI access"
     },
     {
-      icon: Sun,
+      icon: "Sun",
       title: "Clean Energy Grid",
       status: "Planning",
       progress: 8,
-      description: "Smart solar solutions with AI-optimized energy distribution for rural and urban India.",
+      description: "Smart solar solutions with AI-optimized energy distribution.",
       impact: "Sustainable power for all"
     },
     {
-      icon: Rocket,
+      icon: "Rocket",
       title: "Smart Agriculture",
       status: "Concept",
       progress: 3,
-      description: "IoT and AI-driven farming solutions to empower Indian farmers with precision agriculture technology.",
+      description: "IoT and AI-driven farming solutions for Indian farmers.",
       impact: "Transforming Indian agriculture"
     },
     {
-      icon: Globe,
+      icon: "Globe",
       title: "Digital India Hub",
       status: "Planning",
       progress: 5,
-      description: "Creating technology access centers across rural India to bridge the digital divide.",
+      description: "Technology access centers across rural India.",
       impact: "Connecting 500+ villages"
     }
   ];
+
+  // Use database projects if available, otherwise use defaults
+  const projects = dbProjects?.map(p => ({
+    icon: "Rocket",
+    title: p.title,
+    status: p.status || "In Development",
+    progress: p.progress_percentage || 0,
+    description: p.description || "",
+    impact: p.impact || "",
+    link: `/projects/${p.id}`
+  })) || defaultProjects;
+
+  const isLoading = statsLoading || projectsLoading;
 
   return (
     <Layout>
@@ -73,7 +114,13 @@ export default function ActiveProjects() {
             </motion.div>
             
             <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              <span className="gradient-text">5+</span> Active Projects
+              {isLoading ? (
+                <Skeleton className="h-16 w-48 mx-auto" />
+              ) : (
+                <>
+                  <span className="gradient-text">{projectCount}+</span> Active Projects
+                </>
+              )}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-4">
               Building India's Tomorrow, Today
@@ -95,8 +142,7 @@ export default function ActiveProjects() {
           </div>
           <p className="text-muted-foreground max-w-3xl mx-auto">
             To develop game-changing technologies that solve India's biggest challenges—from clean water 
-            and sustainable energy to accessible AI and smart agriculture. Every project is driven by 
-            the dream of a self-reliant, technologically advanced India.
+            and sustainable energy to accessible AI and smart agriculture.
           </p>
         </div>
       </section>
@@ -118,65 +164,76 @@ export default function ActiveProjects() {
             </p>
           </motion.div>
 
-          <div className="space-y-6">
-            {projects.map((project, index) => (
-              <motion.div
-                key={project.title}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="p-6 md:p-8 rounded-2xl bg-card/40 border border-border/50 hover:border-primary/30 transition-all"
-              >
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
-                      <project.icon className="w-8 h-8 text-primary" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                      <h3 className="font-display text-xl font-semibold">{project.title}</h3>
-                      <span className="text-xs px-3 py-1 rounded-full bg-accent/20 text-accent">
-                        {project.status}
-                      </span>
-                    </div>
-                    
-                    <p className="text-muted-foreground mb-4">{project.description}</p>
-                    
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm text-muted-foreground">{project.impact}</span>
+          {isLoading ? (
+            <div className="space-y-6">
+              {[1, 2, 3].map(i => (
+                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {projects.map((project, index) => {
+                const IconComponent = iconMap[project.icon] || Rocket;
+                return (
+                  <motion.div
+                    key={project.title}
+                    initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="p-6 md:p-8 rounded-2xl bg-card/40 border border-border/50 hover:border-primary/30 transition-all"
+                  >
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="flex-shrink-0">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
+                          <IconComponent className="w-8 h-8 text-primary" />
+                        </div>
                       </div>
                       
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                              style={{ width: `${project.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground">{project.progress}%</span>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-3 mb-3">
+                          <h3 className="font-display text-xl font-semibold">{project.title}</h3>
+                          <span className="text-xs px-3 py-1 rounded-full bg-accent/20 text-accent">
+                            {project.status}
+                          </span>
                         </div>
                         
-                        {project.link && (
-                          <Link to={project.link}>
-                            <Button variant="outline" size="sm" className="gap-2">
-                              Learn More
-                              <ArrowRight className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                        )}
+                        <p className="text-muted-foreground mb-4">{project.description}</p>
+                        
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-yellow-500" />
+                            <span className="text-sm text-muted-foreground">{project.impact}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+                                  style={{ width: `${project.progress}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-muted-foreground">{project.progress}%</span>
+                            </div>
+                            
+                            {project.link && (
+                              <Link to={project.link}>
+                                <Button variant="outline" size="sm" className="gap-2">
+                                  Learn More
+                                  <ArrowRight className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -193,9 +250,7 @@ export default function ActiveProjects() {
               Join Us in Building the Future
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              These projects need dreamers, builders, and believers. Whether you want to invest, 
-              collaborate, or simply support our mission—every contribution counts. Together, 
-              we can make India a global technology powerhouse.
+              These projects need dreamers, builders, and believers.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/support-us">

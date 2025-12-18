@@ -3,8 +3,14 @@ import { Layout } from "@/components/layout/Layout";
 import { Globe, MapPin, Users, Handshake, Target, ArrowRight, Flag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useSiteStats } from "@/hooks/useSiteData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CountriesImpacted() {
+  const { data: siteStats, isLoading } = useSiteStats();
+
+  const countriesCount = siteStats?.find(s => s.key === "countries_impacted")?.value || 3;
+
   const regions = [
     {
       name: "India",
@@ -71,7 +77,13 @@ export default function CountriesImpacted() {
             </motion.div>
             
             <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              <span className="gradient-text">3+</span> Countries Impacted
+              {isLoading ? (
+                <Skeleton className="h-16 w-64 mx-auto" />
+              ) : (
+                <>
+                  <span className="gradient-text">{countriesCount}+</span> Countries Impacted
+                </>
+              )}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-4">
               From India to the World
@@ -92,9 +104,7 @@ export default function CountriesImpacted() {
             <div>
               <h2 className="font-display text-2xl font-bold mb-2">India First</h2>
               <p className="text-muted-foreground max-w-xl">
-                Our primary mission is to transform India into a global technology leader. 
-                Every innovation, every product, every project starts with one question: 
-                "How does this help India?"
+                Our primary mission is to transform India into a global technology leader.
               </p>
             </div>
           </div>
@@ -113,9 +123,6 @@ export default function CountriesImpacted() {
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
               Countries We <span className="gradient-text">Impact</span>
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              India, Nepal, Bangladesh - Our current and planned markets across South Asia.
-            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -136,8 +143,6 @@ export default function CountriesImpacted() {
                       <span className={`text-xs px-3 py-1 rounded-full ${
                         region.status === "Primary Market" 
                           ? "bg-green-500/20 text-green-500"
-                          : region.status === "Expansion"
-                          ? "bg-blue-500/20 text-blue-500"
                           : "bg-yellow-500/20 text-yellow-500"
                       }`}>
                         {region.status}
@@ -210,14 +215,8 @@ export default function CountriesImpacted() {
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
               The Journey Has Just Begun
             </h2>
-            <p className="text-lg text-muted-foreground mb-4">
-              From 3+ countries today to every corner of the developing world tomorrow. Our technology 
-              is built to solve universal challenges—clean water, sustainable energy, accessible AI, 
-              smart agriculture. These aren't just Indian problems; they're global opportunities.
-            </p>
             <p className="text-lg text-muted-foreground mb-8">
-              As we grow, our impact multiplies. Every new market we enter brings our solutions to 
-              millions more lives, proving that innovation born in India can change the world.
+              From {countriesCount}+ countries today to every corner of the developing world tomorrow.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/about">

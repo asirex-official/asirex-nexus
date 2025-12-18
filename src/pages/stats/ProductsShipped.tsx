@@ -1,10 +1,16 @@
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
-import { Package, Truck, MapPin, Shield, Heart, Zap, CheckCircle, Globe } from "lucide-react";
+import { Package, Truck, Shield, Heart, Zap, CheckCircle, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useSiteStats } from "@/hooks/useSiteData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsShipped() {
+  const { data: siteStats, isLoading } = useSiteStats();
+
+  const productsShipped = siteStats?.find(s => s.key === "products_shipped")?.value || 1000;
+
   const deliveryFeatures = [
     {
       icon: Truck,
@@ -31,7 +37,7 @@ export default function ProductsShipped() {
   const impactStats = [
     { value: "28+", label: "States Covered" },
     { value: "500+", label: "Cities Reached" },
-    { value: "1000+", label: "Happy Customers" },
+    { value: `${productsShipped}+`, label: "Happy Customers" },
     { value: "99.9%", label: "Safe Delivery Rate" }
   ];
 
@@ -59,14 +65,19 @@ export default function ProductsShipped() {
             </motion.div>
             
             <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              <span className="gradient-text">1000+</span> Products Shipped
+              {isLoading ? (
+                <Skeleton className="h-16 w-64 mx-auto" />
+              ) : (
+                <>
+                  <span className="gradient-text">{productsShipped}+</span> Products Shipped
+                </>
+              )}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-4">
               Impacting the Whole Nation
             </p>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Every product we ship carries the promise of innovation, quality, and India's technological future. 
-              We're not just delivering products—we're delivering dreams.
+              Every product we ship carries the promise of innovation, quality, and India's technological future.
             </p>
           </motion.div>
         </div>
@@ -107,9 +118,6 @@ export default function ProductsShipped() {
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
               How We <span className="gradient-text">Deliver Excellence</span>
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our commitment to quality extends beyond our products to every step of the delivery process.
-            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -149,10 +157,8 @@ export default function ProductsShipped() {
               Connecting India Through Technology
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              From the bustling streets of Mumbai to the serene valleys of Kashmir, from the tech hubs of Bangalore 
-              to the emerging cities of the Northeast—ASIREX products are reaching every Indian who dreams of a 
-              technologically advanced future. Every shipment is a step towards Digital India, a promise kept, 
-              and a dream delivered.
+              From the bustling streets of Mumbai to the serene valleys of Kashmir—ASIREX products 
+              are reaching every Indian who dreams of a technologically advanced future.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">

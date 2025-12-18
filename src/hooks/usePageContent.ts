@@ -23,9 +23,9 @@ export function usePageContent(pageKey?: string) {
           .from("page_content")
           .select("*")
           .eq("page_key", pageKey)
-          .single();
+          .maybeSingle();
         if (error) throw error;
-        return data as PageContent;
+        return data as PageContent | null;
       } else {
         const { data, error } = await supabase
           .from("page_content")
