@@ -39,6 +39,8 @@ import SettingsManager from "./pages/admin/SettingsManager";
 import UsersManager from "./pages/admin/UsersManager";
 import SubscribersManager from "./pages/admin/SubscribersManager";
 import ApplicationsManager from "./pages/admin/ApplicationsManager";
+import FeaturesManager from "./pages/admin/FeaturesManager";
+import StatsManager from "./pages/admin/StatsManager";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -131,6 +133,8 @@ const App = () => (
               <Route path="orders" element={<OrdersManager />} />
               <Route path="subscribers" element={<SubscribersManager />} />
               <Route path="applications" element={<ApplicationsManager />} />
+              <Route path="features" element={<FeaturesManager />} />
+              <Route path="stats" element={<StatsManager />} />
               <Route path="settings" element={<SettingsManager />} />
             </Route>
             
