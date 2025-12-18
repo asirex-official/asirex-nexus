@@ -32,6 +32,7 @@ import { SalaryExpenseTracker } from "@/components/admin/SalaryExpenseTracker";
 import { OnlineStatusPanel } from "@/components/admin/OnlineStatusPanel";
 import { AdminTaskManager } from "@/components/admin/AdminTaskManager";
 import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
+import { SecurityLogsViewer } from "@/components/admin/SecurityLogsViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -107,6 +108,7 @@ const CEODashboard = () => {
   const [selectedMemberForProfile, setSelectedMemberForProfile] = useState<TeamMember | null>(null);
   const [teamActionType, setTeamActionType] = useState<"role" | "promotion" | "bonus" | "salary" | "work" | null>(null);
   const [contentType, setContentType] = useState<"product" | "project" | "event" | "job" | null>(null);
+  const [showSecurityLogs, setShowSecurityLogs] = useState(false);
   
   // Track presence for team member
   useTeamMemberPresence();
@@ -650,7 +652,7 @@ const CEODashboard = () => {
     { label: "Assign Work", icon: Target, color: "bg-blue-500/10 text-blue-500", action: () => setShowAssignTask(true) },
     { label: "Schedule Meeting", icon: Calendar, color: "bg-indigo-500/10 text-indigo-500", action: () => setShowScheduleMeeting(true) },
     { label: "Post Notice", icon: Megaphone, color: "bg-orange-500/10 text-orange-500", action: () => setShowNotice(true) },
-    { label: "View Performance", icon: BarChart3, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Performance analytics coming soon") },
+    { label: "View Performance", icon: BarChart3, color: "bg-cyan-500/10 text-cyan-500", action: () => setActiveTab("analytics") },
   ];
 
   const websiteActions = [
@@ -673,7 +675,7 @@ const CEODashboard = () => {
 
   const securityActions = [
     { label: "Change PIN", icon: Key, color: "bg-amber-500/10 text-amber-500", action: () => setShowChangePin(true) },
-    { label: "Security Logs", icon: ShieldCheck, color: "bg-red-500/10 text-red-500", action: () => toast.info("Security logs coming soon") },
+    { label: "Security Logs", icon: ShieldCheck, color: "bg-red-500/10 text-red-500", action: () => setShowSecurityLogs(true) },
   ];
 
   const dashboardStats = [
@@ -1449,6 +1451,13 @@ const CEODashboard = () => {
         canEdit={true}
         onUpdate={fetchDashboardData}
       />
+
+      {/* Security Logs Dialog */}
+      <Dialog open={showSecurityLogs} onOpenChange={setShowSecurityLogs}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <SecurityLogsViewer />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

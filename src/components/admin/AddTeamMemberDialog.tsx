@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { UserPlus, Upload, Mail, Phone, Building, Briefcase, DollarSign, Key, X, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { TeamMemberIDCard } from "./TeamMemberIDCard";
+import { AdminPermissionsSelector } from "./AdminPermissionsSelector";
 
 export interface TeamMember {
   id: string;
@@ -93,6 +95,20 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showIDCard, setShowIDCard] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    name: string;
+    email: string;
+    phone?: string;
+    role: string;
+    department: string;
+    serialNumber: string;
+    password: string;
+    coreType?: string;
+    joinDate: string;
+    photo?: string;
+  } | null>(null);
+  const [adminPermissions, setAdminPermissions] = useState<string[]>([]);
 
   const generateSerialNumber = () => {
     const year = new Date().getFullYear();
@@ -265,12 +281,22 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       // Log audit event
       await auditLogger.logTeamMemberAdded(formData.name, formData.role, formData.department);
       
-      // Show success message with login credentials if created
+      // Show ID Card for admin/core roles with credentials
       if (userId && (isAdminRole || isCorePillar)) {
-        toast.success(
-          `${formData.name} added! Login credentials: Email: ${formData.email}, Password: ${tempPassword}`,
-          { duration: 10000 }
-        );
+        setCreatedCredentials({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          role: formData.role,
+          department: formData.department,
+          serialNumber: data.serial_number || serialNumber,
+          password: tempPassword,
+          coreType: formData.coreType || undefined,
+          joinDate: new Date().toISOString().split("T")[0],
+          photo: profileImageUrl || undefined,
+        });
+        setShowIDCard(true);
+        toast.success(`${formData.name} added! ID Card generated.`);
       } else {
         toast.success(`${formData.name} has been added to the team!`);
       }
@@ -287,6 +313,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       });
       setProfileImage(null);
       setPreviewUrl(null);
+      setAdminPermissions([]);
       
       onOpenChange(false);
     } catch (error: any) {
@@ -463,25 +490,39 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
             </div>
           </div>
 
-          {/* Password for admin/core roles */}
+          {/* Password and Permissions for admin/core roles */}
           {(formData.coreType === "Core Pillar" || formData.coreType === "Founding Core" || 
             ["CEO & Founder", "Production Head and Manager", "Sales Lead and Head", 
              "Core Members and Managing Team Lead", "Engineering and R&D Lead", "Website Admin and SWE"].includes(formData.role)) && (
-            <div className="space-y-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-primary" />
-                Set Login Password
-              </Label>
-              <Input
-                id="password"
-                type="text"
-                placeholder="Leave empty for auto-generated password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            <div className="space-y-4">
+              <div className="space-y-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-primary" />
+                  Set Login Password
+                </Label>
+                <Input
+                  id="password"
+                  type="text"
+                  placeholder="Leave empty for auto-generated password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  This will create a login account for admin dashboard access. Leave empty for auto-generated password.
+                </p>
+              </div>
+
+              {/* Admin Permissions Selector */}
+              <AdminPermissionsSelector
+                selectedRole={
+                  formData.role.includes("CEO") || formData.coreType === "Founding Core" ? "admin" :
+                  formData.role.includes("Head") || formData.role.includes("Lead") || formData.role.includes("Manager") ? "manager" :
+                  formData.role.includes("Developer") || formData.role.includes("SWE") || formData.role.includes("Engineer") ? "developer" :
+                  formData.coreType === "Core Pillar" ? "core_member" : "employee"
+                }
+                permissions={adminPermissions}
+                onPermissionsChange={setAdminPermissions}
               />
-              <p className="text-xs text-muted-foreground">
-                This will create a login account for admin dashboard access. Leave empty for auto-generated password.
-              </p>
             </div>
           )}
 
@@ -495,6 +536,13 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* ID Card Dialog */}
+      <TeamMemberIDCard
+        open={showIDCard}
+        onOpenChange={setShowIDCard}
+        credentials={createdCredentials}
+      />
     </Dialog>
   );
 }
