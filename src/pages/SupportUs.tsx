@@ -50,9 +50,9 @@ const supportWays = [
 ];
 
 const socialPlatforms = [
-  { icon: Instagram, name: "Instagram", handle: "@asirex.official", link: "#", color: "pink" },
-  { icon: Twitter, name: "Twitter/X", handle: "@asirex_tech", link: "#", color: "blue" },
-  { icon: Youtube, name: "YouTube", handle: "ASIREX Tech", link: "#", color: "red" }
+  { icon: Instagram, name: "Instagram", handle: "@asirex.official", link: "https://instagram.com/asirex.official", color: "pink" },
+  { icon: Twitter, name: "Twitter/X", handle: "@asirex_tech", link: "https://twitter.com/asirex_tech", color: "blue" },
+  { icon: Youtube, name: "YouTube", handle: "ASIREX Tech", link: "https://youtube.com/@asirextech", color: "red" }
 ];
 
 const whyWeNeedSupport = [
@@ -339,10 +339,30 @@ export default function SupportUs() {
               Your support today could help build the technology that transforms millions of lives tomorrow.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="gap-2">
+              <Button 
+                size="lg" 
+                className="gap-2"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'ASIREX - Building India\'s Future',
+                      text: 'Check out ASIREX — a young Indian startup building amazing AI and robotics solutions!',
+                      url: window.location.origin
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.origin);
+                    toast({ title: "Link copied!", description: "Share it with your network" });
+                  }
+                }}
+              >
                 <Share2 className="w-5 h-5" /> Share ASIREX
               </Button>
-              <Button variant="outline" size="lg" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="gap-2"
+                onClick={() => window.location.href = '/about#contact'}
+              >
                 <Mail className="w-5 h-5" /> Contact Us
               </Button>
             </div>

@@ -37,6 +37,8 @@ import ChatManager from "./pages/admin/ChatManager";
 import OrdersManager from "./pages/admin/OrdersManager";
 import SettingsManager from "./pages/admin/SettingsManager";
 import UsersManager from "./pages/admin/UsersManager";
+import SubscribersManager from "./pages/admin/SubscribersManager";
+import ApplicationsManager from "./pages/admin/ApplicationsManager";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -127,6 +129,8 @@ const App = () => (
               <Route path="messages" element={<MessagesManager />} />
               <Route path="chats" element={<ChatManager />} />
               <Route path="orders" element={<OrdersManager />} />
+              <Route path="subscribers" element={<SubscribersManager />} />
+              <Route path="applications" element={<ApplicationsManager />} />
               <Route path="settings" element={<SettingsManager />} />
             </Route>
             
