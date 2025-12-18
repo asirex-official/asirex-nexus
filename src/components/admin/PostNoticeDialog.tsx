@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Megaphone, Send, Users, AlertTriangle, Info, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 export interface Notice {
   id: string;
@@ -41,6 +42,7 @@ export function PostNoticeDialog({ open, onOpenChange, onPost }: PostNoticeDialo
     to: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const auditLog = useAuditLog();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +82,7 @@ export function PostNoticeDialog({ open, onOpenChange, onPost }: PostNoticeDialo
       };
 
       onPost(newNotice);
+      await auditLog.logNoticePosted(data.title, data.id, data.priority, recipients.find(r => r.value === formData.to)?.label || formData.to);
       toast.success("Notice posted successfully!");
       
       setFormData({ title: "", content: "", priority: "", to: "" });

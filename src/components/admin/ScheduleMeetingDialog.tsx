@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Calendar, Users, Clock, Video, Bell, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { TeamMember } from "./AddTeamMemberDialog";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface ScheduleMeetingDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface ScheduleMeetingDialogProps {
 
 export function ScheduleMeetingDialog({ open, onOpenChange, members, onMeetingScheduled }: ScheduleMeetingDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const auditLog = useAuditLog();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -108,6 +110,7 @@ export function ScheduleMeetingDialog({ open, onOpenChange, members, onMeetingSc
         toast.success("Meeting scheduled successfully!");
       }
 
+      await auditLog.logMeetingScheduled(formData.title, meetingData.id, selectedMembers.length, meetingDateTime.toISOString());
       onMeetingScheduled?.();
       resetForm();
       onOpenChange(false);

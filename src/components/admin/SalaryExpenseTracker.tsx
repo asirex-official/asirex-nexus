@@ -16,6 +16,7 @@ import {
   Building, User
 } from "lucide-react";
 import { format } from "date-fns";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface SalaryRequest {
   id: string;
@@ -58,6 +59,7 @@ const expenseCategories = [
 
 export function SalaryExpenseTracker() {
   const queryClient = useQueryClient();
+  const auditLog = useAuditLog();
   const [showAddSalary, setShowAddSalary] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [viewMode, setViewMode] = useState<"salary" | "expense">("salary");
@@ -173,7 +175,7 @@ export function SalaryExpenseTracker() {
 
   // Update salary status
   const updateSalaryStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, memberName, amount, month, year }: { id: string; status: string; memberName?: string; amount?: number; month?: string; year?: number }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const updateData: any = { status };
       if (status === "approved") updateData.approved_by = user?.id;
@@ -184,6 +186,10 @@ export function SalaryExpenseTracker() {
         .update(updateData)
         .eq("id", id);
       if (error) throw error;
+      
+      if (memberName && amount && month && year) {
+        await auditLog.logSalaryApproval(memberName, id, amount, month, year, status);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["salary-requests"] });
@@ -193,7 +199,7 @@ export function SalaryExpenseTracker() {
 
   // Update expense status
   const updateExpenseStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, category, amount }: { id: string; status: string; category?: string; amount?: number }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const updateData: any = { status };
       if (status === "approved") updateData.approved_by = user?.id;
@@ -203,6 +209,10 @@ export function SalaryExpenseTracker() {
         .update(updateData)
         .eq("id", id);
       if (error) throw error;
+      
+      if (category && amount) {
+        await auditLog.logExpenseApproval(category, id, amount, status);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -351,7 +361,14 @@ export function SalaryExpenseTracker() {
                           size="sm"
                           variant="outline"
                           className="text-green-500"
-                          onClick={() => updateSalaryStatus.mutate({ id: request.id, status: "approved" })}
+                          onClick={() => updateSalaryStatus.mutate({ 
+                            id: request.id, 
+                            status: "approved",
+                            memberName: request.team_member?.name,
+                            amount: request.amount,
+                            month: request.month,
+                            year: request.year
+                          })}
                         >
                           <Check className="w-4 h-4" />
                         </Button>
@@ -359,7 +376,14 @@ export function SalaryExpenseTracker() {
                           size="sm"
                           variant="outline"
                           className="text-red-500"
-                          onClick={() => updateSalaryStatus.mutate({ id: request.id, status: "rejected" })}
+                          onClick={() => updateSalaryStatus.mutate({ 
+                            id: request.id, 
+                            status: "rejected",
+                            memberName: request.team_member?.name,
+                            amount: request.amount,
+                            month: request.month,
+                            year: request.year
+                          })}
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -368,7 +392,14 @@ export function SalaryExpenseTracker() {
                     {request.status === "approved" && (
                       <Button
                         size="sm"
-                        onClick={() => updateSalaryStatus.mutate({ id: request.id, status: "paid" })}
+                        onClick={() => updateSalaryStatus.mutate({ 
+                          id: request.id, 
+                          status: "paid",
+                          memberName: request.team_member?.name,
+                          amount: request.amount,
+                          month: request.month,
+                          year: request.year
+                        })}
                       >
                         Mark Paid
                       </Button>
@@ -408,7 +439,12 @@ export function SalaryExpenseTracker() {
                           size="sm"
                           variant="outline"
                           className="text-green-500"
-                          onClick={() => updateExpenseStatus.mutate({ id: expense.id, status: "approved" })}
+                          onClick={() => updateExpenseStatus.mutate({ 
+                            id: expense.id, 
+                            status: "approved",
+                            category: expense.category,
+                            amount: expense.amount
+                          })}
                         >
                           <Check className="w-4 h-4" />
                         </Button>
@@ -416,7 +452,12 @@ export function SalaryExpenseTracker() {
                           size="sm"
                           variant="outline"
                           className="text-red-500"
-                          onClick={() => updateExpenseStatus.mutate({ id: expense.id, status: "rejected" })}
+                          onClick={() => updateExpenseStatus.mutate({ 
+                            id: expense.id, 
+                            status: "rejected",
+                            category: expense.category,
+                            amount: expense.amount
+                          })}
                         >
                           <X className="w-4 h-4" />
                         </Button>

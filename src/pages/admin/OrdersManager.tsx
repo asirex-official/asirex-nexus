@@ -19,6 +19,7 @@ import {
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 const orderStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatuses = ["pending", "paid", "failed", "refunded"];
@@ -28,16 +29,24 @@ export default function OrdersManager() {
   const { data: orders, isLoading } = useOrders();
   const updateStatus = useUpdateOrderStatus();
   const { toast } = useToast();
+  const auditLog = useAuditLog();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingProvider, setTrackingProvider] = useState("Delhivery");
 
   const handleUpdateStatus = async (id: string, updates: Record<string, any>) => {
     try {
+      const oldOrder = selectedOrder;
       await updateStatus.mutateAsync({ id, ...updates });
       if (selectedOrder?.id === id) {
         setSelectedOrder({ ...selectedOrder, ...updates });
       }
+      
+      // Log status changes
+      if (updates.order_status && oldOrder) {
+        await auditLog.logOrderStatusUpdated(id, oldOrder.customer_name, oldOrder.order_status, updates.order_status);
+      }
+      
       toast({ title: "Order updated successfully" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to update order", variant: "destructive" });
@@ -58,6 +67,7 @@ export default function OrdersManager() {
     }
     
     await handleUpdateStatus(selectedOrder.id, updates);
+    await auditLog.logOrderShipped(selectedOrder.id, selectedOrder.customer_name, trackingNumber.trim() || undefined, trackingProvider);
     setTrackingNumber("");
   };
 
