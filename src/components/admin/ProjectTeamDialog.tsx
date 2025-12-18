@@ -16,6 +16,7 @@ import {
   useProjectAssignments,
   useAssignToProject,
   useUnassignFromProject,
+  useUpdateProjectRole,
 } from "@/hooks/useProjectAssignments";
 import {
   Users,
@@ -24,7 +25,15 @@ import {
   Loader2,
   Crown,
   Briefcase,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TeamMember {
   id: string;
@@ -58,6 +67,7 @@ export function ProjectTeamDialog({
   const { data: assignments, isLoading: isLoadingAssignments } = useProjectAssignments(projectId);
   const assignMutation = useAssignToProject();
   const unassignMutation = useUnassignFromProject();
+  const updateRoleMutation = useUpdateProjectRole();
 
   const assignedMemberIds = new Set(assignments?.map((a) => a.team_member_id) || []);
 
@@ -145,6 +155,53 @@ export function ProjectTeamDialog({
   const unassignedMembers = allMembers.filter(
     (m) => !assignedMemberIds.has(m.id)
   );
+
+  const handleSetLead = async (teamMemberId: string, memberName: string) => {
+    try {
+      await updateRoleMutation.mutateAsync({
+        projectId,
+        teamMemberId,
+        role: "lead",
+      });
+      toast({
+        title: "Lead assigned",
+        description: `${memberName} is now the project lead`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveLead = async (teamMemberId: string, memberName: string) => {
+    try {
+      await updateRoleMutation.mutateAsync({
+        projectId,
+        teamMemberId,
+        role: "member",
+      });
+      toast({
+        title: "Lead removed",
+        description: `${memberName} is now a regular member`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Sort assignments: leads first
+  const sortedAssignments = [...(assignments || [])].sort((a, b) => {
+    if (a.role === "lead" && b.role !== "lead") return -1;
+    if (a.role !== "lead" && b.role === "lead") return 1;
+    return 0;
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -240,7 +297,7 @@ export function ProjectTeamDialog({
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            ) : !assignments || assignments.length === 0 ? (
+            ) : !sortedAssignments || sortedAssignments.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
                 <p className="text-muted-foreground">No team members assigned</p>
@@ -251,10 +308,14 @@ export function ProjectTeamDialog({
             ) : (
               <ScrollArea className="h-[300px] pr-4">
                 <div className="space-y-2">
-                  {assignments.map((assignment) => (
+                  {sortedAssignments.map((assignment) => (
                     <div
                       key={assignment.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 group"
+                      className={`flex items-center gap-3 p-3 rounded-lg group transition-colors ${
+                        assignment.role === "lead"
+                          ? "bg-yellow-500/10 border border-yellow-500/30"
+                          : "bg-muted/50"
+                      }`}
                     >
                       <Avatar className="w-10 h-10">
                         <AvatarImage
@@ -278,9 +339,54 @@ export function ProjectTeamDialog({
                             assignment.team_member?.role}
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        {assignment.role || "member"}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs cursor-pointer hover:bg-accent ${
+                              assignment.role === "lead"
+                                ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                                : ""
+                            }`}
+                          >
+                            {assignment.role === "lead" ? (
+                              <>
+                                <Crown className="w-3 h-3 mr-1" />
+                                Lead
+                              </>
+                            ) : (
+                              "Member"
+                            )}
+                          </Badge>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {assignment.role === "lead" ? (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleRemoveLead(
+                                  assignment.team_member_id,
+                                  assignment.team_member?.name || "Member"
+                                )
+                              }
+                            >
+                              <ChevronDown className="w-4 h-4 mr-2" />
+                              Demote to Member
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleSetLead(
+                                  assignment.team_member_id,
+                                  assignment.team_member?.name || "Member"
+                                )
+                              }
+                            >
+                              <Crown className="w-4 h-4 mr-2 text-yellow-500" />
+                              Promote to Lead
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button
                         variant="ghost"
                         size="icon"

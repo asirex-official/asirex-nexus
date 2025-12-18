@@ -8,12 +8,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamMemberProfileCard, TeamMemberProfile, AssignedTask, AssignedProject } from "./TeamMemberProfileCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Upload, X, FolderKanban, ListTodo } from "lucide-react";
+import { Loader2, Save, Upload, X, FolderKanban, ListTodo, Crown, UserMinus } from "lucide-react";
 import { AssignProjectDialog } from "./AssignProjectDialog";
+import { useMemberAssignments, useUnassignFromProject } from "@/hooks/useProjectAssignments";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ViewTeamMemberDialogProps {
   open: boolean;
@@ -33,7 +36,6 @@ export function ViewTeamMemberDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
-  const [projects, setProjects] = useState<AssignedProject[]>([]);
   const [showAssignProject, setShowAssignProject] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -44,6 +46,9 @@ export function ViewTeamMemberDialog({
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const { data: memberAssignments, isLoading: isLoadingAssignments } = useMemberAssignments(member?.id || null);
+  const unassignMutation = useUnassignFromProject();
 
   useEffect(() => {
     if (member) {
@@ -59,12 +64,12 @@ export function ViewTeamMemberDialog({
 
   const fetchMemberData = async (memberId: string) => {
     try {
-      // Fetch tasks assigned to this member (by user_id if linked)
+      // Fetch tasks assigned to this member
       if (member?.email) {
         const { data: tasksData } = await supabase
           .from("tasks")
           .select("id, title, status, priority, due_date")
-          .or(`assigned_to.eq.${member.id}`)
+          .or(`assigned_to.eq.${memberId}`)
           .order("created_at", { ascending: false })
           .limit(10);
 
@@ -72,11 +77,39 @@ export function ViewTeamMemberDialog({
           setTasks(tasksData as AssignedTask[]);
         }
       }
-
-      // For now, projects don't have direct assignment, so we'll leave empty
-      setProjects([]);
     } catch (error) {
       console.error("Error fetching member data:", error);
+    }
+  };
+
+  // Convert member assignments to AssignedProject format for the profile card
+  const assignedProjects: AssignedProject[] = (memberAssignments || []).map((a) => ({
+    id: a.project?.id || a.project_id,
+    title: a.project?.title || "Unknown Project",
+    status: a.project?.status || "Unknown",
+    progress_percentage: a.project?.progress_percentage || null,
+    role: a.role,
+  })) as AssignedProject[];
+
+  const handleUnassignFromProject = async (projectId: string, projectTitle: string) => {
+    if (!member) return;
+    if (!confirm(`Remove ${member.name} from "${projectTitle}"?`)) return;
+
+    try {
+      await unassignMutation.mutateAsync({
+        projectId,
+        teamMemberId: member.id,
+      });
+      toast({
+        title: "Unassigned",
+        description: `${member.name} removed from ${projectTitle}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -175,20 +208,114 @@ export function ViewTeamMemberDialog({
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">Profile Card</TabsTrigger>
-            {canEdit && <TabsTrigger value="assign">Assign Work</TabsTrigger>}
-            {canEdit && <TabsTrigger value="edit">Edit Details</TabsTrigger>}
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+            {canEdit && <TabsTrigger value="assign">Assign</TabsTrigger>}
+            {canEdit && <TabsTrigger value="edit">Edit</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="profile" className="mt-4">
             <TeamMemberProfileCard
               member={member}
               tasks={tasks}
-              projects={projects}
+              projects={assignedProjects}
               canEdit={canEdit}
               onEdit={() => setIsEditing(true)}
             />
+          </TabsContent>
+
+          <TabsContent value="projects" className="mt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold flex items-center gap-2">
+                <FolderKanban className="w-5 h-5 text-primary" />
+                Assigned Projects
+              </h3>
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAssignProject(true)}
+                >
+                  Assign Project
+                </Button>
+              )}
+            </div>
+
+            {isLoadingAssignments ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : !memberAssignments || memberAssignments.length === 0 ? (
+              <div className="text-center py-8">
+                <FolderKanban className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No projects assigned</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Assign projects to this team member
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-3">
+                  {memberAssignments.map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      className={`p-4 rounded-lg border transition-colors group ${
+                        assignment.role === "lead"
+                          ? "bg-yellow-500/10 border-yellow-500/30"
+                          : "bg-muted/50 border-border"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium">{assignment.project?.title}</h4>
+                            {assignment.role === "lead" && (
+                              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                                <Crown className="w-3 h-3 mr-1" />
+                                Lead
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Badge variant="outline" className="text-xs">
+                              {assignment.project?.status || "Unknown"}
+                            </Badge>
+                            {assignment.project?.progress_percentage !== null && (
+                              <span>{assignment.project?.progress_percentage}% complete</span>
+                            )}
+                          </div>
+                          {assignment.project?.progress_percentage !== null && (
+                            <div className="w-full bg-muted rounded-full h-1.5 mt-2">
+                              <div
+                                className="bg-primary h-1.5 rounded-full transition-all"
+                                style={{ width: `${assignment.project?.progress_percentage}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() =>
+                              handleUnassignFromProject(
+                                assignment.project_id,
+                                assignment.project?.title || "Project"
+                              )
+                            }
+                            disabled={unassignMutation.isPending}
+                          >
+                            <UserMinus className="w-4 h-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
           </TabsContent>
 
           {canEdit && (

@@ -196,6 +196,36 @@ export function useUnassignFromProject() {
   });
 }
 
+// Update team member role in project (promote/demote lead)
+export function useUpdateProjectRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      teamMemberId,
+      role,
+    }: {
+      projectId: string;
+      teamMemberId: string;
+      role: string;
+    }) => {
+      const { error } = await supabase
+        .from("project_assignments")
+        .update({ role })
+        .eq("project_id", projectId)
+        .eq("team_member_id", teamMemberId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["project-assignments", variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ["member-assignments", variables.teamMemberId] });
+      queryClient.invalidateQueries({ queryKey: ["project-assignments-all"] });
+    },
+  });
+}
+
 // Get all project assignments (for overview)
 export function useAllProjectAssignments() {
   return useQuery({
