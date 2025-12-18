@@ -20,7 +20,7 @@ export function useTeamMembers() {
     queryKey: ["team-members"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("team_members")
+        .from("team_members_public")
         .select("*")
         .eq("status", "active")
         .order("hired_at", { ascending: true });
@@ -36,7 +36,7 @@ export function useCorePillars() {
     queryKey: ["core-pillars"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("team_members")
+        .from("team_members_public")
         .select("*")
         .eq("status", "active")
         .eq("is_core_pillar", true)

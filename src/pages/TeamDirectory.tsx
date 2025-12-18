@@ -39,11 +39,10 @@ import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 
 interface TeamMemberData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  role: string;
+  id: string | null;
+  name: string | null;
+  email: string | null;
+  role: string | null;
   department: string | null;
   designation: string | null;
   serial_number: string | null;
@@ -51,7 +50,7 @@ interface TeamMemberData {
   profile_image: string | null;
   status: string | null;
   hired_at: string | null;
-  last_seen: string | null;
+  created_at: string | null;
 }
 
 const departments = [
@@ -91,7 +90,7 @@ export default function TeamDirectory() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from("team_members")
+        .from("team_members_public")
         .select("*")
         .order("hired_at", { ascending: true });
 
@@ -139,7 +138,7 @@ export default function TeamDirectory() {
       id: member.id,
       name: member.name,
       email: member.email,
-      phone: member.phone,
+      phone: null, // Not available in public view
       role: member.role,
       department: member.department,
       designation: member.designation,
@@ -148,7 +147,7 @@ export default function TeamDirectory() {
       profile_image: member.profile_image,
       status: member.status,
       hired_at: member.hired_at,
-      last_seen: member.last_seen,
+      last_seen: null, // Not available in public view
     });
     setShowProfileDialog(true);
   };
@@ -282,7 +281,8 @@ export default function TeamDirectory() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {members.map((member, index) => {
-                    const onlineStatus = getOnlineStatus(member.last_seen);
+                    // Public view doesn't have last_seen, show as inactive
+                    const onlineStatus = { status: "offline", label: "Offline", color: "bg-muted-foreground" };
                     return (
                       <motion.div
                         key={member.id}
@@ -299,9 +299,9 @@ export default function TeamDirectory() {
                               {/* Avatar with online status */}
                               <div className="relative mb-4">
                                 <Avatar className="w-20 h-20 border-2 border-border">
-                                  <AvatarImage src={member.profile_image || undefined} alt={member.name} />
+                                  <AvatarImage src={member.profile_image || undefined} alt={member.name || ""} />
                                   <AvatarFallback className="bg-primary/20 text-primary text-xl font-bold">
-                                    {member.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                    {(member.name || "").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div
@@ -341,13 +341,8 @@ export default function TeamDirectory() {
                                   <Mail className="w-3 h-3" />
                                   <span className="truncate">{member.email}</span>
                                 </div>
-                                {member.phone && (
-                                  <div className="flex items-center justify-center gap-1">
-                                    <Phone className="w-3 h-3" />
-                                    <span>{member.phone}</span>
-                                  </div>
-                                )}
                               </div>
+
 
                               {/* View Profile Button */}
                               <Button
