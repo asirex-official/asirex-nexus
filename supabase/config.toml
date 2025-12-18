@@ -1,1 +1,22 @@
 project_id = "hdvjxlirfexofomkmwqc"
+
+[functions.create-razorpay-order]
+verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.send-order-notification]
+verify_jwt = false
+
+[functions.verify-razorpay-payment]
+verify_jwt = false
+
+[functions.send-meeting-invite]
+verify_jwt = true
+
+[functions.send-task-notification]
+verify_jwt = true
+
+[functions.send-shipping-notification]
+verify_jwt = true
