@@ -17,6 +17,7 @@ import { Loader2, Save, Upload, X, FolderKanban, ListTodo, Crown, UserMinus } fr
 import { AssignProjectDialog } from "./AssignProjectDialog";
 import { useMemberAssignments, useUnassignFromProject } from "@/hooks/useProjectAssignments";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DirectTaskAssignDialog } from "./DirectTaskAssignDialog";
 
 interface ViewTeamMemberDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ export function ViewTeamMemberDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
   const [showAssignProject, setShowAssignProject] = useState(false);
+  const [showAssignTask, setShowAssignTask] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
@@ -332,7 +334,7 @@ export function ViewTeamMemberDialog({
                 <Button
                   variant="outline"
                   className="h-24 flex flex-col items-center justify-center gap-2"
-                  onClick={() => toast({ title: "Coming soon", description: "Direct task assignment coming soon" })}
+                  onClick={() => setShowAssignTask(true)}
                 >
                   <ListTodo className="w-8 h-8 text-blue-500" />
                   <span>Assign Tasks</span>
@@ -476,6 +478,18 @@ export function ViewTeamMemberDialog({
         memberId={member.id}
         memberName={member.name}
         onAssigned={() => {
+          fetchMemberData(member.id);
+          onUpdate?.();
+        }}
+      />
+
+      {/* Direct Task Assign Dialog */}
+      <DirectTaskAssignDialog
+        open={showAssignTask}
+        onOpenChange={setShowAssignTask}
+        memberId={member.id}
+        memberName={member.name}
+        onTaskAssigned={() => {
           fetchMemberData(member.id);
           onUpdate?.();
         }}
