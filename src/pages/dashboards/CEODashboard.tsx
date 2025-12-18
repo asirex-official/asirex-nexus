@@ -1222,6 +1222,11 @@ const CEODashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Audit Log Tab */}
+          <TabsContent value="audit">
+            <AuditLogViewer />
+          </TabsContent>
         </Tabs>
       </main>
 
