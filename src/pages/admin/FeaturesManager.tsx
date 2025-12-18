@@ -15,7 +15,7 @@ import {
 import { useAllPageContent, useUpdatePageContent } from "@/hooks/usePageContent";
 import { useToast } from "@/hooks/use-toast";
 
-const featurePageKeys = ["aiml", "robotics", "cleantech", "global-delivery"];
+const featurePageKeys = ["feature-ai-ml", "feature-robotics", "feature-cleantech", "feature-global-delivery"];
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Brain,

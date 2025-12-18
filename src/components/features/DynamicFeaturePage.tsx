@@ -72,8 +72,8 @@ export function DynamicFeaturePage({
     ? (content.stats as Array<{ value: string; label: string }>)
     : defaultStats;
 
-  const visionTitle = (content?.visionTitle as string) || defaultVisionTitle;
-  const visionText = (content?.visionText as string) || defaultVisionText;
+  const visionTitle = (content?.vision_title as string) || (content?.visionTitle as string) || defaultVisionTitle;
+  const visionText = (content?.vision_text as string) || (content?.visionText as string) || defaultVisionText;
 
   if (isLoading) {
     return (
