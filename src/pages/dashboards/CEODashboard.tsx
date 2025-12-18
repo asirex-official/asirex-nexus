@@ -7,7 +7,7 @@ import {
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
   Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea, Save,
-  Circle, Timer, Calculator, Wallet,
+  Circle, Timer, Calculator, Wallet, ScrollText,
 } from "lucide-react";
 import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { BusinessCalculator } from "@/components/admin/BusinessCalculator";
 import { SalaryExpenseTracker } from "@/components/admin/SalaryExpenseTracker";
 import { OnlineStatusPanel } from "@/components/admin/OnlineStatusPanel";
 import { AdminTaskManager } from "@/components/admin/AdminTaskManager";
+import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -791,7 +792,7 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-10 w-full max-w-5xl">
+          <TabsList className="grid grid-cols-11 w-full max-w-6xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1"><ChartArea className="w-3 h-3" />Analytics</TabsTrigger>
             <TabsTrigger value="tasks" className="gap-1"><BarChart3 className="w-3 h-3" />Tasks</TabsTrigger>
@@ -802,6 +803,7 @@ const CEODashboard = () => {
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="website">Website</TabsTrigger>
             <TabsTrigger value="notices">Notices</TabsTrigger>
+            <TabsTrigger value="audit" className="gap-1"><ScrollText className="w-3 h-3" />Audit</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tasks" className="space-y-6">

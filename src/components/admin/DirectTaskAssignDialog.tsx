@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ClipboardList, Calendar, Bell, AlertCircle, CheckCircle, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface DirectTaskAssignDialogProps {
   open: boolean;
@@ -26,6 +27,7 @@ export function DirectTaskAssignDialog({
   onTaskAssigned 
 }: DirectTaskAssignDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const auditLog = useAuditLog();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -81,6 +83,7 @@ export function DirectTaskAssignDialog({
         });
       }
 
+      await auditLog.logTaskAssigned(formData.title, taskData.id, memberName, memberId, formData.priority);
       onTaskAssigned?.();
       resetForm();
       onOpenChange(false);

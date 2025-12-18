@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { ViewTeamMemberDialog } from "./ViewTeamMemberDialog";
 import { TeamMemberProfile } from "./TeamMemberProfileCard";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface TeamMemberWithUserId extends TeamMemberProfile {
   user_id?: string | null;
@@ -35,6 +36,7 @@ export function TeamMemberManagement({ members, onUpdate }: TeamMemberManagement
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
   const [filterDepartment, setFilterDepartment] = useState<string>("all");
+  const auditLog = useAuditLog();
   
   // Dialog states
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -144,6 +146,7 @@ export function TeamMemberManagement({ members, onUpdate }: TeamMemberManagement
 
       if (error) throw error;
 
+      await auditLog.logTeamMemberStatusChanged(member.name, member.id, newStatus);
       toast.success(`${member.name} account ${newStatus === "active" ? "enabled" : "disabled"}`);
       onUpdate();
     } catch (error: any) {
@@ -172,6 +175,12 @@ export function TeamMemberManagement({ members, onUpdate }: TeamMemberManagement
 
       if (error) throw error;
 
+      await auditLog.logTeamMemberUpdated(selectedMember.name, selectedMember.id, {
+        name: editForm.name,
+        role: editForm.role,
+        department: editForm.department,
+        status: editForm.status,
+      });
       toast.success("Team member updated successfully");
       setShowEditDialog(false);
       onUpdate();
@@ -237,6 +246,7 @@ export function TeamMemberManagement({ members, onUpdate }: TeamMemberManagement
 
         if (error) throw error;
         
+        await auditLog.logTeamMemberFired(selectedMember.name, selectedMember.id, deleteReason, true);
         toast.success(`${selectedMember.name} has been permanently deleted`);
       } else {
         // Soft delete - just disable the account
@@ -270,6 +280,7 @@ export function TeamMemberManagement({ members, onUpdate }: TeamMemberManagement
             .eq("user_id", selectedMember.user_id);
         }
 
+        await auditLog.logTeamMemberFired(selectedMember.name, selectedMember.id, deleteReason, false);
         toast.success(`${selectedMember.name} has been removed (data preserved for audit)`);
       }
 

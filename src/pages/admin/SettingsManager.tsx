@@ -8,11 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useSiteSettings, useUpdateSiteSettings } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 export default function SettingsManager() {
   const { data: settings, isLoading } = useSiteSettings();
   const updateSettings = useUpdateSiteSettings();
   const { toast } = useToast();
+  const auditLog = useAuditLog();
   
   const [maintenanceMode, setMaintenanceMode] = useState({
     enabled: false,
@@ -26,11 +28,16 @@ export default function SettingsManager() {
   }, [settings]);
 
   const handleSaveMaintenanceMode = async () => {
+    const oldEnabled = settings?.maintenance_mode?.enabled;
     try {
       await updateSettings.mutateAsync({
         key: "maintenance_mode",
         value: maintenanceMode
       });
+      await auditLog.logMaintenanceModeToggled(maintenanceMode.enabled);
+      if (oldEnabled !== maintenanceMode.enabled) {
+        await auditLog.logSettingsChanged("maintenance_mode", oldEnabled, maintenanceMode.enabled);
+      }
       toast({ title: "Settings saved successfully" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to save settings", variant: "destructive" });

@@ -34,6 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface TeamMember {
   id: string;
@@ -63,6 +64,7 @@ export function ProjectTeamDialog({
   const [showAddView, setShowAddView] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const { toast } = useToast();
+  const auditLog = useAuditLog();
 
   const { data: assignments, isLoading: isLoadingAssignments } = useProjectAssignments(projectId);
   const assignMutation = useAssignToProject();
@@ -112,6 +114,10 @@ export function ProjectTeamDialog({
           projectId,
           teamMemberId: memberId,
         });
+        const member = allMembers.find(m => m.id === memberId);
+        if (member) {
+          await auditLog.logProjectMemberAssigned(projectTitle, projectId, member.name, memberId);
+        }
       }
 
       toast({
@@ -163,6 +169,7 @@ export function ProjectTeamDialog({
         teamMemberId,
         role: "lead",
       });
+      await auditLog.logProjectLeadChanged(projectTitle, projectId, memberName, teamMemberId, true);
       toast({
         title: "Lead assigned",
         description: `${memberName} is now the project lead`,
@@ -183,6 +190,7 @@ export function ProjectTeamDialog({
         teamMemberId,
         role: "member",
       });
+      await auditLog.logProjectLeadChanged(projectTitle, projectId, memberName, teamMemberId, false);
       toast({
         title: "Lead removed",
         description: `${memberName} is now a regular member`,
