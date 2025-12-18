@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-
+import { supabase } from "@/integrations/supabase/client";
 interface ApplicationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -156,16 +156,39 @@ export function ApplicationDialog({ open, onOpenChange, position }: ApplicationD
   const handleFinalSubmit = async (answers: string[]) => {
     setIsSubmitting(true);
     
-    // Simulate evaluation - check if answers are substantial
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Simple evaluation: pass if all answers have reasonable length
-    const allAnswersValid = answers.every(answer => answer.length >= 20);
-    const passedInterview = allAnswersValid && answers.length === questions.length;
-    
-    setPassed(passedInterview);
-    setIsComplete(true);
-    setIsSubmitting(false);
+    try {
+      // Save application to database
+      const { error } = await supabase
+        .from('job_applications')
+        .insert({
+          applicant_name: `${formData.firstName} ${formData.lastName}`,
+          applicant_email: formData.email,
+          applicant_phone: formData.phone || null,
+          experience_years: parseInt(formData.experience) || null,
+          cover_letter: answers.join('\n\n---\n\n'),
+          notes: `Skills: ${formData.skills}`,
+          status: 'pending',
+        });
+      
+      if (error) {
+        console.error("Error saving application:", error);
+        // Continue with evaluation even if save fails
+      }
+      
+      // Simple evaluation: pass if all answers have reasonable length
+      const allAnswersValid = answers.every(answer => answer.length >= 20);
+      const passedInterview = allAnswersValid && answers.length === questions.length;
+      
+      setPassed(passedInterview);
+      setIsComplete(true);
+    } catch (error) {
+      console.error("Application submission error:", error);
+      // Still show completion screen
+      setPassed(false);
+      setIsComplete(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {

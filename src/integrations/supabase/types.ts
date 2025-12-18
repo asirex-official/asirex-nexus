@@ -366,6 +366,83 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          applicant_current_company: string | null
+          applicant_current_role: string | null
+          applicant_email: string
+          applicant_name: string
+          applicant_phone: string | null
+          availability: string | null
+          cover_letter: string | null
+          created_at: string
+          expected_salary: string | null
+          experience_years: number | null
+          id: string
+          job_posting_id: string | null
+          linkedin_url: string | null
+          notes: string | null
+          portfolio_url: string | null
+          resume_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          applicant_current_company?: string | null
+          applicant_current_role?: string | null
+          applicant_email: string
+          applicant_name: string
+          applicant_phone?: string | null
+          availability?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          expected_salary?: string | null
+          experience_years?: number | null
+          id?: string
+          job_posting_id?: string | null
+          linkedin_url?: string | null
+          notes?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applicant_current_company?: string | null
+          applicant_current_role?: string | null
+          applicant_email?: string
+          applicant_name?: string
+          applicant_phone?: string | null
+          availability?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          expected_salary?: string | null
+          experience_years?: number | null
+          id?: string
+          job_posting_id?: string | null
+          linkedin_url?: string | null
+          notes?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_postings: {
         Row: {
           created_at: string
@@ -450,6 +527,30 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean | null
+          subscribed_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean | null
+          subscribed_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          subscribed_at?: string
         }
         Relationships: []
       }

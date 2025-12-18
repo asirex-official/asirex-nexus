@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { UserPlus, Upload, Mail, Phone, Building, Briefcase, DollarSign, Key, X, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 export interface TeamMember {
   id: string;
@@ -77,6 +78,7 @@ const roles = [
 const coreTypes = ["Founding Core", "Core Pillar", "Head and Lead", "Manager", "Developer", "Core Member", "Team Lead", "Employee", "Intern"];
 
 export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMemberDialogProps) {
+  const auditLogger = useAuditLog();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -259,6 +261,9 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       };
 
       onAdd(newMember);
+      
+      // Log audit event
+      await auditLogger.logTeamMemberAdded(formData.name, formData.role, formData.department);
       
       // Show success message with login credentials if created
       if (userId && (isAdminRole || isCorePillar)) {
