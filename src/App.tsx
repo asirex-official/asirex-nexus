@@ -41,6 +41,7 @@ import SubscribersManager from "./pages/admin/SubscribersManager";
 import ApplicationsManager from "./pages/admin/ApplicationsManager";
 import FeaturesManager from "./pages/admin/FeaturesManager";
 import StatsManager from "./pages/admin/StatsManager";
+import AboutManager from "./pages/admin/AboutManager";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -135,6 +136,7 @@ const App = () => (
               <Route path="applications" element={<ApplicationsManager />} />
               <Route path="features" element={<FeaturesManager />} />
               <Route path="stats" element={<StatsManager />} />
+              <Route path="about" element={<AboutManager />} />
               <Route path="settings" element={<SettingsManager />} />
             </Route>
             
