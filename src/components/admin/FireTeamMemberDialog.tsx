@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { UserMinus, AlertTriangle, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { TeamMember } from "./AddTeamMemberDialog";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface FireTeamMemberDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface FireTeamMemberDialogProps {
 }
 
 export function FireTeamMemberDialog({ open, onOpenChange, members, onFire }: FireTeamMemberDialogProps) {
+  const auditLogger = useAuditLog();
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [reason, setReason] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
@@ -37,6 +39,10 @@ export function FireTeamMemberDialog({ open, onOpenChange, members, onFire }: Fi
     await new Promise((resolve) => setTimeout(resolve, 500));
     
     onFire(selectedMember.id);
+    
+    // Log audit event
+    await auditLogger.logTeamMemberFired(selectedMember.name, selectedMember.id, reason || undefined, false);
+    
     toast.success(`${selectedMember.name} has been removed from the team`);
     
     setSelectedMember(null);

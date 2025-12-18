@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FolderKanban, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface Project {
   id: string;
@@ -36,6 +37,7 @@ export function AssignProjectDialog({
   memberName,
   onAssigned,
 }: AssignProjectDialogProps) {
+  const auditLogger = useAuditLog();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,6 +102,14 @@ export function AssignProjectDialog({
       const { error } = await supabase.from("tasks").insert(tasks);
 
       if (error) throw error;
+
+      // Log audit for each project assignment
+      for (const projectId of selectedProjects) {
+        const project = projects.find((p) => p.id === projectId);
+        if (project) {
+          await auditLogger.logProjectMemberAssigned(project.title, projectId, memberName, memberId);
+        }
+      }
 
       toast({
         title: "Projects assigned",

@@ -4,6 +4,7 @@ import { Mail, ArrowRight, Sparkles, CheckCircle, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const NewsletterSection = () => {
   const [email, setEmail] = useState("");
@@ -15,11 +16,28 @@ export const NewsletterSection = () => {
     if (!email) return;
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    setIsSubmitted(true);
-    toast.success("Welcome to the future! Check your inbox for confirmation.");
-    setEmail("");
+    try {
+      const { error } = await supabase
+        .from('newsletter_subscribers')
+        .insert({ email: email.trim().toLowerCase() });
+      
+      if (error) {
+        if (error.code === '23505') {
+          toast.info("You're already subscribed! Thanks for your interest.");
+        } else {
+          throw error;
+        }
+      } else {
+        setIsSubmitted(true);
+        toast.success("Welcome to the future! You're now subscribed.");
+      }
+    } catch (error: any) {
+      console.error("Newsletter subscription error:", error);
+      toast.error("Failed to subscribe. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setEmail("");
+    }
   };
 
   return (
