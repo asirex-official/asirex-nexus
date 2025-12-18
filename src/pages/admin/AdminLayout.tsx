@@ -17,7 +17,8 @@ import {
   UserPlus,
   Newspaper,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ const navItems = [
   { path: "/admin/content", icon: FileText, label: "Site Content" },
   { path: "/admin/features", icon: Sparkles, label: "Feature Pages" },
   { path: "/admin/stats", icon: BarChart3, label: "Stats Pages" },
+  { path: "/admin/about", icon: Info, label: "About Page" },
   { path: "/admin/messages", icon: Mail, label: "Contact Messages" },
   { path: "/admin/chats", icon: MessageSquare, label: "Live Chats", showBadge: true },
   { path: "/admin/orders", icon: ShoppingCart, label: "Orders" },
