@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { PasswordResetDialog } from "@/components/auth/PasswordResetDialog";
 import {
   Tooltip,
   TooltipContent,
@@ -54,6 +55,7 @@ export default function Auth() {
   const [showAdminOptions, setShowAdminOptions] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   
   const { signIn, signUp, user, roles, isAdmin, isSuperAdmin, isStaff, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -363,7 +365,19 @@ export default function Auth() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-4 text-center">
+            {isLogin && (
+              <button
+                type="button"
+                onClick={() => setShowPasswordReset(true)}
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Forgot your password?
+              </button>
+            )}
+          </div>
+
+          <div className="mt-4 text-center">
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
@@ -434,6 +448,11 @@ export default function Auth() {
           </div>
         </div>
       </motion.div>
+
+      <PasswordResetDialog 
+        open={showPasswordReset} 
+        onOpenChange={setShowPasswordReset} 
+      />
     </div>
   );
 }
