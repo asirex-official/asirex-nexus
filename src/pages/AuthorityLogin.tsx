@@ -162,24 +162,46 @@ export default function AuthorityLogin() {
     const fetchTeamMembers = async () => {
       setIsLoadingCards(true);
       try {
+        // Use team_members_public view which has public access
         const { data: teamMembers, error } = await supabase
-          .from("team_members")
+          .from("team_members_public")
           .select("*")
           .eq("status", "active");
 
         if (error) throw error;
 
+        // Helper: Check if a member matches a template (case-insensitive, partial match)
+        const matchesMember = (member: any, template: typeof adminPositionTemplates[0]) => {
+          if (!member) return false;
+          
+          // Match by serial number
+          if (member.serial_number === template.id) return true;
+          
+          // Match by role/designation (case-insensitive partial match)
+          const memberRole = (member.role || "").toLowerCase();
+          const memberDesignation = (member.designation || "").toLowerCase();
+          const templateTitle = template.title.toLowerCase();
+          
+          // Exact match
+          if (memberRole === templateTitle || memberDesignation === templateTitle) return true;
+          
+          // Partial match - title contains role keywords
+          const keywords = templateTitle.split(" ").filter(w => w.length > 3);
+          const roleMatches = keywords.some(kw => memberRole.includes(kw) || memberDesignation.includes(kw));
+          
+          // Special case for CEO
+          if (templateTitle.includes("ceo") && (memberRole.includes("ceo") || memberDesignation.includes("ceo"))) {
+            return true;
+          }
+          
+          return roleMatches;
+        };
+
         // Create admin role cards by merging templates with actual team members
         const adminCards: RoleCard[] = adminPositionTemplates.map(template => {
-          // Find matching team member by role/title/serial number
-          const member = teamMembers?.find(m => 
-            m.serial_number === template.id ||
-            m.role === template.title || 
-            m.designation === template.title ||
-            (template.title.includes("CEO") && (m.role?.includes("CEO") || m.designation?.includes("CEO")))
-          );
+          const member = teamMembers?.find(m => matchesMember(m, template));
 
-          // If DB is not readable here (RLS returns []), keep CEO card alive like before
+          // If DB is not readable or no match for CEO, keep CEO card alive
           if (!member && template.id === "ASX-2025-000") {
             return {
               id: template.id,
@@ -198,60 +220,71 @@ export default function AuthorityLogin() {
             title: template.title,
             name: member?.name || null,
             email: member?.email || null,
-            coreType: template.coreType,
-            department: template.department,
+            coreType: member?.is_core_pillar ? "Core Pillar" : template.coreType,
+            department: member?.department || template.department,
             isHired: !!member,
             photoUrl: member?.profile_image || null,
           };
         });
+
         // Create manager role cards
         const managerCards: RoleCard[] = managerPositionTemplates.map(template => {
-          const member = teamMembers?.find(m => 
-            m.role === template.title || 
-            m.designation === template.title
-          );
+          const member = teamMembers?.find(m => matchesMember(m, template));
           
           return {
             id: member?.serial_number || template.id,
             title: template.title,
             name: member?.name || null,
             email: member?.email || null,
-            coreType: template.coreType,
-            department: template.department,
+            coreType: member?.is_core_pillar ? "Core Pillar" : template.coreType,
+            department: member?.department || template.department,
             isHired: !!member,
             photoUrl: member?.profile_image || null,
           };
         });
 
-        // Also add any team members that don't match templates (newly added positions)
+        // Track which emails are already in cards
+        const usedEmails = new Set([
+          ...adminCards.filter(c => c.email).map(c => c.email),
+          ...managerCards.filter(c => c.email).map(c => c.email),
+        ]);
+
+        // Add any team members that don't match templates (newly added positions)
         teamMembers?.forEach(member => {
+          // Skip if already matched to a template
+          if (usedEmails.has(member.email)) return;
+          
+          // Determine if this should be in admin or manager section based on role/designation
+          const roleText = (member.role || "").toLowerCase();
+          const designationText = (member.designation || "").toLowerCase();
+          
           const isAdmin = member.is_core_pillar || 
-            ["CEO & Founder", "Production Head and Manager", "Sales Lead and Head", 
-             "Core Members and Managing Team Lead", "Engineering and R&D Lead", "Website Admin and SWE"].some(r => 
-              member.role?.includes(r) || member.designation?.includes(r)
+            ["ceo", "founder", "head", "lead", "director", "website admin", "swe"].some(keyword => 
+              roleText.includes(keyword) || designationText.includes(keyword)
             );
           
-          const existsInAdmin = adminCards.some(c => c.email === member.email);
-          const existsInManager = managerCards.some(c => c.email === member.email);
+          const isManager = !isAdmin && 
+            ["manager", "team lead", "senior", "core member"].some(keyword => 
+              roleText.includes(keyword) || designationText.includes(keyword)
+            );
           
-          if (!existsInAdmin && !existsInManager) {
-            const card: RoleCard = {
-              id: member.serial_number || `ASX-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`,
-              title: member.designation || member.role,
-              name: member.name,
-              email: member.email,
-              coreType: member.is_core_pillar ? "Core Pillar" : "Team Member",
-              department: member.department || "General",
-              isHired: true,
-              photoUrl: member.profile_image,
-            };
-            
-            if (isAdmin) {
-              adminCards.push(card);
-            } else {
-              managerCards.push(card);
-            }
+          const card: RoleCard = {
+            id: member.serial_number || `ASX-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`,
+            title: member.designation || member.role,
+            name: member.name,
+            email: member.email,
+            coreType: member.is_core_pillar ? "Core Pillar" : (isAdmin ? "Head and Lead" : "Manager"),
+            department: member.department || "General",
+            isHired: true,
+            photoUrl: member.profile_image,
+          };
+          
+          if (isAdmin) {
+            adminCards.push(card);
+          } else if (isManager) {
+            managerCards.push(card);
           }
+          // If neither admin nor manager, they don't get a card (regular user)
         });
 
         setAdminRoleCards(adminCards);
