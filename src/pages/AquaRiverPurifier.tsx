@@ -309,9 +309,22 @@ export default function AquaRiverPurifier() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Projected Impact</h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-muted-foreground mb-8">
               In 5 Years our polluted rivers can be crystal clear | <span className="text-accent font-semibold">Goal: Restore our water bodies</span>
             </p>
+            
+            {/* Learn More Button */}
+            <a 
+              href="#learn-more" 
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('learn-more')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Button variant="default" size="lg" className="bg-primary hover:bg-primary/90">
+                Learn More
+              </Button>
+            </a>
           </motion.div>
         </div>
       </section>
@@ -355,25 +368,12 @@ export default function AquaRiverPurifier() {
               </form>
             )}
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-              <a 
-                href="#learn-more" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('learn-more')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <Button variant="default" size="lg" className="bg-primary hover:bg-primary/90">
-                  Learn More
-                </Button>
-              </a>
-              <Link to="/projects">
-                <Button variant="ghost" className="group">
-                  <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                  Back to Projects
-                </Button>
-              </Link>
-            </div>
+            <Link to="/projects" className="inline-block mt-6">
+              <Button variant="ghost" className="group">
+                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Back to Projects
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
