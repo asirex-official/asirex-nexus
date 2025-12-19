@@ -6,6 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useEventRegistration } from "@/hooks/useEventRegistration";
+import { useEventRegistrationCounts } from "@/hooks/useEventRegistrationCounts";
 import { useEvents } from "@/hooks/useSiteData";
 import { format } from "date-fns";
 
@@ -60,6 +61,7 @@ export default function Events() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isRegistered, registerForEvent, loading: registering } = useEventRegistration();
+  const { getCount } = useEventRegistrationCounts();
   const { data: dbEvents, isLoading } = useEvents();
   const [selectedCity, setSelectedCity] = useState("All Locations");
   const [selectedType, setSelectedType] = useState("All Types");
@@ -101,8 +103,14 @@ export default function Events() {
 
   const getAvailability = (event: any) => {
     const capacity = event.capacity || 100;
-    const registered = 0; // We don't track registered count in DB yet
-    const remaining = capacity - registered;
+    const registered = getCount(event.id);
+    const remaining = Math.max(0, capacity - registered);
+    
+    if (remaining === 0) {
+      return { text: "Fully booked", color: "text-destructive" };
+    } else if (remaining <= 10) {
+      return { text: `Only ${remaining} spots left!`, color: "text-orange-500" };
+    }
     return { text: `${remaining} spots available`, color: "text-accent" };
   };
 
@@ -362,10 +370,15 @@ export default function Events() {
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Capacity</span>
-                      <span className="font-medium">{selectedEvent.capacity} attendees</span>
+                      <span className="font-medium">
+                        {getCount(selectedEvent.id)}/{selectedEvent.capacity} registered
+                      </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-primary to-accent w-1/4 rounded-full" />
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" 
+                        style={{ width: `${Math.min(100, (getCount(selectedEvent.id) / selectedEvent.capacity) * 100)}%` }}
+                      />
                     </div>
                   </div>
                 )}

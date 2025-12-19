@@ -823,10 +823,17 @@ export default function Settings() {
             <TabsContent value="events">
               <Card>
                 <CardHeader>
-                  <CardTitle>Event Registrations</CardTitle>
-                  <CardDescription>
-                    Events you're registered for
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Event Registrations</CardTitle>
+                      <CardDescription>
+                        Manage your event registrations and view entry codes
+                      </CardDescription>
+                    </div>
+                    <Button variant="outline" onClick={() => navigate("/events")}>
+                      Browse Events
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {registrations.length === 0 ? (
@@ -834,13 +841,6 @@ export default function Settings() {
                       <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>No event registrations</p>
                       <p className="text-sm">Browse upcoming events to register</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-4"
-                        onClick={() => navigate("/events")}
-                      >
-                        Browse Events
-                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
