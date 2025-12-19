@@ -695,6 +695,21 @@ export default function Projects() {
                     </div>
                   </div>
 
+                  {/* Project Gallery */}
+                  {selectedProject.gallery_images && selectedProject.gallery_images.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-bold text-center">Project Gallery</h3>
+                      <p className="text-sm text-muted-foreground text-center">Visual showcase of Aqua River Purifier technology</p>
+                      <div className="w-full h-64 md:h-80 rounded-2xl overflow-hidden border border-border/50">
+                        <CyclingProjectImage 
+                          images={selectedProject.gallery_images} 
+                          interval={4000} 
+                          className="w-full h-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Revolutionary Design */}
                   <div className="space-y-6">
                     <div className="text-center">
