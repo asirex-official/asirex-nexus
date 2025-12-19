@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   User, Lock, MapPin, Calendar, ArrowLeft, Save, Plus, Trash2, 
-  Star, LogOut, Heart, Clock
+  Star, LogOut, Heart, Clock, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import PasskeyManagement from "@/components/settings/PasskeyManagement";
 import {
   Select,
   SelectContent,
@@ -480,10 +481,14 @@ export default function Settings() {
 
           {/* Settings Tabs */}
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="profile">
                 <User className="w-4 h-4 mr-2" />
                 Profile
+              </TabsTrigger>
+              <TabsTrigger value="security">
+                <Shield className="w-4 h-4 mr-2" />
+                Security
               </TabsTrigger>
               <TabsTrigger value="password">
                 <Lock className="w-4 h-4 mr-2" />
@@ -898,6 +903,11 @@ export default function Settings() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Security Tab */}
+            <TabsContent value="security">
+              <PasskeyManagement />
             </TabsContent>
           </Tabs>
         </motion.div>

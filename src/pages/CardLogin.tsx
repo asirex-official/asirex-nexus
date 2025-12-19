@@ -236,6 +236,114 @@ const CardLogin = () => {
     }
   };
 
+  const handleBiometricLogin = async () => {
+    if (!email) {
+      toast.error("No email associated with this account");
+      return;
+    }
+
+    if (!window.PublicKeyCredential) {
+      toast.error("WebAuthn not supported", {
+        description: "Your browser doesn't support biometric authentication"
+      });
+      return;
+    }
+
+    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!available) {
+      toast.error("Biometric not available", {
+        description: "Your device doesn't support fingerprint or face recognition"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const optionsResponse = await supabase.functions.invoke('passkey-auth-options', {
+        body: { userEmail: email }
+      });
+
+      if (optionsResponse.error || optionsResponse.data?.error) {
+        const errorMsg = optionsResponse.data?.error || optionsResponse.error?.message;
+        if (errorMsg?.includes('No passkey registered')) {
+          toast.error("No biometric registered", {
+            description: "Please register biometric authentication in your account settings"
+          });
+        } else {
+          toast.error("Authentication failed", { description: errorMsg });
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      const options = optionsResponse.data;
+      const challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
+      
+      const allowCredentials = options.allowCredentials?.map((cred: { id: string; type: string }) => ({
+        ...cred,
+        id: Uint8Array.from(atob(cred.id), c => c.charCodeAt(0)),
+      }));
+
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: options.rpId,
+          allowCredentials,
+          userVerification: 'required',
+          timeout: options.timeout,
+        }
+      }) as PublicKeyCredential | null;
+
+      if (!credential) {
+        toast.error("Authentication cancelled");
+        setIsLoading(false);
+        return;
+      }
+
+      const response = credential.response as AuthenticatorAssertionResponse;
+
+      const verifyResponse = await supabase.functions.invoke('passkey-auth-verify', {
+        body: {
+          userEmail: email,
+          credential: {
+            id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+            response: {
+              authenticatorData: btoa(String.fromCharCode(...new Uint8Array(response.authenticatorData))),
+              clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(response.clientDataJSON))),
+              signature: btoa(String.fromCharCode(...new Uint8Array(response.signature))),
+            }
+          }
+        }
+      });
+
+      if (verifyResponse.error || !verifyResponse.data?.success) {
+        toast.error("Authentication failed", {
+          description: verifyResponse.data?.error || "Invalid biometric"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success(`Welcome back, ${name.split(" ")[0]}!`, {
+        description: "Authenticated with biometric"
+      });
+      
+      navigate(getDashboardRoute(verifyResponse.data.roles || []));
+
+    } catch (err: unknown) {
+      console.error('Biometric auth error:', err);
+      const error = err as Error;
+      if (error.name === 'NotAllowedError') {
+        toast.error("Authentication cancelled or timed out");
+      } else {
+        toast.error("Biometric authentication failed", { description: error.message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Effects */}
@@ -396,7 +504,8 @@ const CardLogin = () => {
           >
             <Button
               variant="ghost"
-              onClick={() => toast.info("Biometric authentication coming soon")}
+              onClick={handleBiometricLogin}
+              disabled={isLoading}
               className="w-full h-10 text-muted-foreground hover:text-foreground gap-2"
             >
               <Fingerprint className="w-4 h-4" />
