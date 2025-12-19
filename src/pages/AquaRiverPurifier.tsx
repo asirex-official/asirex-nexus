@@ -1,5 +1,6 @@
 import { Layout } from "@/components/layout/Layout";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { 
   Droplets, 
   Cpu, 
@@ -18,11 +19,24 @@ import {
   Wrench,
   Package,
   ClipboardList,
-  FlaskConical
+  FlaskConical,
+  Eye,
+  Satellite,
+  LayoutDashboard,
+  Gem,
+  Settings,
+  Anchor,
+  Brain,
+  Smartphone,
+  Bell,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import aquaPurifier1 from "@/assets/aqua-purifier-1.png";
 import aquaPurifier2 from "@/assets/aqua-purifier-2.png";
 
@@ -85,32 +99,288 @@ const impactMetrics = [
   { label: "Coverage", value: "National", suffix: "Scale" },
 ];
 
+const keyFeatures = [
+  { icon: Eye, label: "AI Vision + Sensors" },
+  { icon: Satellite, label: "AI Drones (5/dock)" },
+  { icon: LayoutDashboard, label: "National Dashboard" },
+  { icon: Shield, label: "Multi-Pollution Filtration" },
+];
+
+const detailedOverview = [
+  {
+    emoji: "⚙️",
+    title: "How It Works",
+    description: "Bots patrol rivers automatically, detect trash/oil/plastics/metals/toxic hotspots using AI vision + sensors, collect waste onboard with modules for each pollution type, release purified water back, and upload data to central server. Support units (drones + rescue bots) assist continuously."
+  },
+  {
+    emoji: "🧪",
+    title: "Pollution Removal Technologies",
+    description: "Floating Plastics → Robotic arms + intake conveyor | Metallic Waste → Magnetic separator | Oil & Chemical Films → Eco-friendly enzyme dispersant jets | Micro-Waste & Bacteria → Multi-stage filter + UV treatment | Aquatic life detection ensures fish/wildlife safety."
+  },
+  {
+    emoji: "🚢",
+    title: "Smart Docking Stations",
+    description: "AI-enabled stations recharge bots (solar + grid), store waste in separate bins (plastics/metals/toxic), auto-empty & clean bots, run health checks, upload data logs. Stations act as charging and maintenance homes for the fleet."
+  },
+  {
+    emoji: "🤖",
+    title: "Rescue Bots",
+    description: "2 per dock - help stuck/damaged bots, replace/boost batteries, free blocked propellers, tow broken bots, perform emergency repairs. Ensures zero downtime across the entire fleet."
+  },
+  {
+    emoji: "🛰️",
+    title: "AI Drones",
+    description: "5 per dock - scan for pollution zones, create real-time pollution maps, track cleaning progress, capture evidence for government reporting, redirect bots to hotspots instantly."
+  },
+  {
+    emoji: "🧠",
+    title: "Central Intelligence System",
+    description: "Learns pollution patterns, plans optimal routes, predicts environmental damage, auto-increases bots where needed, alerts humans only when required. System gets smarter over time."
+  },
+  {
+    emoji: "📲",
+    title: "National Dashboard",
+    description: "Live river map, water health ratings, progress stats, device monitoring, government transparency. India watches rivers recover in real time."
+  },
+  {
+    emoji: "💎",
+    title: "Vision",
+    description: "Build the world's smartest AI Environmental Protection System and make India a global leader in clean-water robotics."
+  },
+];
+
 export default function AquaRiverPurifier() {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { toast } = useToast();
+
+  const handleNotifyMe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("newsletter_subscribers")
+        .insert({ email });
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({
+            title: "Already subscribed!",
+            description: "You're already on the notification list.",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        setIsSubscribed(true);
+        toast({
+          title: "You're on the list!",
+          description: "We'll notify you when Aqua River Purifier launches.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
+      {/* New Hero Section with Key Features */}
+      <section className="relative pt-24 pb-16 overflow-hidden bg-gradient-to-b from-primary/20 via-accent/10 to-background">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
         <div className="container mx-auto px-4 relative z-10">
-          <Link to="/projects">
-            <Button variant="ghost" className="mb-8 group">
-              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Back to Projects
-            </Button>
-          </Link>
-          
+          <div className="text-center max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-center items-center gap-4 mb-6"
+            >
+              <span className="px-4 py-1.5 bg-accent/20 text-accent rounded-full text-sm font-medium">
+                Prototype Phase
+              </span>
+              <span className="px-4 py-1.5 bg-primary/20 text-primary rounded-full text-sm font-medium">
+                August 2026
+              </span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-accent to-primary bg-clip-text text-transparent"
+            >
+              Aqua River Purifier
+            </motion.h1>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl md:text-2xl text-accent font-semibold mb-6"
+            >
+              India's First Fully Autonomous AI River Cleaning Ecosystem
+            </motion.h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-muted-foreground text-lg md:text-xl mb-8 leading-relaxed max-w-3xl mx-auto"
+            >
+              A Team of AI Powered River-cleaning robots that will work 24/7, collect waste, purify water, 
+              protect aquatic life, and send real-time environmental data to a national monitoring network. 
+              Charges in seconds — it just needs a battery swap which the docking station will do. In 5 years, 
+              a team of 500 Bots can make our Yamuna the Cleanest River in INDIA.
+            </motion.p>
+
+            {/* Key Features Badges */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mb-10"
+            >
+              <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider">Key Features</h3>
+              <div className="flex flex-wrap justify-center gap-3">
+                {keyFeatures.map((feature, index) => (
+                  <motion.div
+                    key={feature.label}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="flex items-center gap-2 px-4 py-2 bg-card/50 backdrop-blur-sm rounded-full border border-border/50 hover:border-accent/50 transition-colors"
+                  >
+                    <feature.icon className="w-4 h-4 text-accent" />
+                    <span className="text-sm font-medium">{feature.label}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Detailed Overview Section */}
+      <section className="py-16 bg-muted/20">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Detailed Overview</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {detailedOverview.map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                className="p-6 bg-card rounded-2xl border border-border hover:border-accent/50 transition-all group"
+              >
+                <div className="text-4xl mb-4">{item.emoji}</div>
+                <h3 className="text-lg font-semibold mb-3 group-hover:text-accent transition-colors">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Projected Impact Section */}
+      <section className="py-16 bg-gradient-to-r from-accent/10 via-primary/10 to-accent/10">
+        <div className="container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Projected Impact</h2>
+            <p className="text-xl text-muted-foreground">
+              In 5 Years our polluted rivers can be crystal clear | <span className="text-accent font-semibold">Goal: Restore our water bodies</span>
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Newsletter Signup Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-xl mx-auto"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Get Notified on Launch</h2>
+            
+            {isSubscribed ? (
+              <div className="flex items-center justify-center gap-2 text-green-500">
+                <CheckCircle2 className="w-6 h-6" />
+                <span className="text-lg font-medium">You're on the list!</span>
+              </div>
+            ) : (
+              <form onSubmit={handleNotifyMe} className="flex gap-3 max-w-md mx-auto">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={isLoading} className="bg-accent hover:bg-accent/90">
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notify Me
+                    </>
+                  )}
+                </Button>
+              </form>
+            )}
+
+            <Link to="/projects" className="inline-block mt-6">
+              <Button variant="ghost" className="group">
+                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Back to Projects
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Original Hero Section (Now Learn More section) */}
+      <section className="relative pt-20 pb-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             className="max-w-4xl"
           >
             <span className="inline-block px-4 py-2 bg-accent/20 text-accent rounded-full text-sm font-medium mb-6">
               Flagship Project • Prototype Phase
             </span>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-accent to-primary bg-clip-text text-transparent">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-accent to-primary bg-clip-text text-transparent">
               Aqua River Purifier
-            </h1>
+            </h2>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               India's first AI-powered autonomous water purification system designed to restore our sacred rivers. 
               A fleet of intelligent bots working 24/7 to remove pollution and protect aquatic ecosystems.
@@ -432,10 +702,12 @@ export default function AquaRiverPurifier() {
                   View All Projects
                 </Button>
               </Link>
-              <Button size="lg" className="bg-accent hover:bg-accent/90">
-                <Zap className="w-4 h-4 mr-2" />
-                Support Now
-              </Button>
+              <Link to="/support-us">
+                <Button size="lg" className="bg-accent hover:bg-accent/90">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Support Now
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
