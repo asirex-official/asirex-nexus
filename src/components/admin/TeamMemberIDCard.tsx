@@ -2,8 +2,11 @@ import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Copy, Printer, Check, Building, Mail, Phone, Key, User, Calendar, IdCard } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Download, Copy, Printer, Check, Building, Mail, Phone, Key, User, Calendar, IdCard, Crown, Shield, Briefcase, Users, Code, Wrench, Factory, TrendingUp, Cpu, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import asirexLogo from "@/assets/asirex-logo.png";
 
 interface TeamMemberCredentials {
@@ -23,13 +26,46 @@ interface TeamMemberIDCardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   credentials: TeamMemberCredentials | null;
+  onCoreTypeChange?: (isCorePillar: boolean) => void;
 }
 
-export function TeamMemberIDCard({ open, onOpenChange, credentials }: TeamMemberIDCardProps) {
+// Role to icon mapping
+const getRoleIcon = (role: string) => {
+  if (role.includes("CEO") || role.includes("Founder")) return Crown;
+  if (role.includes("Production") || role.includes("Factory")) return Factory;
+  if (role.includes("Sales") || role.includes("Marketing") || role.includes("Business")) return TrendingUp;
+  if (role.includes("Core") || role.includes("Managing") || role.includes("Team Lead")) return Users;
+  if (role.includes("Engineering") || role.includes("R&D")) return Cpu;
+  if (role.includes("Developer") || role.includes("SWE") || role.includes("Software")) return Code;
+  if (role.includes("Head") || role.includes("Lead") || role.includes("Manager")) return Shield;
+  if (role.includes("Engineer") || role.includes("Robotics") || role.includes("Hardware")) return Wrench;
+  return Briefcase;
+};
+
+// Role color mapping
+const getRoleColor = (role: string) => {
+  if (role.includes("CEO") || role.includes("Founder")) return "text-amber-500 bg-amber-500/10 border-amber-500/30";
+  if (role.includes("Production")) return "text-orange-500 bg-orange-500/10 border-orange-500/30";
+  if (role.includes("Sales") || role.includes("Marketing")) return "text-green-500 bg-green-500/10 border-green-500/30";
+  if (role.includes("Core") || role.includes("Managing")) return "text-purple-500 bg-purple-500/10 border-purple-500/30";
+  if (role.includes("Engineering") || role.includes("R&D")) return "text-cyan-500 bg-cyan-500/10 border-cyan-500/30";
+  if (role.includes("Developer") || role.includes("SWE")) return "text-blue-500 bg-blue-500/10 border-blue-500/30";
+  if (role.includes("Head") || role.includes("Lead") || role.includes("Manager")) return "text-indigo-500 bg-indigo-500/10 border-indigo-500/30";
+  return "text-primary bg-primary/10 border-primary/30";
+};
+
+export function TeamMemberIDCard({ open, onOpenChange, credentials, onCoreTypeChange }: TeamMemberIDCardProps) {
   const [copied, setCopied] = useState<string | null>(null);
+  const [isCorePillar, setIsCorePillar] = useState(
+    credentials?.coreType === "Core Pillar" || credentials?.coreType === "Founding Core"
+  );
   const cardRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   if (!credentials) return null;
+
+  const RoleIcon = getRoleIcon(credentials.role);
+  const roleColorClass = getRoleColor(credentials.role);
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -73,12 +109,13 @@ Login URL: ${window.location.origin}/authority-login
               .header { text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 16px; }
               .logo { font-size: 24px; font-weight: bold; color: #8B5CF6; }
               .name { font-size: 20px; font-weight: bold; margin: 8px 0; }
-              .role { color: #666; }
+              .role { color: #666; display: flex; align-items: center; justify-content: center; gap: 8px; }
               .info { margin: 8px 0; }
               .label { font-weight: 600; color: #333; }
               .value { color: #666; }
               .credentials { background: #f5f5f5; padding: 16px; border-radius: 8px; margin-top: 16px; }
               .credential-item { margin: 8px 0; }
+              .core-badge { background: #8B5CF6; color: white; padding: 4px 12px; border-radius: 999px; font-size: 12px; }
             </style>
           </head>
           <body>
@@ -87,7 +124,7 @@ Login URL: ${window.location.origin}/authority-login
                 <div class="logo">ASIREX</div>
                 <div class="name">${credentials.name}</div>
                 <div class="role">${credentials.role}</div>
-                ${credentials.coreType ? `<div style="color: #8B5CF6; font-weight: 500;">${credentials.coreType}</div>` : ''}
+                ${isCorePillar ? `<div class="core-badge">Core Pillar</div>` : ''}
               </div>
               <div class="info"><span class="label">Serial Number:</span> <span class="value">${credentials.serialNumber}</span></div>
               <div class="info"><span class="label">Department:</span> <span class="value">${credentials.department}</span></div>
@@ -109,9 +146,19 @@ Login URL: ${window.location.origin}/authority-login
     }
   };
 
+  const handleCardClick = () => {
+    onOpenChange(false);
+    navigate('/authority-login?type=admin');
+  };
+
+  const handleCorePillarToggle = (checked: boolean) => {
+    setIsCorePillar(checked);
+    onCoreTypeChange?.(checked);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IdCard className="w-5 h-5 text-primary" />
@@ -120,8 +167,19 @@ Login URL: ${window.location.origin}/authority-login
         </DialogHeader>
 
         <div ref={cardRef} className="space-y-4">
-          {/* ID Card Visual */}
-          <div className="relative bg-gradient-to-br from-primary/10 via-background to-primary/5 border-2 border-primary/30 rounded-xl p-6 overflow-hidden">
+          {/* ID Card Visual - Clickable */}
+          <div 
+            onClick={handleCardClick}
+            className="relative bg-gradient-to-br from-primary/10 via-background to-primary/5 border-2 border-primary/30 rounded-xl p-6 overflow-hidden cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all group"
+          >
+            {/* Click hint */}
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <ExternalLink className="w-3 h-3" />
+                Go to Login
+              </Badge>
+            </div>
+
             {/* Background Pattern */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -132,8 +190,9 @@ Login URL: ${window.location.origin}/authority-login
                 <img src={asirexLogo} alt="ASIREX" className="w-8 h-8 object-contain" />
                 <span className="font-bold text-lg text-primary">ASIREX</span>
               </div>
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-                {credentials.coreType || "Team Member"}
+              <Badge className={`${roleColorClass} flex items-center gap-1`}>
+                <RoleIcon className="w-3 h-3" />
+                {isCorePillar ? "Core Pillar" : credentials.coreType || "Team Member"}
               </Badge>
             </div>
 
@@ -148,7 +207,10 @@ Login URL: ${window.location.origin}/authority-login
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-xl text-foreground">{credentials.name}</h3>
-                <p className="text-muted-foreground text-sm">{credentials.role}</p>
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <RoleIcon className="w-4 h-4" />
+                  <span>{credentials.role}</span>
+                </div>
                 <p className="text-xs text-muted-foreground mt-1 font-mono">{credentials.serialNumber}</p>
               </div>
             </div>
@@ -174,6 +236,19 @@ Login URL: ${window.location.origin}/authority-login
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Core Pillar Toggle */}
+          <div className="flex items-center justify-between p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-purple-500" />
+              <Label htmlFor="core-toggle" className="text-sm font-medium">Mark as Core Pillar</Label>
+            </div>
+            <Switch
+              id="core-toggle"
+              checked={isCorePillar}
+              onCheckedChange={handleCorePillarToggle}
+            />
           </div>
 
           {/* Login Credentials Section */}

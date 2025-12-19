@@ -181,12 +181,16 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       
       // Determine if this is a core pillar or admin role
       const isCorePillar = formData.coreType === "Core Pillar" || formData.coreType === "Founding Core";
+      // Show ID card for all leadership roles (heads, managers, leads) + core types
+      const isLeadershipRole = formData.role.includes("Head") || formData.role.includes("Manager") || 
+        formData.role.includes("Lead") || formData.role.includes("CEO");
       const isAdminRole = ["CEO & Founder", "Production Head and Manager", "Sales Lead and Head", 
         "Core Members and Managing Team Lead", "Engineering and R&D Lead", "Website Admin and SWE"].includes(formData.role);
+      const shouldShowIDCard = isCorePillar || isAdminRole || isLeadershipRole;
 
-      // Create auth account for admin/core roles
+      // Create auth account for admin/core/leadership roles
       let userId: string | null = null;
-      if (isAdminRole || isCorePillar) {
+      if (shouldShowIDCard) {
         // Sign up the new team member with auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
@@ -281,8 +285,8 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       // Log audit event
       await auditLogger.logTeamMemberAdded(formData.name, formData.role, formData.department);
       
-      // Show ID Card for admin/core roles with credentials
-      if (userId && (isAdminRole || isCorePillar)) {
+      // Show ID Card for all leadership/admin/core roles with credentials
+      if (shouldShowIDCard) {
         setCreatedCredentials({
           name: formData.name,
           email: formData.email,
@@ -492,6 +496,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
 
           {/* Password and Permissions for admin/core roles */}
           {(formData.coreType === "Core Pillar" || formData.coreType === "Founding Core" || 
+            formData.role.includes("Head") || formData.role.includes("Manager") || formData.role.includes("Lead") ||
             ["CEO & Founder", "Production Head and Manager", "Sales Lead and Head", 
              "Core Members and Managing Team Lead", "Engineering and R&D Lead", "Website Admin and SWE"].includes(formData.role)) && (
             <div className="space-y-4">
@@ -542,6 +547,20 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         open={showIDCard}
         onOpenChange={setShowIDCard}
         credentials={createdCredentials}
+        onCoreTypeChange={async (isCorePillar) => {
+          if (createdCredentials) {
+            // Update the team member's core pillar status in the database
+            try {
+              await supabase
+                .from('team_members')
+                .update({ is_core_pillar: isCorePillar })
+                .eq('serial_number', createdCredentials.serialNumber);
+              toast.success(`Core Pillar status ${isCorePillar ? 'enabled' : 'disabled'}`);
+            } catch (error) {
+              console.error('Error updating core pillar status:', error);
+            }
+          }
+        }}
       />
     </Dialog>
   );
