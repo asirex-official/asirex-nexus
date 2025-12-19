@@ -106,8 +106,8 @@ const managerPositionTemplates = [
   {
     id: "ASX-2025-008",
     title: "Hardware Engineer",
-    coreType: "Developer",
-    department: "Hardware Engineering",
+    coreType: "Core Member",
+    department: "Production & Operations",
   },
   {
     id: "ASX-2025-009",
