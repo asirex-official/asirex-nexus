@@ -58,12 +58,6 @@ const adminPositionTemplates = [
     department: "Research & Development",
   },
   {
-    id: "ASX-2025-012",
-    title: "Sales Lead and Head",
-    coreType: "Core Pillar",
-    department: "Sales",
-  },
-  {
     id: "ASX-2025-011",
     title: "Website Admin and SWE",
     coreType: "Developer",
