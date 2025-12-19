@@ -355,18 +355,31 @@ export default function AquaRiverPurifier() {
               </form>
             )}
 
-            <Link to="/projects" className="inline-block mt-6">
-              <Button variant="ghost" className="group">
-                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                Back to Projects
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+              <a 
+                href="#learn-more" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('learn-more')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <Button variant="default" size="lg" className="bg-primary hover:bg-primary/90">
+                  Learn More
+                </Button>
+              </a>
+              <Link to="/projects">
+                <Button variant="ghost" className="group">
+                  <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                  Back to Projects
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Original Hero Section (Now Learn More section) */}
-      <section className="relative pt-20 pb-16 overflow-hidden">
+      {/* Learn More Section */}
+      <section id="learn-more" className="relative pt-20 pb-16 overflow-hidden scroll-mt-20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
