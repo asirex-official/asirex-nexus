@@ -1111,7 +1111,9 @@ export type Database = {
           id: string
           is_core_pillar: boolean | null
           last_seen: string | null
+          login_path: string | null
           name: string
+          permissions: Json | null
           phone: string | null
           profile_image: string | null
           role: string
@@ -1131,7 +1133,9 @@ export type Database = {
           id?: string
           is_core_pillar?: boolean | null
           last_seen?: string | null
+          login_path?: string | null
           name: string
+          permissions?: Json | null
           phone?: string | null
           profile_image?: string | null
           role: string
@@ -1151,7 +1155,9 @@ export type Database = {
           id?: string
           is_core_pillar?: boolean | null
           last_seen?: string | null
+          login_path?: string | null
           name?: string
+          permissions?: Json | null
           phone?: string | null
           profile_image?: string | null
           role?: string
