@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Download, Copy, Printer, Check, Building, Mail, Phone, Key, User, Calendar, IdCard, Crown, Shield, Briefcase, Users, Code, Wrench, Factory, TrendingUp, Cpu, ExternalLink } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Copy, Printer, Check, Building, Mail, Phone, Key, User, Calendar, IdCard, Crown, Shield, Briefcase, Users, Code, Wrench, Factory, TrendingUp, Cpu, ExternalLink, Edit2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import asirexLogo from "@/assets/asirex-logo.png";
@@ -27,7 +28,40 @@ interface TeamMemberIDCardProps {
   onOpenChange: (open: boolean) => void;
   credentials: TeamMemberCredentials | null;
   onCoreTypeChange?: (isCorePillar: boolean) => void;
+  onDetailsChange?: (updates: { role?: string; department?: string; coreType?: string }) => void;
 }
+
+const departments = [
+  "Executive Leadership",
+  "Production & Operations",
+  "Sales & Marketing",
+  "Technology & Development",
+  "Research & Development",
+  "Human Resources",
+  "Finance & Accounting",
+  "AI & Machine Learning",
+  "Robotics Engineering",
+  "Design & UX",
+  "Hardware Engineering",
+  "Marketing & Growth",
+  "Business Development",
+  "Software Engineering",
+  "Management",
+];
+
+const availableRoles = [
+  "Production Head and Manager",
+  "Sales Lead and Head",
+  "Core Members and Managing Team Lead",
+  "Engineering and R&D Lead",
+  "Department Manager",
+  "Team Lead",
+  "Project Manager",
+  "Core Member",
+  "Senior Developer",
+];
+
+const coreTypes = ["Founding Core", "Core Pillar", "Head and Lead", "Manager", "Team Lead", "Core Member"];
 
 // Role to icon mapping
 const getRoleIcon = (role: string) => {
@@ -54,18 +88,26 @@ const getRoleColor = (role: string) => {
   return "text-primary bg-primary/10 border-primary/30";
 };
 
-export function TeamMemberIDCard({ open, onOpenChange, credentials, onCoreTypeChange }: TeamMemberIDCardProps) {
+export function TeamMemberIDCard({ open, onOpenChange, credentials, onCoreTypeChange, onDetailsChange }: TeamMemberIDCardProps) {
   const [copied, setCopied] = useState<string | null>(null);
   const [isCorePillar, setIsCorePillar] = useState(
     credentials?.coreType === "Core Pillar" || credentials?.coreType === "Founding Core"
   );
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedRole, setEditedRole] = useState(credentials?.role || "");
+  const [editedDepartment, setEditedDepartment] = useState(credentials?.department || "");
+  const [editedCoreType, setEditedCoreType] = useState(credentials?.coreType || "");
   const cardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   if (!credentials) return null;
 
-  const RoleIcon = getRoleIcon(credentials.role);
-  const roleColorClass = getRoleColor(credentials.role);
+  const displayRole = isEditing ? editedRole : credentials.role;
+  const displayDepartment = isEditing ? editedDepartment : credentials.department;
+  const displayCoreType = isEditing ? editedCoreType : credentials.coreType;
+  
+  const RoleIcon = getRoleIcon(displayRole);
+  const roleColorClass = getRoleColor(displayRole);
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -82,9 +124,9 @@ Name: ${credentials.name}
 Email: ${credentials.email}
 Password: ${credentials.password}
 Serial Number: ${credentials.serialNumber}
-Role: ${credentials.role}
-Department: ${credentials.department}
-${credentials.coreType ? `Core Type: ${credentials.coreType}` : ''}
+Role: ${displayRole}
+Department: ${displayDepartment}
+${displayCoreType ? `Core Type: ${displayCoreType}` : ''}
 Join Date: ${credentials.joinDate}
 
 Login URL: ${window.location.origin}/authority-login
@@ -123,11 +165,11 @@ Login URL: ${window.location.origin}/authority-login
               <div class="header">
                 <div class="logo">ASIREX</div>
                 <div class="name">${credentials.name}</div>
-                <div class="role">${credentials.role}</div>
+                <div class="role">${displayRole}</div>
                 ${isCorePillar ? `<div class="core-badge">Core Pillar</div>` : ''}
               </div>
               <div class="info"><span class="label">Serial Number:</span> <span class="value">${credentials.serialNumber}</span></div>
-              <div class="info"><span class="label">Department:</span> <span class="value">${credentials.department}</span></div>
+              <div class="info"><span class="label">Department:</span> <span class="value">${displayDepartment}</span></div>
               <div class="info"><span class="label">Email:</span> <span class="value">${credentials.email}</span></div>
               ${credentials.phone ? `<div class="info"><span class="label">Phone:</span> <span class="value">${credentials.phone}</span></div>` : ''}
               <div class="info"><span class="label">Join Date:</span> <span class="value">${credentials.joinDate}</span></div>
@@ -147,6 +189,7 @@ Login URL: ${window.location.origin}/authority-login
   };
 
   const handleCardClick = () => {
+    if (isEditing) return; // Don't navigate when editing
     onOpenChange(false);
     navigate('/authority-login?type=admin');
   };
@@ -154,6 +197,23 @@ Login URL: ${window.location.origin}/authority-login
   const handleCorePillarToggle = (checked: boolean) => {
     setIsCorePillar(checked);
     onCoreTypeChange?.(checked);
+  };
+
+  const handleSaveEdits = () => {
+    onDetailsChange?.({
+      role: editedRole,
+      department: editedDepartment,
+      coreType: editedCoreType,
+    });
+    setIsEditing(false);
+    toast.success("Card details updated");
+  };
+
+  const handleStartEdit = () => {
+    setEditedRole(credentials.role);
+    setEditedDepartment(credentials.department);
+    setEditedCoreType(credentials.coreType || "");
+    setIsEditing(true);
   };
 
   return (
@@ -167,18 +227,92 @@ Login URL: ${window.location.origin}/authority-login
         </DialogHeader>
 
         <div ref={cardRef} className="space-y-4">
+          {/* Edit Mode Toggle */}
+          <div className="flex items-center justify-end">
+            {isEditing ? (
+              <Button size="sm" onClick={handleSaveEdits} className="bg-green-500 hover:bg-green-600">
+                <Save className="w-4 h-4 mr-1" />
+                Save Changes
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" onClick={handleStartEdit}>
+                <Edit2 className="w-4 h-4 mr-1" />
+                Edit Card
+              </Button>
+            )}
+          </div>
+
+          {/* Editing Panel */}
+          {isEditing && (
+            <div className="p-4 bg-muted/50 rounded-lg border space-y-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Role/Position</Label>
+                <Select value={editedRole} onValueChange={setEditedRole}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRoles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={credentials.role}>{credentials.role} (Original)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs">Department</Label>
+                <Select value={editedDepartment} onValueChange={setEditedDepartment}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs">Core Type</Label>
+                <Select value={editedCoreType} onValueChange={setEditedCoreType}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select core type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {coreTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
           {/* ID Card Visual - Clickable */}
           <div 
             onClick={handleCardClick}
-            className="relative bg-gradient-to-br from-primary/10 via-background to-primary/5 border-2 border-primary/30 rounded-xl p-6 overflow-hidden cursor-pointer hover:border-primary/50 hover:shadow-lg transition-all group"
+            className={`relative bg-gradient-to-br from-primary/10 via-background to-primary/5 border-2 border-primary/30 rounded-xl p-6 overflow-hidden transition-all group ${
+              isEditing ? "cursor-default" : "cursor-pointer hover:border-primary/50 hover:shadow-lg"
+            }`}
           >
             {/* Click hint */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                <ExternalLink className="w-3 h-3" />
-                Go to Login
-              </Badge>
-            </div>
+            {!isEditing && (
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                  <ExternalLink className="w-3 h-3" />
+                  Go to Login
+                </Badge>
+              </div>
+            )}
 
             {/* Background Pattern */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -192,7 +326,7 @@ Login URL: ${window.location.origin}/authority-login
               </div>
               <Badge className={`${roleColorClass} flex items-center gap-1`}>
                 <RoleIcon className="w-3 h-3" />
-                {isCorePillar ? "Core Pillar" : credentials.coreType || "Team Member"}
+                {isCorePillar ? "Core Pillar" : displayCoreType || "Team Member"}
               </Badge>
             </div>
 
@@ -209,7 +343,7 @@ Login URL: ${window.location.origin}/authority-login
                 <h3 className="font-bold text-xl text-foreground">{credentials.name}</h3>
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <RoleIcon className="w-4 h-4" />
-                  <span>{credentials.role}</span>
+                  <span>{displayRole}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 font-mono">{credentials.serialNumber}</p>
               </div>
@@ -219,7 +353,7 @@ Login URL: ${window.location.origin}/authority-login
             <div className="grid grid-cols-2 gap-3 text-sm relative z-10">
               <div className="flex items-center gap-2">
                 <Building className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground truncate">{credentials.department}</span>
+                <span className="text-muted-foreground truncate">{displayDepartment}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />

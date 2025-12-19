@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { TeamMemberIDCard } from "./TeamMemberIDCard";
 import { AdminPermissionsSelector } from "./AdminPermissionsSelector";
+import { LoginPathSelector } from "./LoginPathSelector";
 
 export interface TeamMember {
   id: string;
@@ -79,6 +80,16 @@ const roles = [
 
 const coreTypes = ["Founding Core", "Core Pillar", "Head and Lead", "Manager", "Developer", "Core Member", "Team Lead", "Employee", "Intern"];
 
+// Predefined roles that automatically get ID cards
+const predefinedCardRoles = [
+  "CEO & Founder",
+  "Production Head and Manager",
+  "Sales Lead and Head",
+  "Core Members and Managing Team Lead",
+  "Engineering and R&D Lead",
+  "Website Admin and SWE",
+];
+
 export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMemberDialogProps) {
   const auditLogger = useAuditLog();
   const [formData, setFormData] = useState({
@@ -96,6 +107,8 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showIDCard, setShowIDCard] = useState(false);
+  const [showLoginPathSelector, setShowLoginPathSelector] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{
     name: string;
     email: string;
@@ -164,6 +177,16 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
     return publicUrl;
   };
 
+  // Check if role has predefined card template
+  const hasPredefinedCard = (role: string, coreType: string) => {
+    const isCorePillar = coreType === "Core Pillar" || coreType === "Founding Core";
+    const isLeadershipRole = role.includes("Head") || role.includes("Manager") || 
+      role.includes("Lead") || role.includes("CEO");
+    const isPredefinedRole = predefinedCardRoles.includes(role);
+    
+    return isCorePillar || isPredefinedRole || isLeadershipRole;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -172,21 +195,69 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       return;
     }
 
+    // Check if this role needs path selection
+    if (!hasPredefinedCard(formData.role, formData.coreType) && !pendingSubmit) {
+      setShowLoginPathSelector(true);
+      return;
+    }
+
+    await processSubmit(formData.role, formData.department, formData.coreType, formData.password, false);
+  };
+
+  const handleLoginPathConfirm = async (data: {
+    loginPath: string;
+    role: string;
+    department: string;
+    coreType: string;
+    isLead: boolean;
+    password: string;
+    permissions: string[];
+  }) => {
+    // Update form data with customized values
+    const updatedRole = data.role || formData.role;
+    const updatedDept = data.department || formData.department;
+    const updatedCoreType = data.coreType;
+    const updatedPassword = data.password;
+    
+    setFormData(prev => ({
+      ...prev,
+      role: updatedRole,
+      department: updatedDept,
+      coreType: updatedCoreType,
+      password: updatedPassword,
+    }));
+    setAdminPermissions(data.permissions);
+
+    // Process based on login path
+    if (data.loginPath === "user") {
+      // Regular user - no card
+      await processSubmit(updatedRole, updatedDept, "", "", false);
+    } else {
+      // Manager or Admin - generate card
+      await processSubmit(updatedRole, updatedDept, updatedCoreType, updatedPassword, true);
+    }
+  };
+
+  const processSubmit = async (
+    role: string, 
+    department: string, 
+    coreType: string, 
+    password: string,
+    forceGenerateCard: boolean
+  ) => {
     setIsSubmitting(true);
 
     try {
       const serialNumber = generateSerialNumber();
       const salaryValue = formData.salary ? parseFloat(formData.salary.replace(/[₹,]/g, '')) : 0;
-      const tempPassword = formData.password || generateTemporaryPassword();
+      const tempPassword = password || generateTemporaryPassword();
       
-      // Determine if this is a core pillar or admin role
-      const isCorePillar = formData.coreType === "Core Pillar" || formData.coreType === "Founding Core";
-      // Show ID card for all leadership roles (heads, managers, leads) + core types
-      const isLeadershipRole = formData.role.includes("Head") || formData.role.includes("Manager") || 
-        formData.role.includes("Lead") || formData.role.includes("CEO");
-      const isAdminRole = ["CEO & Founder", "Production Head and Manager", "Sales Lead and Head", 
-        "Core Members and Managing Team Lead", "Engineering and R&D Lead", "Website Admin and SWE"].includes(formData.role);
-      const shouldShowIDCard = isCorePillar || isAdminRole || isLeadershipRole;
+      // Determine if this should generate ID card
+      const isCorePillar = coreType === "Core Pillar" || coreType === "Founding Core";
+      const isLeadershipRole = role.includes("Head") || role.includes("Manager") || 
+        role.includes("Lead") || role.includes("CEO");
+      const isAdminRole = predefinedCardRoles.includes(role);
+      const shouldShowIDCard = forceGenerateCard || isCorePillar || isAdminRole || isLeadershipRole;
 
       // Create auth account for admin/core/leadership roles
       let userId: string | null = null;
@@ -213,11 +284,11 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
           
           // Assign appropriate role based on position
           let roleToAssign: 'admin' | 'manager' | 'developer' | 'core_member' | 'employee' = 'employee';
-          if (formData.role.includes("CEO") || formData.coreType === "Founding Core") {
+          if (role.includes("CEO") || coreType === "Founding Core") {
             roleToAssign = 'admin'; // super_admin should be manually assigned
-          } else if (formData.role.includes("Head") || formData.role.includes("Lead") || formData.role.includes("Manager")) {
+          } else if (role.includes("Head") || role.includes("Lead") || role.includes("Manager")) {
             roleToAssign = 'manager';
-          } else if (formData.role.includes("Developer") || formData.role.includes("SWE") || formData.role.includes("Engineer")) {
+          } else if (role.includes("Developer") || role.includes("SWE") || role.includes("Engineer")) {
             roleToAssign = 'developer';
           } else if (isCorePillar) {
             roleToAssign = 'core_member';
@@ -227,7 +298,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
           await supabase.from('user_roles').insert({
             user_id: userId,
             role: roleToAssign,
-            department: formData.department
+            department: department
           });
         }
       }
@@ -238,9 +309,9 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         .insert({
           name: formData.name,
           email: formData.email,
-          role: formData.role,
-          department: formData.department,
-          designation: formData.role,
+          role: role,
+          department: department,
+          designation: role,
           salary: salaryValue,
           serial_number: serialNumber,
           is_core_pillar: isCorePillar,
@@ -275,7 +346,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         salary: formData.salary || "To be decided",
         status: "active",
         joinDate: new Date().toISOString().split("T")[0],
-        coreType: formData.coreType,
+        coreType: coreType,
         serialNumber: data.serial_number || serialNumber,
         photo: profileImageUrl || undefined,
       };
@@ -283,7 +354,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       onAdd(newMember);
       
       // Log audit event
-      await auditLogger.logTeamMemberAdded(formData.name, formData.role, formData.department);
+      await auditLogger.logTeamMemberAdded(formData.name, role, department);
       
       // Show ID Card for all leadership/admin/core roles with credentials
       if (shouldShowIDCard) {
@@ -291,11 +362,11 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
           name: formData.name,
           email: formData.email,
           phone: formData.phone || undefined,
-          role: formData.role,
-          department: formData.department,
+          role: role,
+          department: department,
           serialNumber: data.serial_number || serialNumber,
           password: tempPassword,
-          coreType: formData.coreType || undefined,
+          coreType: coreType || undefined,
           joinDate: new Date().toISOString().split("T")[0],
           photo: profileImageUrl || undefined,
         });
@@ -318,6 +389,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       setProfileImage(null);
       setPreviewUrl(null);
       setAdminPermissions([]);
+      setPendingSubmit(false);
       
       onOpenChange(false);
     } catch (error: any) {
@@ -541,6 +613,16 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Login Path Selector Dialog */}
+      <LoginPathSelector
+        open={showLoginPathSelector}
+        onOpenChange={setShowLoginPathSelector}
+        memberName={formData.name}
+        currentRole={formData.role}
+        currentDepartment={formData.department}
+        onConfirm={handleLoginPathConfirm}
+      />
 
       {/* ID Card Dialog */}
       <TeamMemberIDCard
