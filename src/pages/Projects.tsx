@@ -437,62 +437,146 @@ export default function Projects() {
       <AnimatePresence>
         {selectedProject && (
           <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold">{selectedProject.title}</DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-6">
-                {/* Image */}
-                {(selectedProject.gallery_images && selectedProject.gallery_images.length > 0) || selectedProject.image_url ? (
-                  <div className="w-full h-64 rounded-xl overflow-hidden">
-                    {selectedProject.gallery_images && selectedProject.gallery_images.length > 0 ? (
-                      <CyclingProjectImage images={selectedProject.gallery_images} interval={3000} className="w-full h-full" />
-                    ) : (
-                      <img src={selectedProject.image_url!} alt={selectedProject.title} className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                ) : null}
-
-                {/* Status & Launch */}
-                <div className="flex flex-wrap gap-3">
-                  <span className="px-4 py-2 text-sm font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
-                    🔧 {selectedProject.status || 'Planning'}
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <span className="px-3 py-1 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
+                    {selectedProject.status || 'Planning'}
                   </span>
                   {selectedProject.launch_date && (
-                    <span className="px-4 py-2 text-sm font-medium rounded-full bg-muted/50 text-muted-foreground flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-muted/50 text-muted-foreground flex items-center gap-1.5">
+                      <Calendar className="w-3 h-3" />
                       {selectedProject.launch_date}
                     </span>
                   )}
                 </div>
-
-                {/* Tagline & Description */}
+                <DialogTitle className="text-2xl lg:text-3xl font-bold">{selectedProject.title}</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-8">
+                {/* Tagline */}
                 {selectedProject.tagline && (
                   <p className="text-lg font-medium text-accent">{selectedProject.tagline}</p>
                 )}
+                
+                {/* Description */}
                 {selectedProject.description && (
                   <p className="text-muted-foreground leading-relaxed">{selectedProject.description}</p>
                 )}
 
-                {/* Impact */}
-                {selectedProject.impact && (
-                  <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
-                    <p className="text-green-500 font-semibold">🎯 {selectedProject.impact}</p>
-                  </div>
-                )}
-
-                {/* Features */}
+                {/* Key Features */}
                 {selectedProject.features && selectedProject.features.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-3">Key Features</h4>
+                    <h4 className="font-semibold mb-3 text-lg">Key Features</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedProject.features.map((feature, i) => (
-                        <span key={i} className="px-3 py-1.5 text-sm bg-muted/50 rounded-lg text-foreground">
+                        <span key={i} className="px-3 py-1.5 text-sm bg-muted/50 rounded-lg text-foreground border border-border/50">
                           {feature}
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Detailed Overview Section */}
+                <div>
+                  <h4 className="font-semibold mb-4 text-lg">Detailed Overview</h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* How It Works */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">⚙️</span>
+                        <h5 className="font-semibold">How It Works</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Bots patrol rivers automatically, detect trash/oil/plastics/metals/toxic hotspots using AI vision + sensors, collect waste onboard with modules for each pollution type, release purified water back, and upload data to central server. Support units (drones + rescue bots) assist continuously.
+                      </p>
+                    </div>
+
+                    {/* Pollution Removal Technologies */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🧪</span>
+                        <h5 className="font-semibold">Pollution Removal Technologies</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Floating Plastics → Robotic arms + intake conveyor | Metallic Waste → Magnetic separator | Oil & Chemical Films → Eco-friendly enzyme dispersant jets | Micro-Waste & Bacteria → Multi-stage filter + UV treatment | Aquatic life detection ensures fish/wildlife safety.
+                      </p>
+                    </div>
+
+                    {/* Smart Docking Stations */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🚢</span>
+                        <h5 className="font-semibold">Smart Docking Stations</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        AI-enabled stations recharge bots (solar + grid), store waste in separate bins (plastics/metals/toxic), auto-empty & clean bots, run health checks, upload data logs. Stations act as charging and maintenance homes for the fleet.
+                      </p>
+                    </div>
+
+                    {/* Rescue Bots */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🤖</span>
+                        <h5 className="font-semibold">Rescue Bots</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        2 per dock - help stuck/damaged bots, replace/boost batteries, free blocked propellers, tow broken bots, perform emergency repairs. Ensures zero downtime across the entire fleet.
+                      </p>
+                    </div>
+
+                    {/* AI Drones */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🛰️</span>
+                        <h5 className="font-semibold">AI Drones</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        5 per dock - scan for pollution zones, create real-time pollution maps, track cleaning progress, capture evidence for government reporting, redirect bots to hotspots instantly.
+                      </p>
+                    </div>
+
+                    {/* Central Intelligence System */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🧠</span>
+                        <h5 className="font-semibold">Central Intelligence System</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Learns pollution patterns, plans optimal routes, predicts environmental damage, auto-increases bots where needed, alerts humans only when required. System gets smarter over time.
+                      </p>
+                    </div>
+
+                    {/* National Dashboard */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">📲</span>
+                        <h5 className="font-semibold">National Dashboard</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Live river map, water health ratings, progress stats, device monitoring, government transparency. India watches rivers recover in real time.
+                      </p>
+                    </div>
+
+                    {/* Vision */}
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">💎</span>
+                        <h5 className="font-semibold">Vision</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Build the world's smartest AI Environmental Protection System and make India a global leader in clean-water robotics.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Projected Impact */}
+                {selectedProject.impact && (
+                  <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                    <h4 className="font-semibold mb-2">Projected Impact</h4>
+                    <p className="text-green-500 font-semibold">🎯 {selectedProject.impact}</p>
                   </div>
                 )}
 
@@ -510,11 +594,26 @@ export default function Projects() {
                   </div>
                 </div>
 
+                {/* Learn More Button */}
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={() => {
+                      setSelectedProject(null);
+                      navigate('/aqua-river-purifier');
+                    }}
+                    variant="default"
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Learn More
+                  </Button>
+                </div>
+
                 {/* Notify Form */}
                 <div className="p-4 rounded-xl bg-muted/50 border border-border">
                   <div className="flex items-center gap-2 mb-3">
                     <Bell className="w-5 h-5 text-primary" />
-                    <span className="font-semibold">Get Launch Updates</span>
+                    <span className="font-semibold">Get Notified on Launch</span>
                   </div>
                   <div className="flex gap-2">
                     <Input
