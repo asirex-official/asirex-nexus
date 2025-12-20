@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Star, X, Package, IndianRupee, Image, Upload, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Star, X, Package, IndianRupee, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { MediaUploader } from "@/components/admin/MediaUploader";
 
 const categories = ["AI Hardware", "Robotics", "Clean Tech", "Developer Tools", "Energy", "IoT", "Accessories", "Gadgets"];
 const badges = ["", "NEW", "BEST SELLER", "LIMITED STOCK", "HOT", "SALE", "PREMIUM", "TRENDING"];
@@ -40,6 +40,8 @@ interface ProductForm {
   is_featured: boolean;
   features: string[];
   benefits: string[];
+  gallery_images: string[];
+  gallery_videos: string[];
 }
 
 const defaultForm: ProductForm = {
@@ -55,6 +57,8 @@ const defaultForm: ProductForm = {
   is_featured: false,
   features: [""],
   benefits: [""],
+  gallery_images: [],
+  gallery_videos: [],
 };
 
 export default function ProductsManager() {
@@ -67,57 +71,6 @@ export default function ProductsManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(defaultForm);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({ title: "Invalid file", description: "Please upload an image file", variant: "destructive" });
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Image must be less than 5MB", variant: "destructive" });
-      return;
-    }
-
-    setIsUploading(true);
-
-    try {
-      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) throw error;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(data.path);
-
-      setForm({ ...form, image_url: publicUrl });
-      toast({ title: "Image uploaded successfully" });
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      toast({ 
-        title: "Upload failed", 
-        description: error.message || "Failed to upload image. Make sure you're logged in as admin.", 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const openCreateDialog = () => {
     setForm(defaultForm);
@@ -127,6 +80,8 @@ export default function ProductsManager() {
 
   const openEditDialog = (product: any) => {
     const specs = product.specs || {};
+    const galleryImages = Array.isArray(product.gallery_images) ? product.gallery_images : [];
+    const galleryVideos = Array.isArray(product.gallery_videos) ? product.gallery_videos : [];
     setForm({
       name: product.name,
       description: product.description || "",
@@ -140,6 +95,8 @@ export default function ProductsManager() {
       is_featured: product.is_featured || false,
       features: specs.features?.length ? specs.features : [""],
       benefits: specs.benefits?.length ? specs.benefits : [""],
+      gallery_images: galleryImages,
+      gallery_videos: galleryVideos,
     });
     setEditingId(product.id);
     setIsDialogOpen(true);
@@ -164,16 +121,21 @@ export default function ProductsManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Use first gallery image as main image if not set
+    const image_url = form.image_url || form.gallery_images[0] || "";
+    
     const productData = {
       name: form.name,
       description: form.description,
       price: form.price,
       category: form.category,
-      image_url: form.image_url,
+      image_url,
       badge: form.badge,
       rating: form.rating,
       stock_status: form.stock_status,
       is_featured: form.is_featured,
+      gallery_images: form.gallery_images,
+      gallery_videos: form.gallery_videos,
       specs: {
         original_price: form.original_price || null,
         features: form.features.filter(f => f.trim()),
@@ -386,88 +348,39 @@ export default function ProductsManager() {
               </div>
             </div>
 
-            {/* Image & Rating */}
+            {/* Media Upload Section */}
             <div className="p-4 border border-border rounded-lg space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <Image className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold">Image & Rating</h3>
+                <h3 className="font-semibold">Product Media</h3>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <Label>Product Image</Label>
-                  
-                  {/* Upload Button */}
-                  <div className="flex gap-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      className="flex-1"
-                    >
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Image
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {/* OR URL input */}
-                  <div className="text-center text-xs text-muted-foreground">or paste URL</div>
-                  <Input
-                    value={form.image_url}
-                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                    placeholder="https://..."
-                  />
-                  
-                  {/* Preview */}
-                  {form.image_url && (
-                    <div className="relative w-24 h-24">
-                      <img src={form.image_url} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute -top-2 -right-2 w-6 h-6"
-                        onClick={() => setForm({ ...form, image_url: "" })}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Rating (0-5)</Label>
-                  <Select 
-                    value={form.rating.toString()} 
-                    onValueChange={(v) => setForm({ ...form, rating: parseFloat(v) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0, 1, 2, 3, 4, 4.5, 5].map((r) => (
-                        <SelectItem key={r} value={r.toString()}>
-                          {"⭐".repeat(Math.floor(r))} {r} Stars
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <MediaUploader
+                images={form.gallery_images}
+                videos={form.gallery_videos}
+                onImagesChange={(images) => setForm({ ...form, gallery_images: images })}
+                onVideosChange={(videos) => setForm({ ...form, gallery_videos: videos })}
+                maxImages={10}
+                maxVideos={2}
+                bucket="product-images"
+                folder="products"
+              />
+              <div className="space-y-2">
+                <Label>Rating (0-5)</Label>
+                <Select 
+                  value={form.rating.toString()} 
+                  onValueChange={(v) => setForm({ ...form, rating: parseFloat(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4, 4.5, 5].map((r) => (
+                      <SelectItem key={r} value={r.toString()}>
+                        {"⭐".repeat(Math.floor(r))} {r} Stars
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -475,7 +388,7 @@ export default function ProductsManager() {
             <div className="p-4 border border-border rounded-lg space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <Package className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold">Stock & Visibility</h3>
+                <h3 className="font-semibold">Inventory</h3>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -488,72 +401,73 @@ export default function ProductsManager() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="in_stock">✅ In Stock</SelectItem>
-                      <SelectItem value="low_stock">⚠️ Limited Stock</SelectItem>
-                      <SelectItem value="out_of_stock">❌ Out of Stock</SelectItem>
+                      <SelectItem value="in_stock">In Stock</SelectItem>
+                      <SelectItem value="low_stock">Limited Stock</SelectItem>
+                      <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <Label>Featured on Homepage</Label>
+                <div className="flex items-center gap-3 pt-6">
                   <Switch
                     checked={form.is_featured}
                     onCheckedChange={(v) => setForm({ ...form, is_featured: v })}
                   />
+                  <Label className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-accent" />
+                    Featured Product
+                  </Label>
                 </div>
               </div>
             </div>
 
             {/* Features */}
-            <div className="p-4 border border-border rounded-lg space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Features</h3>
-                <Button type="button" variant="outline" size="sm" onClick={addFeature}>
-                  <Plus className="w-3 h-3 mr-1" /> Add Feature
+                <Label>Key Features</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={addFeature}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
                 </Button>
               </div>
-              <div className="space-y-2">
-                {form.features.map((feature, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={feature}
-                      onChange={(e) => updateFeature(index, e.target.value)}
-                      placeholder={`Feature ${index + 1}: e.g., Nano magnet technology`}
-                    />
-                    {form.features.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeFeature(index)}>
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              {form.features.map((feature, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={feature}
+                    onChange={(e) => updateFeature(index, e.target.value)}
+                    placeholder={`Feature ${index + 1}`}
+                  />
+                  {form.features.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeFeature(index)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Benefits */}
-            <div className="p-4 border border-border rounded-lg space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Benefits</h3>
-                <Button type="button" variant="outline" size="sm" onClick={addBenefit}>
-                  <Plus className="w-3 h-3 mr-1" /> Add Benefit
+                <Label>Benefits</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={addBenefit}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
                 </Button>
               </div>
-              <div className="space-y-2">
-                {form.benefits.map((benefit, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={benefit}
-                      onChange={(e) => updateBenefit(index, e.target.value)}
-                      placeholder={`Benefit ${index + 1}: e.g., Long lasting 5+ hours battery`}
-                    />
-                    {form.benefits.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeBenefit(index)}>
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              {form.benefits.map((benefit, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={benefit}
+                    onChange={(e) => updateBenefit(index, e.target.value)}
+                    placeholder={`Benefit ${index + 1}`}
+                  />
+                  {form.benefits.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeBenefit(index)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
 
             <div className="flex gap-3 justify-end">

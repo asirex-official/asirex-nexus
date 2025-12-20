@@ -285,6 +285,8 @@ export type Database = {
           created_at: string
           description: string | null
           event_date: string
+          gallery_images: Json | null
+          gallery_videos: Json | null
           id: string
           image_url: string | null
           is_featured: boolean | null
@@ -299,6 +301,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           event_date: string
+          gallery_images?: Json | null
+          gallery_videos?: Json | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
@@ -313,6 +317,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           event_date?: string
+          gallery_images?: Json | null
+          gallery_videos?: Json | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
@@ -726,6 +732,8 @@ export type Database = {
           created_at: string
           description: string | null
           display_order: number | null
+          gallery_images: Json | null
+          gallery_videos: Json | null
           id: string
           image_url: string | null
           is_featured: boolean | null
@@ -742,6 +750,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_order?: number | null
+          gallery_images?: Json | null
+          gallery_videos?: Json | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
@@ -758,6 +768,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_order?: number | null
+          gallery_images?: Json | null
+          gallery_videos?: Json | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
@@ -865,6 +877,7 @@ export type Database = {
           display_order: number | null
           features: Json | null
           gallery_images: Json | null
+          gallery_videos: Json | null
           id: string
           image_url: string | null
           impact: string | null
@@ -882,6 +895,7 @@ export type Database = {
           display_order?: number | null
           features?: Json | null
           gallery_images?: Json | null
+          gallery_videos?: Json | null
           id?: string
           image_url?: string | null
           impact?: string | null
@@ -899,6 +913,7 @@ export type Database = {
           display_order?: number | null
           features?: Json | null
           gallery_images?: Json | null
+          gallery_videos?: Json | null
           id?: string
           image_url?: string | null
           impact?: string | null

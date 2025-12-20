@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Calendar, Users, Image, X, GripVertical } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } fro
 import { useToast } from "@/hooks/use-toast";
 import { ProjectTeamDialog } from "@/components/admin/ProjectTeamDialog";
 import { useAllProjectAssignments } from "@/hooks/useProjectAssignments";
+import { MediaUploader } from "@/components/admin/MediaUploader";
 
 const statuses = ["Planning", "In Development", "Prototype Ready", "Beta Testing", "Launched"];
 
@@ -39,6 +40,7 @@ interface ProjectForm {
   impact: string;
   features: string[];
   gallery_images: string[];
+  gallery_videos: string[];
 }
 
 const defaultForm: ProjectForm = {
@@ -53,6 +55,7 @@ const defaultForm: ProjectForm = {
   impact: "",
   features: [],
   gallery_images: [],
+  gallery_videos: [],
 };
 
 export default function ProjectsManager() {
@@ -67,7 +70,6 @@ export default function ProjectsManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProjectForm>(defaultForm);
   const [featuresInput, setFeaturesInput] = useState("");
-  const [galleryInput, setGalleryInput] = useState("");
   const [teamDialogProject, setTeamDialogProject] = useState<{ id: string; title: string } | null>(null);
 
   // Group assignments by project
@@ -88,6 +90,7 @@ export default function ProjectsManager() {
   const openEditDialog = (project: any) => {
     const features = Array.isArray(project.features) ? project.features : [];
     const galleryImages = Array.isArray(project.gallery_images) ? project.gallery_images : [];
+    const galleryVideos = Array.isArray(project.gallery_videos) ? project.gallery_videos : [];
     setForm({
       title: project.title,
       tagline: project.tagline || "",
@@ -100,9 +103,9 @@ export default function ProjectsManager() {
       impact: project.impact || "",
       features,
       gallery_images: galleryImages,
+      gallery_videos: galleryVideos,
     });
     setFeaturesInput(features.join(", "));
-    setGalleryInput("");
     setEditingId(project.id);
     setIsDialogOpen(true);
   };
@@ -112,36 +115,38 @@ export default function ProjectsManager() {
     
     const features = featuresInput.split(",").map(f => f.trim()).filter(Boolean);
     
+    // Use first gallery image as main image if not set
+    const image_url = form.image_url || form.gallery_images[0] || "";
+    // Use first gallery video as main video if not set
+    const video_url = form.video_url || form.gallery_videos[0] || "";
+    
     try {
       if (editingId) {
-        await updateProject.mutateAsync({ id: editingId, ...form, features, gallery_images: form.gallery_images });
+        await updateProject.mutateAsync({ 
+          id: editingId, 
+          ...form, 
+          features, 
+          image_url,
+          video_url,
+          gallery_images: form.gallery_images,
+          gallery_videos: form.gallery_videos,
+        });
         toast({ title: "Project updated successfully" });
       } else {
-        await createProject.mutateAsync({ ...form, features, gallery_images: form.gallery_images });
+        await createProject.mutateAsync({ 
+          ...form, 
+          features, 
+          image_url,
+          video_url,
+          gallery_images: form.gallery_images,
+          gallery_videos: form.gallery_videos,
+        });
         toast({ title: "Project created successfully" });
       }
       setIsDialogOpen(false);
     } catch (error) {
       toast({ title: "Error", description: "Failed to save project", variant: "destructive" });
     }
-  };
-
-  const addGalleryImage = () => {
-    if (!galleryInput.trim()) return;
-    setForm({ ...form, gallery_images: [...form.gallery_images, galleryInput.trim()] });
-    setGalleryInput("");
-  };
-
-  const removeGalleryImage = (index: number) => {
-    setForm({ ...form, gallery_images: form.gallery_images.filter((_, i) => i !== index) });
-  };
-
-  const moveGalleryImage = (index: number, direction: 'up' | 'down') => {
-    const newImages = [...form.gallery_images];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newImages.length) return;
-    [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
-    setForm({ ...form, gallery_images: newImages });
   };
 
   const handleDelete = async (id: string) => {
@@ -364,97 +369,21 @@ export default function ProjectsManager() {
               />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Image URL</Label>
-                <Input
-                  value={form.image_url}
-                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                  placeholder="https://..."
-                />
+            {/* Media Upload Section */}
+            <div className="space-y-3 p-4 border border-border rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Image className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Project Media</h3>
               </div>
-              
-              <div className="space-y-2">
-                <Label>Video URL</Label>
-                <Input
-                  value={form.video_url}
-                  onChange={(e) => setForm({ ...form, video_url: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
-
-            {/* Gallery Images Management */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Image className="w-4 h-4" />
-                Gallery Images (4-second auto-cycling)
-              </Label>
-              
-              {/* Add new image */}
-              <div className="flex gap-2">
-                <Input
-                  value={galleryInput}
-                  onChange={(e) => setGalleryInput(e.target.value)}
-                  placeholder="Paste image URL..."
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addGalleryImage())}
-                />
-                <Button type="button" variant="outline" onClick={addGalleryImage}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Gallery preview */}
-              {form.gallery_images.length > 0 && (
-                <div className="space-y-2">
-                  {form.gallery_images.map((url, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border border-border/50">
-                      <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
-                      <img 
-                        src={url} 
-                        alt={`Gallery ${index + 1}`} 
-                        className="w-12 h-12 object-cover rounded"
-                        onError={(e) => (e.currentTarget.src = '/placeholder.svg')}
-                      />
-                      <span className="flex-1 text-sm text-muted-foreground truncate">{url}</span>
-                      <div className="flex items-center gap-1">
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => moveGalleryImage(index, 'up')}
-                          disabled={index === 0}
-                        >
-                          ↑
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => moveGalleryImage(index, 'down')}
-                          disabled={index === form.gallery_images.length - 1}
-                        >
-                          ↓
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeGalleryImage(index)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  <p className="text-xs text-muted-foreground">
-                    {form.gallery_images.length} image(s) • Will cycle every 4 seconds with fullscreen lightbox
-                  </p>
-                </div>
-              )}
+              <MediaUploader
+                images={form.gallery_images}
+                videos={form.gallery_videos}
+                onImagesChange={(images) => setForm({ ...form, gallery_images: images })}
+                onVideosChange={(videos) => setForm({ ...form, gallery_videos: videos })}
+                maxImages={10}
+                maxVideos={2}
+                folder="projects"
+              />
             </div>
 
             <div className="flex gap-3 justify-end">
@@ -469,13 +398,12 @@ export default function ProjectsManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Project Team Dialog */}
       {teamDialogProject && (
         <ProjectTeamDialog
-          open={!!teamDialogProject}
-          onOpenChange={(open) => !open && setTeamDialogProject(null)}
           projectId={teamDialogProject.id}
           projectTitle={teamDialogProject.title}
+          open={!!teamDialogProject}
+          onOpenChange={(open) => !open && setTeamDialogProject(null)}
         />
       )}
     </div>
