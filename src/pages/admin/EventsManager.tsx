@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Calendar, MapPin, Users, Star, Ticket } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, MapPin, Users, Star, Ticket, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ import {
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { MediaUploader } from "@/components/admin/MediaUploader";
 
 const eventTypes = ["Launch", "Conference", "Workshop", "Summit", "Meetup", "Event"];
 
@@ -46,6 +47,8 @@ interface EventForm {
   capacity: number;
   is_featured: boolean;
   type: string;
+  gallery_images: string[];
+  gallery_videos: string[];
 }
 
 const defaultForm: EventForm = {
@@ -58,6 +61,8 @@ const defaultForm: EventForm = {
   capacity: 100,
   is_featured: false,
   type: "Event",
+  gallery_images: [],
+  gallery_videos: [],
 };
 
 export default function EventsManager() {
@@ -79,6 +84,8 @@ export default function EventsManager() {
   };
 
   const openEditDialog = (event: any) => {
+    const galleryImages = Array.isArray(event.gallery_images) ? event.gallery_images : [];
+    const galleryVideos = Array.isArray(event.gallery_videos) ? event.gallery_videos : [];
     setForm({
       name: event.name,
       description: event.description || "",
@@ -89,6 +96,8 @@ export default function EventsManager() {
       capacity: event.capacity || 100,
       is_featured: event.is_featured || false,
       type: event.type || "Event",
+      gallery_images: galleryImages,
+      gallery_videos: galleryVideos,
     });
     setEditingId(event.id);
     setIsDialogOpen(true);
@@ -98,9 +107,15 @@ export default function EventsManager() {
     e.preventDefault();
     
     try {
+      // Use first gallery image as main image if not set
+      const image_url = form.image_url || form.gallery_images[0] || "";
+      
       const eventData = {
         ...form,
         event_date: new Date(form.event_date).toISOString(),
+        image_url,
+        gallery_images: form.gallery_images,
+        gallery_videos: form.gallery_videos,
       };
       
       if (editingId) {
@@ -337,25 +352,31 @@ export default function EventsManager() {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Ticket Price (₹)</Label>
-                <Input
-                  type="number"
-                  value={form.ticket_price}
-                  onChange={(e) => setForm({ ...form, ticket_price: parseFloat(e.target.value) || 0 })}
-                  placeholder="0 for free events"
-                />
+            <div className="space-y-2">
+              <Label>Ticket Price (₹)</Label>
+              <Input
+                type="number"
+                value={form.ticket_price}
+                onChange={(e) => setForm({ ...form, ticket_price: parseFloat(e.target.value) || 0 })}
+                placeholder="0 for free events"
+              />
+            </div>
+
+            {/* Media Upload Section */}
+            <div className="space-y-3 p-4 border border-border rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Image className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Event Media</h3>
               </div>
-              
-              <div className="space-y-2">
-                <Label>Image URL</Label>
-                <Input
-                  value={form.image_url}
-                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
+              <MediaUploader
+                images={form.gallery_images}
+                videos={form.gallery_videos}
+                onImagesChange={(images) => setForm({ ...form, gallery_images: images })}
+                onVideosChange={(videos) => setForm({ ...form, gallery_videos: videos })}
+                maxImages={10}
+                maxVideos={2}
+                folder="events"
+              />
             </div>
 
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
