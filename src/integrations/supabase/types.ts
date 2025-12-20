@@ -1296,7 +1296,6 @@ export type Database = {
           created_at: string | null
           department: string | null
           designation: string | null
-          email: string | null
           hired_at: string | null
           id: string | null
           is_core_pillar: boolean | null
@@ -1310,7 +1309,6 @@ export type Database = {
           created_at?: string | null
           department?: string | null
           designation?: string | null
-          email?: string | null
           hired_at?: string | null
           id?: string | null
           is_core_pillar?: boolean | null
@@ -1324,7 +1322,6 @@ export type Database = {
           created_at?: string | null
           department?: string | null
           designation?: string | null
-          email?: string | null
           hired_at?: string | null
           id?: string | null
           is_core_pillar?: boolean | null

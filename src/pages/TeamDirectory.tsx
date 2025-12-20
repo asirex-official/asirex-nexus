@@ -41,7 +41,6 @@ import { Layout } from "@/components/layout/Layout";
 interface TeamMemberData {
   id: string | null;
   name: string | null;
-  email: string | null;
   role: string | null;
   department: string | null;
   designation: string | null;
@@ -106,8 +105,7 @@ export default function TeamDirectory() {
   const filteredMembers = useMemo(() => {
     return teamMembers.filter((member) => {
       const matchesSearch =
-        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         (member.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         (member.role?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
 
@@ -137,7 +135,7 @@ export default function TeamDirectory() {
     setSelectedMember({
       id: member.id,
       name: member.name,
-      email: member.email,
+      email: null, // Not available in public view
       phone: null, // Not available in public view
       role: member.role,
       department: member.department,
@@ -335,12 +333,9 @@ export default function TeamDirectory() {
                                 </Badge>
                               </div>
 
-                              {/* Contact */}
-                              <div className="w-full space-y-1 text-xs text-muted-foreground">
-                                <div className="flex items-center justify-center gap-1">
-                                  <Mail className="w-3 h-3" />
-                                  <span className="truncate">{member.email}</span>
-                                </div>
+                              {/* Department Badge */}
+                              <div className="w-full text-xs text-muted-foreground text-center">
+                                {member.department || "General"}
                               </div>
 
 
