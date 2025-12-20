@@ -13,6 +13,43 @@ interface VerifyPaymentRequest {
   order_id: string; // Our database order ID
 }
 
+// Rate limiting: track requests per user/order
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 5; // max verification attempts per order
+const RATE_WINDOW = 300000; // 5 minutes (ms)
+
+// Track failed verification attempts per order
+const failedAttemptsMap = new Map<string, number>();
+const MAX_FAILED_ATTEMPTS = 5;
+
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(identifier);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + RATE_WINDOW });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
+
+function trackFailedAttempt(orderId: string): number {
+  const current = failedAttemptsMap.get(orderId) || 0;
+  const newCount = current + 1;
+  failedAttemptsMap.set(orderId, newCount);
+  return newCount;
+}
+
+function isOrderLocked(orderId: string): boolean {
+  return (failedAttemptsMap.get(orderId) || 0) >= MAX_FAILED_ATTEMPTS;
+}
+
 // HMAC SHA256 verification
 async function verifySignature(
   orderId: string,
@@ -58,6 +95,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     const data: VerifyPaymentRequest = await req.json();
 
+    // Check if order is locked due to too many failed attempts
+    if (isOrderLocked(data.order_id)) {
+      console.error("Order locked due to too many failed verification attempts:", data.order_id);
+      return new Response(
+        JSON.stringify({ 
+          error: "Verification locked", 
+          message: "Too many failed attempts. Please contact support." 
+        }),
+        { status: 423, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Rate limit per order
+    if (!checkRateLimit(`order:${data.order_id}`)) {
+      console.log("Rate limit exceeded for order:", data.order_id);
+      return new Response(
+        JSON.stringify({ 
+          error: "Too many attempts", 
+          message: "Please wait before trying again." 
+        }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Verify the payment signature
     const isValid = await verifySignature(
       data.razorpay_order_id,
@@ -67,12 +128,21 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (!isValid) {
-      console.error("Payment signature verification failed");
+      const failedCount = trackFailedAttempt(data.order_id);
+      console.error(`Payment signature verification failed for order ${data.order_id} (attempt ${failedCount})`);
+      
       return new Response(
-        JSON.stringify({ error: "Payment verification failed", verified: false }),
+        JSON.stringify({ 
+          error: "Payment verification failed", 
+          verified: false,
+          attemptsRemaining: MAX_FAILED_ATTEMPTS - failedCount
+        }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    // Clear failed attempts on successful verification
+    failedAttemptsMap.delete(data.order_id);
 
     // Update order status in database
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
