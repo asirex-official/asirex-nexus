@@ -27,6 +27,7 @@ export interface TeamMember {
   designation?: string;
   serialNumber?: string;
   lastSeen?: string;
+  user_id?: string;
 }
 
 interface AddTeamMemberDialogProps {
@@ -349,6 +350,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         coreType: coreType,
         serialNumber: data.serial_number || serialNumber,
         photo: profileImageUrl || undefined,
+        user_id: userId || undefined,
       };
 
       onAdd(newMember);
