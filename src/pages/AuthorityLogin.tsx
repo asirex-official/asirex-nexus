@@ -152,14 +152,15 @@ export default function AuthorityLogin() {
   const { toast } = useToast();
 
   // Fetch team members from database and merge with templates
+  // Uses full team_members table (requires admin access for emails)
   useEffect(() => {
     const fetchTeamMembers = async () => {
       setIsLoadingCards(true);
       try {
-        // Use team_members_public view which has public access
+        // Use team_members table to get emails for login cards
         const { data: teamMembers, error } = await supabase
-          .from("team_members_public")
-          .select("*")
+          .from("team_members")
+          .select("id, name, email, role, department, designation, serial_number, is_core_pillar, profile_image, status")
           .eq("status", "active");
 
         if (error) throw error;
