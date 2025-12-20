@@ -803,7 +803,6 @@ const CEODashboard = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="finance" className="gap-1"><Calculator className="w-3 h-3" />Finance</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="website">Website</TabsTrigger>
             <TabsTrigger value="notices">Notices</TabsTrigger>
             <TabsTrigger value="audit" className="gap-1"><ScrollText className="w-3 h-3" />Audit</TabsTrigger>
           </TabsList>
@@ -1046,49 +1045,6 @@ const CEODashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="website" className="space-y-6">
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="w-5 h-5 text-primary" />Website Controls</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {websiteActions.map((action, index) => (
-                    <motion.button key={action.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }} onClick={action.action} className={`flex flex-col items-center gap-2 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}>
-                      <action.icon className="w-6 h-6" />
-                      <span className="text-xs font-medium text-center">{action.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><MessageSquare className="w-5 h-5 text-purple-500" />Communication</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {communicationActions.map((action, index) => (
-                    <motion.button key={action.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }} onClick={action.action} className={`flex flex-col items-center gap-2 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}>
-                      <action.icon className="w-6 h-6" />
-                      <span className="text-xs font-medium text-center">{action.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-amber-500" />Security Settings</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {securityActions.map((action, index) => (
-                    <motion.button key={action.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }} onClick={action.action} className={`flex flex-col items-center gap-2 p-4 rounded-xl ${action.color} transition-all hover:scale-105`}>
-                      <action.icon className="w-6 h-6" />
-                      <span className="text-xs font-medium text-center">{action.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="notices" className="space-y-6">
             <Card>
