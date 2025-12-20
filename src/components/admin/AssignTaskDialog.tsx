@@ -46,6 +46,12 @@ export function AssignTaskDialog({ open, onOpenChange, members, onTaskAssigned }
       const assignedMember = members.find(m => m.id === selectedMember);
       const currentUser = (await supabase.auth.getUser()).data.user;
 
+      if (!assignedMember?.user_id) {
+        toast.error("This team member doesn't have a linked user account");
+        setIsLoading(false);
+        return;
+      }
+
       // Insert task into database
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
@@ -55,7 +61,7 @@ export function AssignTaskDialog({ open, onOpenChange, members, onTaskAssigned }
           priority: formData.priority,
           status: 'pending',
           due_date: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
-          assigned_to: assignedMember?.id || null,
+          assigned_to: assignedMember.user_id,
           assigned_by: currentUser?.id,
         })
         .select()
@@ -201,10 +207,10 @@ export function AssignTaskDialog({ open, onOpenChange, members, onTaskAssigned }
               <Users className="w-4 h-4" /> Assign To *
             </Label>
             <div className="max-h-[200px] overflow-y-auto space-y-2 p-3 bg-muted/50 rounded-lg border">
-              {members.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No team members available</p>
+              {members.filter(m => m.user_id).length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No team members with linked accounts available</p>
               ) : (
-                members.map((member) => (
+                members.filter(m => m.user_id).map((member) => (
                   <label
                     key={member.id}
                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${

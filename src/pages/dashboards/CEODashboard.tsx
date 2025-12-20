@@ -193,6 +193,7 @@ const CEODashboard = () => {
           phone: m.phone || undefined,
           designation: m.designation || undefined,
           lastSeen: m.last_seen || undefined,
+          user_id: m.user_id || undefined,
         }));
         setTeamMembers(mappedTeam);
       }
