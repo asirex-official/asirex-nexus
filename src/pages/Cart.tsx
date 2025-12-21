@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Trash2, Plus, Minus, Tag, ArrowRight, ShoppingBag } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, Tag, ArrowRight, ShoppingBag, Loader2, Percent, BadgeIndianRupee } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,18 +10,31 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
-  const { items, removeFromCart, updateQuantity, totalItems, totalPrice, appliedCoupon, discount, applyCoupon, removeCoupon } = useCart();
+  const { items, removeFromCart, updateQuantity, totalItems, totalPrice, appliedCoupon, couponInfo, discount, applyCoupon, removeCoupon, validatingCoupon } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [couponCode, setCouponCode] = useState("");
 
-  const handleApplyCoupon = () => {
-    if (applyCoupon(couponCode)) {
-      toast({ title: "Coupon Applied!", description: `You saved ₹${discount.toLocaleString()}` });
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast({ title: "Enter a code", description: "Please enter a coupon code", variant: "destructive" });
+      return;
+    }
+    
+    const result = await applyCoupon(couponCode);
+    if (result.success) {
+      toast({ 
+        title: "Coupon Applied!", 
+        description: `You saved ₹${discount.toLocaleString() || 'some amount'}` 
+      });
       setCouponCode("");
     } else {
-      toast({ title: "Invalid Coupon", description: "This coupon code is not valid", variant: "destructive" });
+      toast({ 
+        title: "Invalid Coupon", 
+        description: result.error || "This coupon code is not valid", 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -157,25 +170,59 @@ export default function Cart() {
                 {/* Coupon Code */}
                 <div className="mb-6">
                   {appliedCoupon ? (
-                    <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4 text-primary" />
-                        <span className="font-medium">{appliedCoupon}</span>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+                        <div className="flex items-center gap-2">
+                          <Tag className="w-4 h-4 text-primary" />
+                          <span className="font-bold text-primary">{appliedCoupon}</span>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={removeCoupon} className="text-destructive hover:text-destructive">
+                          Remove
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={removeCoupon}>
-                        Remove
-                      </Button>
+                      {couponInfo && (
+                        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            {couponInfo.discount_type === 'percentage' ? (
+                              <Percent className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <BadgeIndianRupee className="w-4 h-4 text-green-500" />
+                            )}
+                            <span className="font-semibold text-green-600 dark:text-green-400">
+                              {couponInfo.discount_type === 'percentage' 
+                                ? `${couponInfo.discount_value}% OFF` 
+                                : `₹${couponInfo.discount_value.toLocaleString()} OFF`}
+                            </span>
+                          </div>
+                          {couponInfo.description && (
+                            <p className="text-xs text-muted-foreground">{couponInfo.description}</p>
+                          )}
+                          <p className="text-sm font-medium text-green-600 dark:text-green-400 mt-2">
+                            You're saving ₹{discount.toLocaleString()}!
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="flex gap-2">
                       <Input
                         placeholder="Enter coupon code"
                         value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         className="flex-1"
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                        disabled={validatingCoupon}
                       />
-                      <Button variant="outline" onClick={handleApplyCoupon}>
-                        Apply
+                      <Button 
+                        variant="outline" 
+                        onClick={handleApplyCoupon}
+                        disabled={validatingCoupon}
+                      >
+                        {validatingCoupon ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Apply"
+                        )}
                       </Button>
                     </div>
                   )}
@@ -187,8 +234,11 @@ export default function Cart() {
                     <span>₹{subtotal.toLocaleString()}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-green-500">
-                      <span>Discount ({appliedCoupon})</span>
+                    <div className="flex justify-between text-green-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" />
+                        Coupon Savings ({appliedCoupon})
+                      </span>
                       <span>-₹{discount.toLocaleString()}</span>
                     </div>
                   )}
