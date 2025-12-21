@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check, Shield, Truck, Award, Package } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check, Shield, Truck, Award, Package, AlertTriangle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,20 @@ import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { ImageLightbox } from "@/components/projects/ImageLightbox";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+// High-risk product categories that require special warning
+const HIGH_RISK_CATEGORIES = ["Gadgets", "Electronics", "Spy"];
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -22,6 +36,9 @@ export default function ProductDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [hasAgreedTerms, setHasAgreedTerms] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"cart" | "buy" | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,6 +70,14 @@ export default function ProductDetail() {
   }, [allImages.length]);
 
   const isInStock = (stockStatus: string | null) => stockStatus !== "out_of_stock";
+  
+  // Check if product requires risk warning
+  const isHighRiskProduct = product && HIGH_RISK_CATEGORIES.some(
+    cat => product.category?.toLowerCase().includes(cat.toLowerCase()) ||
+           product.name?.toLowerCase().includes("earpiece") ||
+           product.name?.toLowerCase().includes("spy") ||
+           product.name?.toLowerCase().includes("hidden")
+  );
 
   const getSpecsData = (specs: unknown): { features: string[]; benefits: string[] } => {
     if (!specs || typeof specs !== "object") return { features: [], benefits: [] };
@@ -66,11 +91,29 @@ export default function ProductDetail() {
     return { features, benefits };
   };
 
+  const proceedWithPurchase = (action: "cart" | "buy") => {
+    if (!product) return;
+    addToCart({ id: product.id, name: product.name, price: product.price, image_url: product.image_url });
+    if (action === "cart") {
+      toast({ title: "Added to Cart", description: `${product.name} added to your cart` });
+    } else {
+      navigate("/checkout");
+    }
+    setShowWarningDialog(false);
+    setHasAgreedTerms(false);
+    setPendingAction(null);
+  };
+
   const handleAddToCart = () => {
     if (!product || !isInStock(product.stock_status)) return;
     if (!user) {
       toast({ title: "Login Required", description: "Please sign in to add items to cart", variant: "destructive" });
       navigate("/auth?redirect=/shop");
+      return;
+    }
+    if (isHighRiskProduct) {
+      setPendingAction("cart");
+      setShowWarningDialog(true);
       return;
     }
     addToCart({ id: product.id, name: product.name, price: product.price, image_url: product.image_url });
@@ -82,6 +125,11 @@ export default function ProductDetail() {
     if (!user) {
       toast({ title: "Login Required", description: "Please sign in to purchase", variant: "destructive" });
       navigate("/auth?redirect=/shop");
+      return;
+    }
+    if (isHighRiskProduct) {
+      setPendingAction("buy");
+      setShowWarningDialog(true);
       return;
     }
     addToCart({ id: product.id, name: product.name, price: product.price, image_url: product.image_url });
@@ -268,6 +316,30 @@ export default function ProductDetail() {
                   </div>
                 )}
               </div>
+
+              {/* Risk Warning Banner */}
+              {isHighRiskProduct && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  className="p-4 rounded-2xl bg-destructive/10 border-2 border-destructive/30"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-full bg-destructive/20 flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-destructive text-sm mb-1">⚠️ Important Warning</h4>
+                      <p className="text-xs text-destructive/90 leading-relaxed">
+                        This product is sold for educational and experimental purposes only. 
+                        <span className="font-bold"> Purchase at your own risk.</span> All applicable taxes are the responsibility of the buyer. 
+                        We are not liable for any misuse or legal consequences arising from the use of this product.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Price Card */}
               <motion.div
@@ -573,6 +645,70 @@ export default function ProductDetail() {
         onClose={() => setIsLightboxOpen(false)}
         initialIndex={currentImageIndex}
       />
+
+      {/* Terms & Conditions Warning Dialog */}
+      <AlertDialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-destructive/20">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl">Warning & Terms</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30">
+                  <p className="text-sm text-destructive font-medium leading-relaxed">
+                    ⚠️ This product is intended for educational, experimental, and assistive purposes only. 
+                    Any misuse or illegal use of this product is strictly prohibited and is the sole responsibility of the buyer.
+                  </p>
+                </div>
+                
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p><strong>By proceeding, you acknowledge that:</strong></p>
+                  <ul className="list-disc list-inside space-y-1.5 text-xs">
+                    <li>You are purchasing this product at your own risk</li>
+                    <li>All applicable taxes are your responsibility</li>
+                    <li>The seller is not liable for any misuse or legal consequences</li>
+                    <li>You will use this product in compliance with all applicable laws</li>
+                    <li>No refunds will be provided once the product is shipped</li>
+                  </ul>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+                  <Checkbox
+                    id="agree-terms"
+                    checked={hasAgreedTerms}
+                    onCheckedChange={(checked) => setHasAgreedTerms(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="agree-terms" className="text-sm cursor-pointer leading-relaxed">
+                    I have read and agree to the terms and conditions. I understand the risks involved and accept full responsibility.
+                  </label>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel 
+              onClick={() => {
+                setHasAgreedTerms(false);
+                setPendingAction(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!hasAgreedTerms}
+              onClick={() => pendingAction && proceedWithPurchase(pendingAction)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              I Agree & Proceed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }
