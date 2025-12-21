@@ -12,6 +12,11 @@ import { Link } from "react-router-dom";
 import { PasswordResetDialog } from "@/components/auth/PasswordResetDialog";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { strongPasswordSchema, emailSchema } from "@/lib/security/passwordValidation";
+import { TwoFactorVerify } from "@/components/auth/TwoFactorVerify";
+import { Mandatory2FASetup } from "@/components/security/Mandatory2FASetup";
+import { TrustedDevicePrompt } from "@/components/security/TrustedDevicePrompt";
+import { generateDeviceFingerprint, storeDeviceFingerprint } from "@/lib/security/deviceFingerprint";
+import { logSecurityEvent, is2FARequired, is2FASetupComplete } from "@/lib/security/sessionSecurity";
 import {
   Tooltip,
   TooltipContent,
