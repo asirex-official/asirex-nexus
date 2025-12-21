@@ -116,7 +116,7 @@ export default function FAQ() {
         },
         {
           question: "How can I contact customer support?",
-          answer: "Reach us via email at support@asirex.in, WhatsApp at +91 9876543210, or use the live chat on our website. Support hours: 9 AM - 9 PM IST, Monday to Saturday."
+          answer: "Reach us via email at support@asirex.in or use the live chat on our website. Support hours: 9 AM - 9 PM IST, Monday to Saturday. You can also visit our Contact page for more options."
         },
         {
           question: "Can I cancel my newsletter subscription?",

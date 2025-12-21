@@ -186,9 +186,9 @@ export default function ManagerDashboard() {
                     <Users className="w-6 h-6 text-green-500" />
                     <span className="text-xs">View Team</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex flex-col gap-2" onClick={() => toast.info("Start meeting - Coming soon")}>
+                  <Button variant="outline" className="h-20 flex flex-col gap-2" onClick={() => setActiveTab("meetings")}>
                     <Video className="w-6 h-6 text-purple-500" />
-                    <span className="text-xs">Start Meeting</span>
+                    <span className="text-xs">View Meetings</span>
                   </Button>
                   <Button variant="outline" className="h-20 flex flex-col gap-2" onClick={() => setActiveTab("projects")}>
                     <FolderKanban className="w-6 h-6 text-orange-500" />

@@ -79,7 +79,7 @@ export function ScheduleMeetingDialog({ open, onOpenChange, members, onMeetingSc
           description: formData.description || null,
           meeting_date: meetingDateTime.toISOString(),
           duration_minutes: parseInt(formData.duration),
-          meeting_link: formData.meetingLink || `https://meet.asirex.in/${Date.now().toString(36)}`,
+          meeting_link: formData.meetingLink || `https://meet.google.com/new`,
           attendees: attendeeDetails,
           status: 'scheduled',
           created_by: (await supabase.auth.getUser()).data.user?.id,

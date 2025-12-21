@@ -162,10 +162,6 @@ export default function RefundPolicy() {
                   <Mail className="w-4 h-4 text-primary" />
                   <span>support@asirex.in</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span>+91 9876543210</span>
-                </div>
               </div>
               <Button className="mt-6" onClick={() => navigate("/about#contact")}>
                 Contact Support

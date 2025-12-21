@@ -47,11 +47,12 @@ export function StartMeetingDialog({ open, onOpenChange, members }: StartMeeting
       return;
     }
 
-    // Generate mock meeting link
-    const mockLink = `https://meet.asirex.in/${Date.now().toString(36)}`;
-    setMeetingLink(mockLink);
+    // Generate Google Meet link format (users can replace with actual meeting)
+    const meetingId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    const meetLink = `https://meet.google.com/new?hs=180&authuser=0`;
+    setMeetingLink(meetLink);
     setMeetingCreated(true);
-    toast.success("Meeting created successfully!");
+    toast.success("Meeting created! Click 'Start Now' to open Google Meet.");
   };
 
   const copyLink = () => {
