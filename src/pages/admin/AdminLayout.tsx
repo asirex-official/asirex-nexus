@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -18,13 +18,18 @@ import {
   Newspaper,
   Sparkles,
   BarChart3,
-  Info
+  Info,
+  ShieldAlert,
+  Key
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
-import { useState } from "react";
+import PinVerification from "@/components/admin/PinVerification";
+import ChangePinDialog from "@/components/admin/ChangePinDialog";
+import { useIdleTimeout } from "@/hooks/useIdleTimeout";
+import { toast } from "sonner";
 
 const navItems = [
   { path: "/admin/users", icon: Users, label: "Users" },
@@ -44,11 +49,27 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { totalUnread: unreadChats } = useUnreadChats();
+  const [isPinVerified, setIsPinVerified] = useState(false);
+  const [showChangePin, setShowChangePin] = useState(false);
+
+  // Session timeout - lock after 5 minutes of inactivity
+  const handleSessionTimeout = useCallback(() => {
+    if (isPinVerified) {
+      setIsPinVerified(false);
+      toast.warning("Session locked due to inactivity. Please re-enter your PIN.");
+    }
+  }, [isPinVerified]);
+
+  useIdleTimeout({
+    timeout: 5 * 60 * 1000, // 5 minutes for admin
+    onIdle: handleSessionTimeout,
+    enabled: isPinVerified,
+  });
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -68,9 +89,37 @@ export default function AdminLayout() {
     return null;
   }
 
+  // Show PIN verification screen for admins
+  if (!isPinVerified) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+        <PinVerification 
+          userId={user.id} 
+          onVerified={() => setIsPinVerified(true)}
+          onSetupComplete={() => setIsPinVerified(true)}
+        />
+        <div className="fixed bottom-8 left-0 right-0 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+            <ShieldAlert className="w-4 h-4 text-yellow-500" />
+            <span className="text-sm text-yellow-600 dark:text-yellow-400">
+              Admin Panel Protected - PIN Required
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSignOut = async () => {
+    setIsPinVerified(false);
     await signOut();
     navigate("/");
+  };
+
+  const handleLockSession = () => {
+    setIsPinVerified(false);
+    toast.info("Session locked. Enter your PIN to continue.");
   };
 
   return (
@@ -93,7 +142,7 @@ export default function AdminLayout() {
           </Link>
         </div>
 
-        <nav className="p-4 pt-20 lg:pt-4 space-y-1">
+        <nav className="p-4 pt-20 lg:pt-4 space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             
@@ -120,7 +169,7 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
           <div className="flex items-center gap-3 mb-4 px-4">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
               <span className="text-primary font-semibold">
@@ -129,17 +178,42 @@ export default function AdminLayout() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user.email}</p>
-              <p className="text-xs text-muted-foreground">Administrator</p>
+              <p className="text-xs text-muted-foreground">
+                {isSuperAdmin ? "Super Admin" : "Administrator"}
+              </p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={handleSignOut}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1"
+                onClick={() => setShowChangePin(true)}
+              >
+                <Key className="w-4 h-4 mr-1" />
+                PIN
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1"
+                onClick={handleLockSession}
+              >
+                <ShieldAlert className="w-4 h-4 mr-1" />
+                Lock
+              </Button>
+            </div>
+            <Button 
+              variant="destructive" 
+              className="w-full" 
+              onClick={handleSignOut}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </aside>
 
@@ -162,6 +236,13 @@ export default function AdminLayout() {
           <Outlet />
         </motion.div>
       </main>
+
+      {/* Change PIN Dialog */}
+      <ChangePinDialog 
+        open={showChangePin}
+        onOpenChange={setShowChangePin}
+        userId={user.id}
+      />
     </div>
   );
 }
