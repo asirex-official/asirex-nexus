@@ -39,20 +39,14 @@ type SocialLink = {
   label: string;
 };
 
-const defaultSocialLinks: SocialLink[] = [
-  { image: whatsappLogo, href: "#", label: "WhatsApp" },
-  { image: instagramLogo, href: "#", label: "Instagram" },
-  { image: twitterLogo, href: "#", label: "Twitter" },
-  { image: gmailLogo, href: "#", label: "Email" },
-];
 export function Footer() {
   const { data: companyInfo } = useCompanyInfo();
 
   const socialLinks: SocialLink[] = [
-    { image: whatsappLogo, href: "#", label: "WhatsApp" },
-    { image: instagramLogo, href: companyInfo?.social_instagram || "#", label: "Instagram" },
-    { image: twitterLogo, href: companyInfo?.social_twitter || "#", label: "Twitter" },
-    { image: gmailLogo, href: companyInfo?.contact_email ? `mailto:${companyInfo.contact_email}` : "#", label: "Email" },
+    { image: whatsappLogo, href: "https://wa.me/919876543210", label: "WhatsApp" },
+    { image: instagramLogo, href: companyInfo?.social_instagram || "https://instagram.com/asirex", label: "Instagram" },
+    { image: twitterLogo, href: companyInfo?.social_twitter || "https://twitter.com/asirex", label: "Twitter" },
+    { image: gmailLogo, href: companyInfo?.contact_email ? `mailto:${companyInfo.contact_email}` : "mailto:support@asirex.in", label: "Email" },
   ];
 
   return (

@@ -42,10 +42,10 @@ const CorePillarDashboard = () => {
   const department = searchParams.get("department") || "Department";
 
   const quickActions = [
-    { label: "Join Meeting", icon: Video, color: "bg-blue-500/10 text-blue-500", action: () => toast.info("Join Meeting - Check your email for link") },
-    { label: "Start Meeting", icon: Video, color: "bg-green-500/10 text-green-500", action: () => toast.info("Start Meeting - Coming Soon") },
+    { label: "Join Meeting", icon: Video, color: "bg-blue-500/10 text-blue-500", action: () => setActiveTab("meetings") },
+    { label: "View Meetings", icon: Calendar, color: "bg-green-500/10 text-green-500", action: () => setActiveTab("meetings") },
     { label: "Today's Work", icon: Briefcase, color: "bg-purple-500/10 text-purple-500", action: () => setActiveTab("tasks") },
-    { label: "Upcoming Events", icon: Calendar, color: "bg-orange-500/10 text-orange-500", action: () => setActiveTab("events") },
+    { label: "Upcoming Events", icon: Calendar, color: "bg-orange-500/10 text-orange-500", action: () => navigate("/events") },
   ];
 
   const stats = [

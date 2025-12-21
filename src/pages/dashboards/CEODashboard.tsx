@@ -666,15 +666,15 @@ const CEODashboard = () => {
     { label: "Edit Projects", icon: Layers, color: "bg-purple-500/10 text-purple-500", action: () => navigate("/admin/visual-editor?page=projects") },
     { label: "Edit Events", icon: Calendar, color: "bg-orange-500/10 text-orange-500", action: () => navigate("/admin/visual-editor?page=events") },
     { label: "Design System", icon: Palette, color: "bg-pink-500/10 text-pink-500", action: () => navigate("/admin/visual-editor?page=design-system") },
-    { label: "View Analytics", icon: PieChart, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Analytics dashboard coming soon") },
-    { label: "SEO Settings", icon: Search, color: "bg-yellow-500/10 text-yellow-500", action: () => toast.info("SEO settings coming soon") },
+    { label: "View Analytics", icon: PieChart, color: "bg-cyan-500/10 text-cyan-500", action: () => setActiveTab("analytics") },
+    { label: "Manage Settings", icon: Search, color: "bg-yellow-500/10 text-yellow-500", action: () => navigate("/admin/settings") },
   ];
 
   const communicationActions = [
-    { label: "Send Email", icon: Mail, color: "bg-blue-500/10 text-blue-500", action: () => toast.info("Email feature coming soon") },
-    { label: "Call Team", icon: Phone, color: "bg-green-500/10 text-green-500", action: () => toast.info("Call feature coming soon") },
-    { label: "Team Chat", icon: MessageSquare, color: "bg-purple-500/10 text-purple-500", action: () => toast.info("Chat feature coming soon") },
-    { label: "Share Update", icon: Share2, color: "bg-cyan-500/10 text-cyan-500", action: () => toast.info("Share update feature coming soon") },
+    { label: "Post Notice", icon: Megaphone, color: "bg-blue-500/10 text-blue-500", action: () => setShowNotice(true) },
+    { label: "Schedule Meeting", icon: Calendar, color: "bg-green-500/10 text-green-500", action: () => setShowScheduleMeeting(true) },
+    { label: "View Chats", icon: MessageSquare, color: "bg-purple-500/10 text-purple-500", action: () => navigate("/admin/chat") },
+    { label: "Start Meeting", icon: Video, color: "bg-cyan-500/10 text-cyan-500", action: () => setShowMeeting(true) },
   ];
 
   const securityActions = [
