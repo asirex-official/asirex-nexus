@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Bell, Send, Users, Calendar, ShoppingBag, Ticket, Megaphone, Sparkles, Clock, CheckCircle } from "lucide-react";
+import { Bell, Send, Users, Calendar, ShoppingBag, Ticket, Megaphone, Sparkles, Clock, CheckCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -92,8 +93,9 @@ export function BulkNotificationSender() {
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
   const [targetLimit, setTargetLimit] = useState("");
+  const [sendEmail, setSendEmail] = useState(false);
   const [sending, setSending] = useState(false);
-  const [lastSent, setLastSent] = useState<{ count: number; time: Date } | null>(null);
+  const [lastSent, setLastSent] = useState<{ count: number; emailCount?: number; time: Date } | null>(null);
 
   const handleSend = async () => {
     if (!selectedCategory || !title || !message) {
@@ -117,19 +119,22 @@ export function BulkNotificationSender() {
           link: link || undefined,
           target_category: selectedCategory,
           target_limit: targetLimit ? parseInt(targetLimit) : undefined,
+          send_email: sendEmail,
         },
       });
 
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Notification sent to ${data.sent_count} users!`);
-        setLastSent({ count: data.sent_count, time: new Date() });
+        const emailInfo = data.emails_sent ? ` (${data.emails_sent} emails sent)` : '';
+        toast.success(`Notification sent to ${data.sent_count} users!${emailInfo}`);
+        setLastSent({ count: data.sent_count, emailCount: data.emails_sent, time: new Date() });
         // Reset form
         setTitle("");
         setMessage("");
         setLink("");
         setSelectedCategory("");
+        setSendEmail(false);
       } else {
         throw new Error(data?.error || "Failed to send notifications");
       }
@@ -254,6 +259,18 @@ export function BulkNotificationSender() {
               />
             </div>
 
+            {/* Email Toggle */}
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border">
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium text-sm">Also send via email</p>
+                  <p className="text-xs text-muted-foreground">Send email in addition to in-app notification</p>
+                </div>
+              </div>
+              <Switch checked={sendEmail} onCheckedChange={setSendEmail} />
+            </div>
+
             {/* Preview */}
             {(title || message) && (
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
@@ -291,7 +308,7 @@ export function BulkNotificationSender() {
 
             {lastSent && (
               <p className="text-center text-sm text-muted-foreground">
-                ✓ Last sent to {lastSent.count} users at {lastSent.time.toLocaleTimeString()}
+                ✓ Last sent to {lastSent.count} users{lastSent.emailCount ? `, ${lastSent.emailCount} emails` : ''} at {lastSent.time.toLocaleTimeString()}
               </p>
             )}
           </CardContent>
