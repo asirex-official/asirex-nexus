@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, Grid, List, ShoppingCart, Star, Eye } from "lucide-react";
+import { Search, SlidersHorizontal, Grid, List, ShoppingCart, Star, Eye, Zap } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,43 +139,43 @@ export default function Shop() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="glass-card p-4 mb-8"
+            className="glass-card p-3 sm:p-4 mb-6 sm:mb-8"
           >
-            <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Search */}
-              <div className="relative flex-1">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-muted/50 border-border"
+                  className="pl-10 bg-muted/50 border-border w-full"
                 />
               </div>
 
-              {/* Category Filter */}
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {/* Category Filter - Scrollable on mobile */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
                 {categories.map((cat) => (
                   <Button
                     key={cat}
                     variant={selectedCategory === cat ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setSelectedCategory(cat)}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3"
                   >
                     {cat}
                   </Button>
                 ))}
               </div>
 
-              {/* Sort & View */}
-              <div className="flex gap-2">
+              {/* Sort & View - Stack on mobile */}
+              <div className="flex flex-wrap gap-2 items-center justify-between">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40 bg-muted/50">
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
+                  <SelectTrigger className="w-full sm:w-40 bg-muted/50 text-sm">
+                    <SlidersHorizontal className="w-4 h-4 mr-2 flex-shrink-0" />
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border-border z-50">
                     <SelectItem value="featured">Featured</SelectItem>
                     <SelectItem value="price-low">Price: Low to High</SelectItem>
                     <SelectItem value="price-high">Price: High to Low</SelectItem>
@@ -183,10 +183,11 @@ export default function Shop() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex gap-1 p-1 bg-muted/50 rounded-lg">
+                <div className="flex gap-1 p-1 bg-muted/50 rounded-lg ml-auto">
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => setViewMode("grid")}
                   >
                     <Grid className="w-4 h-4" />
@@ -194,6 +195,7 @@ export default function Shop() {
                   <Button
                     variant={viewMode === "list" ? "default" : "ghost"}
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => setViewMode("list")}
                   >
                     <List className="w-4 h-4" />
@@ -215,8 +217,8 @@ export default function Shop() {
             <div
               className={
                 viewMode === "grid"
-                  ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                  : "flex flex-col gap-4"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                  : "flex flex-col gap-3 sm:gap-4"
               }
             >
               {filteredProducts.map((product, index) => (
@@ -280,40 +282,58 @@ export default function Shop() {
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 flex-1">
-                      <p className="text-xs font-medium text-primary uppercase tracking-wider mb-2">
+                    <div className="p-4 sm:p-6 flex-1">
+                      <p className="text-xs font-medium text-primary uppercase tracking-wider mb-1 sm:mb-2">
                         {product.category}
                       </p>
-                      <h3 className="font-display text-lg font-semibold mb-2 group-hover:text-accent transition-colors">
+                      <h3 className="font-display text-base sm:text-lg font-semibold mb-1 sm:mb-2 group-hover:text-accent transition-colors line-clamp-1">
                         {product.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
                         {product.description || "No description available"}
                       </p>
 
                       {product.rating && (
-                        <div className="flex items-center gap-2 mb-4">
-                          <Star className="w-4 h-4 fill-accent text-accent" />
-                          <span className="text-sm font-medium">{product.rating}</span>
+                        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                          <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-accent text-accent" />
+                          <span className="text-xs sm:text-sm font-medium">{product.rating}</span>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-baseline gap-2">
-                          <span className="font-display text-xl font-bold">
-                            ₹{product.price.toLocaleString()}
-                          </span>
-                        </div>
+                      {/* Price */}
+                      <div className="mb-3">
+                        <span className="font-display text-lg sm:text-xl font-bold">
+                          ₹{product.price.toLocaleString()}
+                        </span>
+                      </div>
+
+                      {/* Action Buttons - Stack on mobile */}
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                           variant="glow"
                           size="sm"
+                          className="flex-1 text-xs sm:text-sm"
                           disabled={!isInStock(product.stock_status)}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAddToCart(product);
                           }}
                         >
+                          <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           Add to Cart
+                        </Button>
+                        <Button
+                          variant="premium"
+                          size="sm"
+                          className="flex-1 text-xs sm:text-sm"
+                          disabled={!isInStock(product.stock_status)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBuyNow(product);
+                          }}
+                        >
+                          <Zap className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Buy Now
                         </Button>
                       </div>
                     </div>

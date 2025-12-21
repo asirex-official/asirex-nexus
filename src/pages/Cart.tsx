@@ -80,64 +80,66 @@ export default function Cart() {
             <p className="text-muted-foreground">{totalItems} items in your cart</p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-3 sm:space-y-4">
               {items.map((item, index) => (
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="glass-card p-4 flex gap-4"
+                  className="glass-card p-3 sm:p-4"
                 >
-                  <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <ShoppingCart className="w-8 h-8 text-muted-foreground" />
-                    )}
-                  </div>
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+                      )}
+                    </div>
 
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-lg font-bold text-primary">₹{item.price.toLocaleString()}</p>
-
-                    <div className="flex items-center gap-4 mt-3">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="font-semibold text-sm sm:text-base line-clamp-1">{item.name}</h3>
+                        <p className="font-bold text-sm sm:text-lg flex-shrink-0">₹{(item.price * item.quantity).toLocaleString()}</p>
                       </div>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => removeFromCart(item.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Remove
-                      </Button>
+                      <p className="text-sm sm:text-base font-bold text-primary mt-1">₹{item.price.toLocaleString()}</p>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <p className="font-bold text-lg">₹{(item.price * item.quantity).toLocaleString()}</p>
+                  {/* Actions - Below on mobile */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-border/50">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      <span className="w-8 text-center font-medium">{item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive text-xs sm:text-sm"
+                      onClick={() => removeFromCart(item.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Remove
+                    </Button>
                   </div>
                 </motion.div>
               ))}
@@ -146,9 +148,9 @@ export default function Cart() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="glass-card p-6 sticky top-24"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card p-4 sm:p-6 sticky top-24"
               >
                 <h2 className="font-display text-xl font-bold mb-6">Order Summary</h2>
 

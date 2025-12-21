@@ -241,18 +241,40 @@ export function Header() {
                   </Link>
                 </motion.div>
               ))}
+              {/* Cart Button for Mobile */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: navLinks.length * 0.1 }}
+              >
+                <Link
+                  to="/cart"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    Cart
+                  </span>
+                  {totalItems > 0 && (
+                    <span className="px-2 py-0.5 bg-accent text-accent-foreground text-sm font-bold rounded-full">
+                      {totalItems}
+                    </span>
+                  )}
+                </Link>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (navLinks.length + 1) * 0.1 }}
                 className="pt-4 flex flex-col gap-3"
               >
                 {/* Track Order and Live Chat - for all users */}
-                <Button variant="glass" className="w-full" onClick={handleTrackOrder}>
+                <Button variant="glass" className="w-full justify-start" onClick={handleTrackOrder}>
                   <Package className="w-4 h-4 mr-2" />
                   Track Order
                 </Button>
-                <Button variant="glass" className="w-full" onClick={handleLiveChat}>
+                <Button variant="glass" className="w-full justify-start" onClick={handleLiveChat}>
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Live Chat
                 </Button>
