@@ -64,6 +64,9 @@ import Notifications from "./pages/Notifications";
 import TeamDirectory from "./pages/TeamDirectory";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
+import FAQ from "./pages/FAQ";
+import ShippingInfo from "./pages/ShippingInfo";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +99,9 @@ const App = () => (
             <Route path="/support-us" element={<SupportUs />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/shipping-info" element={<ShippingInfo />} />
             <Route path="/customers/private" element={<PrivateCompanies />} />
             <Route path="/customers/government" element={<GovernmentCustomers />} />
             <Route path="/values/mission" element={<Mission />} />

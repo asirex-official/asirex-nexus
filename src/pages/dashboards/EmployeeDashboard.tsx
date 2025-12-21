@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Progress } from "@/components/ui/progress";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 
 interface Task {
   id: string;
@@ -37,6 +38,23 @@ interface Task {
   description: string | null;
 }
 
+interface AttendanceData {
+  presentDays: number;
+  totalDays: number;
+  percentage: number;
+  lastCheckIn: string;
+  hoursToday: string;
+}
+
+interface SalaryInfo {
+  currentMonth: string;
+  bonus: string;
+  nextPayment: string;
+  status: string;
+  deductions: string;
+  netPay: string;
+}
+
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -44,6 +62,21 @@ export default function EmployeeDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [attendanceData, setAttendanceData] = useState<AttendanceData>({
+    presentDays: 0,
+    totalDays: 0,
+    percentage: 0,
+    lastCheckIn: "--",
+    hoursToday: "0h 0m",
+  });
+  const [salaryInfo, setSalaryInfo] = useState<SalaryInfo>({
+    currentMonth: "₹0",
+    bonus: "₹0",
+    nextPayment: "--",
+    status: "Pending",
+    deductions: "₹0",
+    netPay: "₹0",
+  });
 
   const { meetings, notices, notifications, unreadCount, markAsRead } = useRealtimeNotifications();
 
@@ -51,28 +84,104 @@ export default function EmployeeDashboard() {
   const title = searchParams.get("title") || "Team Member";
   const department = searchParams.get("department") || "Department";
 
-  // Mock attendance data
-  const attendanceData = {
-    presentDays: 22,
-    totalDays: 25,
-    percentage: 88,
-    lastCheckIn: "9:05 AM",
-    hoursToday: "6h 32m",
-  };
-
-  // Mock salary info
-  const salaryInfo = {
-    currentMonth: "₹25,000",
-    bonus: "₹2,500",
-    nextPayment: "Jan 31, 2025",
-    status: "On Track",
-    deductions: "₹2,000",
-    netPay: "₹25,500",
-  };
-
   useEffect(() => {
     fetchTasks();
+    fetchAttendanceData();
+    fetchSalaryInfo();
   }, [user]);
+
+  const fetchAttendanceData = async () => {
+    if (!user) return;
+    try {
+      const now = new Date();
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      
+      // Get attendance records for current month
+      const { data: attendance, error } = await supabase
+        .from("attendance")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("clock_in", monthStart.toISOString())
+        .lte("clock_in", monthEnd.toISOString());
+
+      if (error) throw error;
+
+      const presentDays = attendance?.length || 0;
+      const workingDays = Math.min(now.getDate(), 25); // Approximate working days
+      const percentage = workingDays > 0 ? Math.round((presentDays / workingDays) * 100) : 0;
+
+      // Get today's attendance
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayRecord = attendance?.find(a => 
+        new Date(a.clock_in).toDateString() === now.toDateString()
+      );
+
+      let hoursToday = "0h 0m";
+      let lastCheckIn = "--";
+      
+      if (todayRecord) {
+        lastCheckIn = format(new Date(todayRecord.clock_in), "h:mm a");
+        if (todayRecord.total_hours) {
+          const hours = Math.floor(todayRecord.total_hours);
+          const mins = Math.round((todayRecord.total_hours - hours) * 60);
+          hoursToday = `${hours}h ${mins}m`;
+        } else {
+          // Calculate hours if still clocked in
+          const clockIn = new Date(todayRecord.clock_in);
+          const diffMs = now.getTime() - clockIn.getTime();
+          const hours = Math.floor(diffMs / (1000 * 60 * 60));
+          const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          hoursToday = `${hours}h ${mins}m`;
+        }
+      }
+
+      setAttendanceData({
+        presentDays,
+        totalDays: workingDays,
+        percentage: Math.min(percentage, 100),
+        lastCheckIn,
+        hoursToday,
+      });
+    } catch (error) {
+      console.error("Error fetching attendance:", error);
+    }
+  };
+
+  const fetchSalaryInfo = async () => {
+    if (!user) return;
+    try {
+      // Get team member info for salary
+      const { data: teamMember, error: tmError } = await supabase
+        .from("team_members")
+        .select("salary, bonus")
+        .eq("user_id", user.id)
+        .single();
+
+      if (tmError && tmError.code !== "PGRST116") throw tmError;
+
+      const baseSalary = teamMember?.salary || 0;
+      const bonus = teamMember?.bonus || 0;
+      const deductions = Math.round(baseSalary * 0.08); // Approximate deductions
+      const netPay = baseSalary + bonus - deductions;
+
+      // Calculate next payment date (last day of current month)
+      const now = new Date();
+      const nextPaymentDate = endOfMonth(now);
+
+      setSalaryInfo({
+        currentMonth: `₹${baseSalary.toLocaleString("en-IN")}`,
+        bonus: `₹${bonus.toLocaleString("en-IN")}`,
+        nextPayment: format(nextPaymentDate, "MMM d, yyyy"),
+        status: "On Track",
+        deductions: `₹${deductions.toLocaleString("en-IN")}`,
+        netPay: `₹${netPay.toLocaleString("en-IN")}`,
+      });
+    } catch (error) {
+      console.error("Error fetching salary info:", error);
+    }
+  };
 
   const fetchTasks = async () => {
     if (!user) return;
