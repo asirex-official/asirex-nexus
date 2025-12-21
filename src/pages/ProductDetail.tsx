@@ -279,63 +279,53 @@ export default function ProductDetail() {
                 </p>
               </div>
 
-              {/* Features & Benefits */}
+              {/* Features & Benefits - Compact Side by Side */}
               {(() => {
                 const { features, benefits } = getSpecsData(product.specs);
                 return (features.length > 0 || benefits.length > 0) && (
-                  <div className="space-y-6">
-                    {/* Features Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Features */}
                     {features.length > 0 && (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <Sparkles className="w-5 h-5 text-accent" />
-                          <h3 className="font-display text-xl font-bold">Key Features</h3>
+                          <Sparkles className="w-4 h-4 text-accent" />
+                          <h3 className="font-display text-base font-bold">Features</h3>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
                           {features.map((spec, i) => (
                             <motion.div
                               key={i}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: i * 0.1 }}
-                              className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-4 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                              className="group flex items-center gap-2 p-2 rounded-lg bg-accent/5 hover:bg-accent/10 border border-accent/20 hover:border-accent/40 transition-all"
                             >
-                              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-full" />
-                              <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
-                                  <Sparkles className="w-4 h-4 text-accent" />
-                                </div>
-                                <p className="text-sm text-foreground/80 leading-relaxed">{spec}</p>
-                              </div>
+                              <Sparkles className="w-3 h-3 text-accent flex-shrink-0" />
+                              <p className="text-xs text-foreground/80 line-clamp-2">{spec}</p>
                             </motion.div>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Benefits Grid */}
+                    {/* Benefits */}
                     {benefits.length > 0 && (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <Check className="w-5 h-5 text-primary" />
-                          <h3 className="font-display text-xl font-bold">Benefits</h3>
+                          <Check className="w-4 h-4 text-primary" />
+                          <h3 className="font-display text-base font-bold">Benefits</h3>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
                           {benefits.map((benefit, i) => (
                             <motion.div
                               key={i}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: i * 0.1 }}
-                              className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 to-muted/10 p-4 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                              className="group flex items-center gap-2 p-2 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all"
                             >
-                              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
-                              <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                                  <Check className="w-4 h-4 text-primary" />
-                                </div>
-                                <p className="text-sm text-foreground/80 leading-relaxed">{benefit}</p>
-                              </div>
+                              <Check className="w-3 h-3 text-primary flex-shrink-0" />
+                              <p className="text-xs text-foreground/80 line-clamp-2">{benefit}</p>
                             </motion.div>
                           ))}
                         </div>
