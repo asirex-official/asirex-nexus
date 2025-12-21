@@ -1089,6 +1089,75 @@ export type Database = {
           },
         ]
       }
+      sales_campaigns: {
+        Row: {
+          applies_to: string | null
+          banner_color: string | null
+          banner_message: string | null
+          created_at: string
+          created_by: string | null
+          current_orders: number | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          max_discount_amount: number | null
+          max_orders: number | null
+          min_order_amount: number | null
+          name: string
+          start_date: string
+          target_categories: Json | null
+          target_product_ids: Json | null
+          updated_at: string
+        }
+        Insert: {
+          applies_to?: string | null
+          banner_color?: string | null
+          banner_message?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_orders?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          max_orders?: number | null
+          min_order_amount?: number | null
+          name: string
+          start_date?: string
+          target_categories?: Json | null
+          target_product_ids?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          applies_to?: string | null
+          banner_color?: string | null
+          banner_message?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_orders?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          max_orders?: number | null
+          min_order_amount?: number | null
+          name?: string
+          start_date?: string
+          target_categories?: Json | null
+          target_product_ids?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string

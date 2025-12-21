@@ -7,7 +7,7 @@ import {
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
   Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea, Save,
-  Circle, Timer, Calculator, Wallet, ScrollText, Ticket, Send,
+  Circle, Timer, Calculator, Wallet, ScrollText, Ticket, Send, Sparkles,
 } from "lucide-react";
 import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 import { SecurityLogsViewer } from "@/components/admin/SecurityLogsViewer";
 import { CouponManager } from "@/components/admin/CouponManager";
 import { BulkNotificationSender } from "@/components/admin/BulkNotificationSender";
+import { SalesCampaignManager } from "@/components/admin/SalesCampaignManager";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -797,7 +798,7 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-12 w-full max-w-7xl">
+          <TabsList className="grid grid-cols-13 w-full max-w-7xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1"><ChartArea className="w-3 h-3" />Analytics</TabsTrigger>
             <TabsTrigger value="tasks" className="gap-1"><BarChart3 className="w-3 h-3" />Tasks</TabsTrigger>
@@ -805,6 +806,7 @@ const CEODashboard = () => {
             <TabsTrigger value="attendance" className="gap-1"><Timer className="w-3 h-3" />Attendance</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="finance" className="gap-1"><Calculator className="w-3 h-3" />Finance</TabsTrigger>
+            <TabsTrigger value="sales" className="gap-1"><Sparkles className="w-3 h-3" />Sales</TabsTrigger>
             <TabsTrigger value="coupons" className="gap-1"><Ticket className="w-3 h-3" />Coupons</TabsTrigger>
             <TabsTrigger value="notifications" className="gap-1"><Send className="w-3 h-3" />Notify</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
@@ -825,6 +827,10 @@ const CEODashboard = () => {
 
           <TabsContent value="coupons">
             <CouponManager />
+          </TabsContent>
+
+          <TabsContent value="sales">
+            <SalesCampaignManager />
           </TabsContent>
 
           <TabsContent value="notifications">
