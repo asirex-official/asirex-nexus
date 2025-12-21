@@ -798,21 +798,23 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-13 w-full max-w-7xl">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-1"><ChartArea className="w-3 h-3" />Analytics</TabsTrigger>
-            <TabsTrigger value="tasks" className="gap-1"><BarChart3 className="w-3 h-3" />Tasks</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="attendance" className="gap-1"><Timer className="w-3 h-3" />Attendance</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="finance" className="gap-1"><Calculator className="w-3 h-3" />Finance</TabsTrigger>
-            <TabsTrigger value="sales" className="gap-1"><Sparkles className="w-3 h-3" />Sales</TabsTrigger>
-            <TabsTrigger value="coupons" className="gap-1"><Ticket className="w-3 h-3" />Coupons</TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-1"><Send className="w-3 h-3" />Notify</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="notices">Notices</TabsTrigger>
-            <TabsTrigger value="audit" className="gap-1"><ScrollText className="w-3 h-3" />Audit</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto scrollbar-hide">
+            <TabsList className="inline-flex h-12 items-center gap-1 rounded-lg bg-muted p-1 min-w-max">
+              <TabsTrigger value="overview" className="gap-1.5 px-4"><Home className="w-4 h-4" />Overview</TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-1.5 px-4"><ChartArea className="w-4 h-4" />Analytics</TabsTrigger>
+              <TabsTrigger value="tasks" className="gap-1.5 px-4"><BarChart3 className="w-4 h-4" />Tasks</TabsTrigger>
+              <TabsTrigger value="team" className="gap-1.5 px-4"><Users className="w-4 h-4" />Team</TabsTrigger>
+              <TabsTrigger value="attendance" className="gap-1.5 px-4"><Timer className="w-4 h-4" />Attendance</TabsTrigger>
+              <TabsTrigger value="users" className="gap-1.5 px-4"><UserCog className="w-4 h-4" />Users</TabsTrigger>
+              <TabsTrigger value="finance" className="gap-1.5 px-4"><Calculator className="w-4 h-4" />Finance</TabsTrigger>
+              <TabsTrigger value="sales" className="gap-1.5 px-4"><Sparkles className="w-4 h-4" />Sales</TabsTrigger>
+              <TabsTrigger value="coupons" className="gap-1.5 px-4"><Ticket className="w-4 h-4" />Coupons</TabsTrigger>
+              <TabsTrigger value="notifications" className="gap-1.5 px-4"><Send className="w-4 h-4" />Notify</TabsTrigger>
+              <TabsTrigger value="content" className="gap-1.5 px-4"><Layers className="w-4 h-4" />Content</TabsTrigger>
+              <TabsTrigger value="notices" className="gap-1.5 px-4"><Bell className="w-4 h-4" />Notices</TabsTrigger>
+              <TabsTrigger value="audit" className="gap-1.5 px-4"><ScrollText className="w-4 h-4" />Audit</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="tasks" className="space-y-6">
             <div className="grid lg:grid-cols-3 gap-6">
