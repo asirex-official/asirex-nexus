@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Package, User, Calendar, CreditCard, Truck, MapPin, Send, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -68,6 +69,27 @@ export default function OrdersManager() {
     
     await handleUpdateStatus(selectedOrder.id, updates);
     await auditLog.logOrderShipped(selectedOrder.id, selectedOrder.customer_name, trackingNumber.trim() || undefined, trackingProvider);
+    
+    // Send shipping notification email
+    try {
+      await supabase.functions.invoke('send-shipping-notification', {
+        body: {
+          orderId: selectedOrder.id,
+          customerName: selectedOrder.customer_name,
+          customerEmail: selectedOrder.customer_email,
+          trackingNumber: trackingNumber.trim() || undefined,
+          trackingProvider: trackingProvider,
+          items: selectedOrder.items,
+          totalAmount: selectedOrder.total_amount,
+          shippingAddress: selectedOrder.shipping_address,
+          status: "shipped"
+        }
+      });
+      toast({ title: "Shipping notification sent", description: "Customer has been notified via email" });
+    } catch (error) {
+      console.error("Failed to send shipping notification:", error);
+    }
+    
     setTrackingNumber("");
   };
 
@@ -292,7 +314,28 @@ export default function OrdersManager() {
                       
                       {selectedOrder.order_status === "shipped" && (
                         <Button 
-                          onClick={() => handleUpdateStatus(selectedOrder.id, { order_status: "delivered" })}
+                          onClick={async () => {
+                            await handleUpdateStatus(selectedOrder.id, { order_status: "delivered" });
+                            // Send delivery notification email
+                            try {
+                              await supabase.functions.invoke('send-shipping-notification', {
+                                body: {
+                                  orderId: selectedOrder.id,
+                                  customerName: selectedOrder.customer_name,
+                                  customerEmail: selectedOrder.customer_email,
+                                  trackingNumber: selectedOrder.tracking_number,
+                                  trackingProvider: selectedOrder.tracking_provider,
+                                  items: selectedOrder.items,
+                                  totalAmount: selectedOrder.total_amount,
+                                  shippingAddress: selectedOrder.shipping_address,
+                                  status: "delivered"
+                                }
+                              });
+                              toast({ title: "Delivery notification sent" });
+                            } catch (error) {
+                              console.error("Failed to send delivery notification:", error);
+                            }
+                          }}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
