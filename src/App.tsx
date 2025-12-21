@@ -8,6 +8,7 @@ import { CartProvider } from "@/hooks/useCart";
 import { LiveChatProvider } from "@/hooks/useLiveChat";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import TrackOrder from "./pages/TrackOrder";
@@ -76,6 +77,7 @@ const App = () => (
               <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/shop" element={<Shop />} />
+              <Route path="/shop/:productId" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/track-order" element={<TrackOrder />} />
