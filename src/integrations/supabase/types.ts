@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_sessions: {
+        Row: {
+          created_at: string | null
+          device_fingerprint: string | null
+          expires_at: string
+          id: string
+          ip_address: string | null
+          is_current: boolean | null
+          last_activity_at: string | null
+          session_token_hash: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          is_current?: boolean | null
+          last_activity_at?: string | null
+          session_token_hash: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          is_current?: boolean | null
+          last_activity_at?: string | null
+          session_token_hash?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           action_details: Json | null
@@ -1188,6 +1227,51 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_logs: {
+        Row: {
+          action_category: string
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          device_fingerprint: string | null
+          geo_location: Json | null
+          id: string
+          ip_address: string | null
+          risk_level: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_category?: string
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          device_fingerprint?: string | null
+          geo_location?: Json | null
+          id?: string
+          ip_address?: string | null
+          risk_level?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_category?: string
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          device_fingerprint?: string | null
+          geo_location?: Json | null
+          id?: string
+          ip_address?: string | null
+          risk_level?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string
@@ -1385,6 +1469,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trusted_devices: {
+        Row: {
+          created_at: string | null
+          device_fingerprint: string
+          device_info: Json | null
+          device_name: string | null
+          id: string
+          ip_address: string | null
+          is_trusted: boolean | null
+          last_used_at: string | null
+          trust_expires_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_fingerprint: string
+          device_info?: Json | null
+          device_name?: string | null
+          id?: string
+          ip_address?: string | null
+          is_trusted?: boolean | null
+          last_used_at?: string | null
+          trust_expires_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_fingerprint?: string
+          device_info?: Json | null
+          device_name?: string | null
+          id?: string
+          ip_address?: string | null
+          is_trusted?: boolean | null
+          last_used_at?: string | null
+          trust_expires_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_2fa: {
         Row: {
           backup_codes_hash: string[] | null
@@ -1523,6 +1646,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_security_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_whitelist: string[] | null
+          is_2fa_setup_complete: boolean | null
+          last_password_change: string | null
+          max_sessions: number | null
+          require_2fa: boolean | null
+          require_reauth_for_sensitive: boolean | null
+          security_questions_set: boolean | null
+          session_timeout_minutes: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_whitelist?: string[] | null
+          is_2fa_setup_complete?: boolean | null
+          last_password_change?: string | null
+          max_sessions?: number | null
+          require_2fa?: boolean | null
+          require_reauth_for_sensitive?: boolean | null
+          security_questions_set?: boolean | null
+          session_timeout_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_whitelist?: string[] | null
+          is_2fa_setup_complete?: boolean | null
+          last_password_change?: string | null
+          max_sessions?: number | null
+          require_2fa?: boolean | null
+          require_reauth_for_sensitive?: boolean | null
+          security_questions_set?: boolean | null
+          session_timeout_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           admin_verified_at: string | null
@@ -1625,6 +1793,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_type: { Args: { _user_id: string }; Returns: boolean }
+      is_device_trusted: {
+        Args: { p_device_fingerprint: string; p_user_id: string }
+        Returns: boolean
+      }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       log_auth_attempt: {
         Args: {
@@ -1635,6 +1807,19 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          p_action_category?: string
+          p_action_type: string
+          p_details?: Json
+          p_device_fingerprint?: string
+          p_ip_address?: string
+          p_risk_level?: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
