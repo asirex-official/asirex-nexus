@@ -398,6 +398,133 @@ export default function ProductDetail() {
               )}
             </motion.div>
           </div>
+
+          {/* Customer Reviews Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="mt-16 lg:col-span-2"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="font-display text-2xl lg:text-3xl font-bold">Customer Reviews</h2>
+                <p className="text-muted-foreground text-sm mt-1">See what our customers are saying</p>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20">
+                <Star className="w-5 h-5 fill-accent text-accent" />
+                <span className="font-bold text-accent">{product.rating || 4.8}</span>
+                <span className="text-muted-foreground text-sm">(128 reviews)</span>
+              </div>
+            </div>
+
+            {/* Rating Breakdown */}
+            <div className="grid lg:grid-cols-3 gap-8 mb-10">
+              <div className="lg:col-span-1 p-6 rounded-2xl bg-gradient-to-br from-card to-muted/50 border border-border/50">
+                <div className="text-center mb-6">
+                  <span className="font-display text-5xl font-bold text-primary">{product.rating || 4.8}</span>
+                  <div className="flex justify-center gap-1 mt-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-5 h-5 ${star <= Math.round(product.rating || 4.8) ? 'fill-accent text-accent' : 'fill-muted text-muted'}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">Based on 128 reviews</p>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { stars: 5, percent: 72 },
+                    { stars: 4, percent: 18 },
+                    { stars: 3, percent: 6 },
+                    { stars: 2, percent: 3 },
+                    { stars: 1, percent: 1 },
+                  ].map((rating) => (
+                    <div key={rating.stars} className="flex items-center gap-3">
+                      <span className="text-sm font-medium w-3">{rating.stars}</span>
+                      <Star className="w-4 h-4 fill-accent text-accent" />
+                      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-accent to-primary"
+                          style={{ width: `${rating.percent}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-muted-foreground w-10">{rating.percent}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Customer Testimonials */}
+              <div className="lg:col-span-2 space-y-4">
+                {[
+                  {
+                    name: "Rajesh Kumar",
+                    rating: 5,
+                    date: "2 weeks ago",
+                    title: "Excellent product, highly recommend!",
+                    review: "Amazing quality and fast delivery. The product exceeded my expectations. Build quality is top-notch and it works perfectly. Customer support was also very helpful.",
+                    verified: true,
+                  },
+                  {
+                    name: "Priya Sharma",
+                    rating: 5,
+                    date: "1 month ago",
+                    title: "Best purchase I've made",
+                    review: "I was skeptical at first but this product truly delivers on its promises. The features are exactly as described and the performance is outstanding.",
+                    verified: true,
+                  },
+                  {
+                    name: "Amit Patel",
+                    rating: 4,
+                    date: "1 month ago",
+                    title: "Great value for money",
+                    review: "Good product overall. Does what it's supposed to do. Packaging was secure and delivery was on time. Would buy again.",
+                    verified: true,
+                  },
+                ].map((review, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1 + i * 0.1 }}
+                    className="p-5 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-sm">
+                          {review.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm">{review.name}</span>
+                            {review.verified && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500/50 text-green-500">
+                                <Check className="w-2.5 h-2.5 mr-0.5" />
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">{review.date}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-3.5 h-3.5 ${star <= review.rating ? 'fill-accent text-accent' : 'fill-muted text-muted'}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-sm mb-2">{review.title}</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{review.review}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
