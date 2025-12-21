@@ -1732,6 +1732,21 @@ export type Database = {
       }
     }
     Views: {
+      event_registration_counts: {
+        Row: {
+          event_id: string | null
+          registration_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members_public: {
         Row: {
           created_at: string | null
