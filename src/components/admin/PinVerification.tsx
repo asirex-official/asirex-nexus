@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Lock, Eye, EyeOff } from "lucide-react";
+import { Shield, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,9 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutMinutes, setLockoutMinutes] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const confirmInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { toast } = useToast();
@@ -31,11 +34,21 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
     try {
       const { data, error } = await supabase
         .from("ceo_security")
-        .select("id")
+        .select("id, locked_until")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (error) throw error;
+      
+      // Check if locked
+      if (data?.locked_until) {
+        const lockedUntil = new Date(data.locked_until);
+        if (lockedUntil > new Date()) {
+          setIsLocked(true);
+          setLockoutMinutes(Math.ceil((lockedUntil.getTime() - Date.now()) / (1000 * 60)));
+        }
+      }
+      
       setIsSetupMode(!data);
     } catch (error) {
       console.error("Error checking PIN:", error);
@@ -74,14 +87,6 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
     }
   };
 
-  const hashPin = async (pinString: string): Promise<string> => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(pinString + userId);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-  };
-
   const handleSetupPin = async () => {
     const pinString = pin.join("");
     const confirmPinString = confirmPin.join("");
@@ -106,22 +111,19 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
 
     setVerifying(true);
     try {
-      const hashedPin = await hashPin(pinString);
-      
-      const { error } = await supabase
-        .from("ceo_security")
-        .upsert({
-          user_id: userId,
-          pin_hash: hashedPin,
-          is_verified: true,
-          last_verified_at: new Date().toISOString(),
-        });
+      const { data, error } = await supabase.functions.invoke('ceo-pin', {
+        body: { action: 'setup', pin: pinString }
+      });
 
       if (error) throw error;
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       toast({
         title: "PIN Created",
-        description: "Your security PIN has been set up successfully",
+        description: "Your security PIN has been set up with bcrypt encryption",
       });
       
       onSetupComplete?.();
@@ -151,45 +153,36 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
 
     setVerifying(true);
     try {
-      const hashedPin = await hashPin(pinString);
-      
-      const { data, error } = await supabase
-        .from("ceo_security")
-        .select("pin_hash")
-        .eq("user_id", userId)
-        .single();
+      const { data, error } = await supabase.functions.invoke('ceo-pin', {
+        body: { action: 'verify', pin: pinString }
+      });
 
       if (error) throw error;
 
-      if (data.pin_hash === hashedPin) {
-        await supabase
-          .from("ceo_security")
-          .update({ 
-            is_verified: true, 
-            last_verified_at: new Date().toISOString() 
-          })
-          .eq("user_id", userId);
-
-        toast({
-          title: "Verified",
-          description: "Access granted to CEO Dashboard",
-        });
-        onVerified();
-      } else {
-        toast({
-          title: "Invalid PIN",
-          description: "The PIN you entered is incorrect",
-          variant: "destructive",
-        });
-        setPin(["", "", "", "", "", ""]);
-        inputRefs.current[0]?.focus();
+      if (data.error) {
+        if (data.locked) {
+          setIsLocked(true);
+          setLockoutMinutes(data.remainingMinutes || 30);
+        } else if (data.remainingAttempts !== undefined) {
+          setRemainingAttempts(data.remainingAttempts);
+        }
+        throw new Error(data.error);
       }
+
+      toast({
+        title: "Verified",
+        description: "Access granted to CEO Dashboard",
+      });
+      setRemainingAttempts(null);
+      onVerified();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Verification failed",
+        title: "Verification Failed",
+        description: error.message || "Invalid PIN",
         variant: "destructive",
       });
+      setPin(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     } finally {
       setVerifying(false);
     }
@@ -199,6 +192,33 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-card border border-destructive rounded-2xl p-8 shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-destructive" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Account Locked</h1>
+              <p className="text-muted-foreground mb-4">
+                Too many failed attempts. Try again in {lockoutMinutes} minutes.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                🔒 This lockout is for your security
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -225,6 +245,15 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
               }
             </p>
           </div>
+
+          {remainingAttempts !== null && remainingAttempts < 5 && (
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <p className="text-sm text-amber-500">
+                {remainingAttempts} attempts remaining before lockout
+              </p>
+            </div>
+          )}
 
           <div className="space-y-6">
             <div>
@@ -300,7 +329,7 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              🔒 Your PIN is encrypted and stored securely
+              🔒 Your PIN is encrypted with bcrypt and stored securely
             </p>
           </div>
         </div>

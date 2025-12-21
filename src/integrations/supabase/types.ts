@@ -176,27 +176,36 @@ export type Database = {
       ceo_security: {
         Row: {
           created_at: string | null
+          failed_attempts: number | null
           id: string
           is_verified: boolean | null
+          last_failed_at: string | null
           last_verified_at: string | null
+          locked_until: string | null
           pin_hash: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          failed_attempts?: number | null
           id?: string
           is_verified?: boolean | null
+          last_failed_at?: string | null
           last_verified_at?: string | null
+          locked_until?: string | null
           pin_hash: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          failed_attempts?: number | null
           id?: string
           is_verified?: boolean | null
+          last_failed_at?: string | null
           last_verified_at?: string | null
+          locked_until?: string | null
           pin_hash?: string
           updated_at?: string | null
           user_id?: string
