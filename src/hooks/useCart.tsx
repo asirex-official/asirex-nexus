@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CartItem {
   id: string;
@@ -6,6 +7,16 @@ export interface CartItem {
   price: number;
   quantity: number;
   image_url: string | null;
+}
+
+interface CouponInfo {
+  id: string;
+  code: string;
+  description: string | null;
+  discount_type: string;
+  discount_value: number;
+  discount_amount: number;
+  savings_text: string;
 }
 
 interface CartContextType {
@@ -16,42 +27,30 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  subtotal: number;
   appliedCoupon: string | null;
+  couponInfo: CouponInfo | null;
   discount: number;
-  applyCoupon: (code: string) => boolean;
+  applyCoupon: (code: string) => Promise<{ success: boolean; error?: string }>;
   removeCoupon: () => void;
+  validatingCoupon: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-const COUPONS: Record<string, number> = {
-  'ASIREX10': 10,
-  'ASIREX20': 20,
-  'FIRSTORDER': 15,
-  'TECH25': 25,
-  'SAVE50': 50,
-};
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem('asirex-cart');
     return saved ? JSON.parse(saved) : [];
   });
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(() => {
-    return localStorage.getItem('asirex-coupon');
-  });
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('asirex-cart', JSON.stringify(items));
   }, [items]);
-
-  useEffect(() => {
-    if (appliedCoupon) {
-      localStorage.setItem('asirex-coupon', appliedCoupon);
-    } else {
-      localStorage.removeItem('asirex-coupon');
-    }
-  }, [appliedCoupon]);
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setItems(prev => {
@@ -82,24 +81,45 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = () => {
     setItems([]);
     setAppliedCoupon(null);
+    setCouponInfo(null);
+    setDiscount(0);
   };
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-  const discount = appliedCoupon ? (subtotal * (COUPONS[appliedCoupon] || 0)) / 100 : 0;
-  const totalPrice = subtotal - discount;
+  const totalPrice = Math.max(0, subtotal - discount);
 
-  const applyCoupon = (code: string): boolean => {
-    const upperCode = code.toUpperCase();
-    if (COUPONS[upperCode]) {
-      setAppliedCoupon(upperCode);
-      return true;
+  const applyCoupon = async (code: string): Promise<{ success: boolean; error?: string }> => {
+    if (!code.trim()) return { success: false, error: "Please enter a coupon code" };
+
+    setValidatingCoupon(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("validate-coupon", {
+        body: { code: code.trim(), order_amount: subtotal },
+      });
+
+      if (error) throw error;
+
+      if (data?.valid) {
+        setAppliedCoupon(data.coupon.code);
+        setCouponInfo(data.coupon);
+        setDiscount(data.discount_amount);
+        return { success: true };
+      } else {
+        return { success: false, error: data?.error || "Invalid coupon" };
+      }
+    } catch (error: any) {
+      console.error("Coupon validation error:", error);
+      return { success: false, error: "Failed to validate coupon" };
+    } finally {
+      setValidatingCoupon(false);
     }
-    return false;
   };
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
+    setCouponInfo(null);
+    setDiscount(0);
   };
 
   return (
@@ -110,11 +130,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateQuantity,
       clearCart,
       totalItems,
+      subtotal,
       totalPrice,
       appliedCoupon,
+      couponInfo,
       discount,
       applyCoupon,
       removeCoupon,
+      validatingCoupon,
     }}>
       {children}
     </CartContext.Provider>
