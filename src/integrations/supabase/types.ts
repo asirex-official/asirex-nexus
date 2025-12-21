@@ -104,6 +104,36 @@ export type Database = {
           },
         ]
       }
+      auth_attempts: {
+        Row: {
+          attempt_type: string
+          created_at: string | null
+          id: string
+          identifier: string
+          ip_address: string | null
+          success: boolean | null
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_type: string
+          created_at?: string | null
+          id?: string
+          identifier: string
+          ip_address?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_type?: string
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          ip_address?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       ceo_security: {
         Row: {
           created_at: string | null
@@ -1355,6 +1385,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_2fa: {
+        Row: {
+          backup_codes_hash: string[] | null
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          totp_secret_encrypted: string
+          updated_at: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          backup_codes_hash?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          totp_secret_encrypted: string
+          updated_at?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          backup_codes_hash?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          totp_secret_encrypted?: string
+          updated_at?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       user_addresses: {
         Row: {
           address_line1: string
@@ -1460,6 +1523,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          admin_verified_at: string | null
+          created_at: string | null
+          device_info: Json | null
+          expires_at: string
+          id: string
+          ip_address: string | null
+          is_admin_verified: boolean | null
+          last_active_at: string | null
+          session_token_hash: string
+          user_id: string
+        }
+        Insert: {
+          admin_verified_at?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          is_admin_verified?: boolean | null
+          last_active_at?: string | null
+          session_token_hash: string
+          user_id: string
+        }
+        Update: {
+          admin_verified_at?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          is_admin_verified?: boolean | null
+          last_active_at?: string | null
+          session_token_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       team_members_public: {
@@ -1506,6 +1608,15 @@ export type Database = {
       }
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_attempt_type: string
+          p_identifier: string
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1515,6 +1626,16 @@ export type Database = {
       }
       is_admin_type: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      log_auth_attempt: {
+        Args: {
+          p_attempt_type: string
+          p_identifier: string
+          p_ip_address?: string
+          p_success: boolean
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
