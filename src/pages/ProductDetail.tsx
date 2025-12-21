@@ -51,11 +51,18 @@ export default function ProductDetail() {
     return stockStatus !== "out_of_stock";
   };
 
-  const getSpecsArray = (specs: unknown): string[] => {
-    if (!specs || typeof specs !== "object") return [];
-    return Object.values(specs as Record<string, string>).filter(
-      (v) => v && typeof v === "string" && v.trim()
-    );
+  const getSpecsData = (specs: unknown): { features: string[]; benefits: string[] } => {
+    if (!specs || typeof specs !== "object") return { features: [], benefits: [] };
+    const specsObj = specs as Record<string, unknown>;
+    
+    const features = Array.isArray(specsObj.features) 
+      ? (specsObj.features as string[]).filter(v => v && typeof v === "string")
+      : [];
+    const benefits = Array.isArray(specsObj.benefits)
+      ? (specsObj.benefits as string[]).filter(v => v && typeof v === "string")
+      : [];
+    
+    return { features, benefits };
   };
 
   const handleAddToCart = () => {
@@ -272,20 +279,40 @@ export default function ProductDetail() {
                 </p>
               </div>
 
-              {/* Specs */}
-              {getSpecsArray(product.specs).length > 0 && (
-                <div className="glass-card p-6 space-y-3">
-                  <h3 className="font-semibold text-lg">Features</h3>
-                  <ul className="space-y-2">
-                    {getSpecsArray(product.specs).map((spec, i) => (
-                      <li key={i} className="flex items-start gap-3 text-muted-foreground">
-                        <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                        {spec}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* Features & Benefits */}
+              {(() => {
+                const { features, benefits } = getSpecsData(product.specs);
+                return (features.length > 0 || benefits.length > 0) && (
+                  <div className="space-y-4">
+                    {features.length > 0 && (
+                      <div className="glass-card p-6 space-y-3">
+                        <h3 className="font-semibold text-lg">Features</h3>
+                        <ul className="space-y-2">
+                          {features.map((spec, i) => (
+                            <li key={i} className="flex items-start gap-3 text-muted-foreground">
+                              <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
+                              {spec}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {benefits.length > 0 && (
+                      <div className="glass-card p-6 space-y-3">
+                        <h3 className="font-semibold text-lg">Benefits</h3>
+                        <ul className="space-y-2">
+                          {benefits.map((benefit, i) => (
+                            <li key={i} className="flex items-start gap-3 text-muted-foreground">
+                              <span className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                              {benefit}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Price & Actions */}
               <div className="glass-card p-6 space-y-4">
