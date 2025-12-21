@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { MapPin, CreditCard, Truck, CheckCircle, Loader2 } from "lucide-react";
+import { MapPin, CreditCard, Truck, CheckCircle, Loader2, Sparkles, Tag } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveSalesCampaigns, calculateSaleDiscount } from "@/hooks/useSalesCampaigns";
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
@@ -36,12 +37,15 @@ const PAYMENT_METHODS = [
 ];
 
 export default function Checkout() {
-  const { items, totalPrice, appliedCoupon, discount, clearCart } = useCart();
+  const { items, totalPrice, appliedCoupon, couponInfo, discount: couponDiscount, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+
+  // Fetch active sales campaigns
+  const { data: salesCampaigns = [] } = useActiveSalesCampaigns();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -58,6 +62,18 @@ export default function Checkout() {
   });
 
   const subtotal = items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+
+  // Calculate sale discount automatically
+  const saleDiscountInfo = useMemo(() => {
+    return calculateSaleDiscount(salesCampaigns, subtotal);
+  }, [salesCampaigns, subtotal]);
+
+  const saleDiscount = saleDiscountInfo.discount;
+  const activeSale = saleDiscountInfo.campaign;
+
+  // Total discount = coupon discount + sale discount
+  const totalDiscount = couponDiscount + saleDiscount;
+  const finalPrice = Math.max(0, subtotal - totalDiscount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,12 +126,22 @@ export default function Checkout() {
         customer_phone: form.phone,
         shipping_address: shippingAddress,
         items: orderItems,
-        total_amount: totalPrice,
+        total_amount: finalPrice,
         payment_method: form.paymentMethod,
         payment_status: form.paymentMethod === 'cod' ? 'pending' : 'pending',
         order_status: 'pending',
         notes: form.notes || null,
       }).select('id').single();
+
+      if (error) throw error;
+
+      // Increment sale campaign order count if a sale was applied
+      if (activeSale) {
+        await supabase
+          .from('sales_campaigns')
+          .update({ current_orders: activeSale.current_orders + 1 })
+          .eq('id', activeSale.id);
+      }
 
       if (error) throw error;
 
@@ -413,19 +439,46 @@ export default function Checkout() {
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>₹{subtotal.toLocaleString()}</span>
                     </div>
-                    {discount > 0 && (
+                    
+                    {/* Sale Discount - Auto Applied */}
+                    {activeSale && saleDiscount > 0 && (
                       <div className="flex justify-between text-green-500">
-                        <span>Discount ({appliedCoupon})</span>
-                        <span>-₹{discount.toLocaleString()}</span>
+                        <span className="flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          {activeSale.name}
+                        </span>
+                        <span>-₹{saleDiscount.toLocaleString()}</span>
                       </div>
                     )}
+                    
+                    {/* Coupon Discount */}
+                    {couponDiscount > 0 && (
+                      <div className="flex justify-between text-green-500">
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          Coupon ({appliedCoupon})
+                        </span>
+                        <span>-₹{couponDiscount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Shipping</span>
                       <span className="text-green-500">FREE</span>
                     </div>
+                    
+                    {/* Total Savings Banner */}
+                    {totalDiscount > 0 && (
+                      <div className="p-2 bg-green-500/10 rounded-lg text-center border border-green-500/20">
+                        <span className="text-green-600 dark:text-green-400 font-medium text-xs">
+                          🎉 You're saving ₹{totalDiscount.toLocaleString()} on this order!
+                        </span>
+                      </div>
+                    )}
+                    
                     <div className="border-t border-border pt-3 flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span>₹{totalPrice.toLocaleString()}</span>
+                      <span>₹{finalPrice.toLocaleString()}</span>
                     </div>
                   </div>
 
