@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -283,31 +283,62 @@ export default function ProductDetail() {
               {(() => {
                 const { features, benefits } = getSpecsData(product.specs);
                 return (features.length > 0 || benefits.length > 0) && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    {/* Features Grid */}
                     {features.length > 0 && (
-                      <div className="glass-card p-6 space-y-3">
-                        <h3 className="font-semibold text-lg">Features</h3>
-                        <ul className="space-y-2">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-5 h-5 text-accent" />
+                          <h3 className="font-display text-xl font-bold">Key Features</h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {features.map((spec, i) => (
-                            <li key={i} className="flex items-start gap-3 text-muted-foreground">
-                              <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                              {spec}
-                            </li>
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.1 }}
+                              className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-4 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300"
+                            >
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-full" />
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
+                                  <Sparkles className="w-4 h-4 text-accent" />
+                                </div>
+                                <p className="text-sm text-foreground/80 leading-relaxed">{spec}</p>
+                              </div>
+                            </motion.div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
+
+                    {/* Benefits Grid */}
                     {benefits.length > 0 && (
-                      <div className="glass-card p-6 space-y-3">
-                        <h3 className="font-semibold text-lg">Benefits</h3>
-                        <ul className="space-y-2">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Check className="w-5 h-5 text-primary" />
+                          <h3 className="font-display text-xl font-bold">Benefits</h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {benefits.map((benefit, i) => (
-                            <li key={i} className="flex items-start gap-3 text-muted-foreground">
-                              <span className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                              {benefit}
-                            </li>
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.1 }}
+                              className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 to-muted/10 p-4 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+                            >
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                                  <Check className="w-4 h-4 text-primary" />
+                                </div>
+                                <p className="text-sm text-foreground/80 leading-relaxed">{benefit}</p>
+                              </div>
+                            </motion.div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>
