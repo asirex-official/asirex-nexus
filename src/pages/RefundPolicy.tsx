@@ -1,11 +1,19 @@
-import { ArrowLeft, Package, Clock, AlertTriangle, CheckCircle, XCircle, RefreshCcw, CreditCard, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Package, Clock, AlertTriangle, CheckCircle, XCircle, RefreshCcw, CreditCard, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
+import { useCompanyInfo } from "@/hooks/useSiteData";
 
 export default function RefundPolicy() {
   const navigate = useNavigate();
+  const { data: companyInfo } = useCompanyInfo();
+
+  const supportEmail = companyInfo?.email_support_coming_soon === "true" 
+    ? "Coming Soon" 
+    : (companyInfo?.email_support || "support@asirex.in");
+  
+  const isSupportEmailActive = companyInfo?.email_support_coming_soon !== "true" && supportEmail !== "Coming Soon";
 
   const sections = [
     {
@@ -112,7 +120,7 @@ export default function RefundPolicy() {
                     <li>• 7-day return window from delivery date</li>
                     <li>• Full refund for defective or incorrect items</li>
                     <li>• Refunds processed within 7-10 business days</li>
-                    <li>• Contact us at support@asirex.in for return requests</li>
+                    <li>• Contact us at {supportEmail} for return requests</li>
                   </ul>
                 </div>
               </div>
@@ -160,7 +168,13 @@ export default function RefundPolicy() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="w-4 h-4 text-primary" />
-                  <span>support@asirex.in</span>
+                  {isSupportEmailActive ? (
+                    <a href={`mailto:${supportEmail}`} className="text-primary hover:underline">
+                      {supportEmail}
+                    </a>
+                  ) : (
+                    <span className="text-amber-500">{supportEmail}</span>
+                  )}
                 </div>
               </div>
               <Button className="mt-6" onClick={() => navigate("/about#contact")}>

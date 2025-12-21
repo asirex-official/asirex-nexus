@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
+import { useCompanyInfo } from "@/hooks/useSiteData";
 import {
   Accordion,
   AccordionContent,
@@ -12,6 +13,15 @@ import {
 
 export default function FAQ() {
   const navigate = useNavigate();
+  const { data: companyInfo } = useCompanyInfo();
+
+  const supportEmail = companyInfo?.email_support_coming_soon === "true" 
+    ? "Coming Soon" 
+    : (companyInfo?.email_support || "support@asirex.in");
+  
+  const salesEmail = companyInfo?.email_sales_coming_soon === "true"
+    ? "Coming Soon"
+    : (companyInfo?.email_sales || "sales@asirex.in");
 
   const faqCategories = [
     {
@@ -32,7 +42,7 @@ export default function FAQ() {
         },
         {
           question: "Do you offer bulk/wholesale pricing?",
-          answer: "Yes, we offer special pricing for bulk orders, educational institutions, and government organizations. Contact us at business@asirex.in for custom quotes."
+          answer: `Yes, we offer special pricing for bulk orders, educational institutions, and government organizations. Contact us at ${salesEmail} for custom quotes.`
         }
       ]
     },
@@ -94,7 +104,7 @@ export default function FAQ() {
         },
         {
           question: "How do I claim warranty?",
-          answer: "For warranty claims, email support@asirex.in with your order ID, product photos, and description of the issue. Our team will guide you through the process."
+          answer: `For warranty claims, email ${supportEmail} with your order ID, product photos, and description of the issue. Our team will guide you through the process.`
         },
         {
           question: "What if I receive a damaged product?",
@@ -116,7 +126,7 @@ export default function FAQ() {
         },
         {
           question: "How can I contact customer support?",
-          answer: "Reach us via email at support@asirex.in or use the live chat on our website. Support hours: 9 AM - 9 PM IST, Monday to Saturday. You can also visit our Contact page for more options."
+          answer: `Reach us via email at ${supportEmail} or use the live chat on our website. Support hours: 9 AM - 9 PM IST, Monday to Saturday. You can also visit our Contact page for more options.`
         },
         {
           question: "Can I cancel my newsletter subscription?",

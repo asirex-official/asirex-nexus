@@ -3,9 +3,17 @@ import { ArrowLeft, Shield, Eye, Database, Lock, UserCheck, Globe, Mail, Clock, 
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useCompanyInfo } from "@/hooks/useSiteData";
 
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
+  const { data: companyInfo } = useCompanyInfo();
+
+  const privacyEmail = companyInfo?.email_privacy_coming_soon === "true" 
+    ? "Coming Soon" 
+    : (companyInfo?.email_privacy || "privacy@asirex.in");
+  
+  const isPrivacyEmailActive = companyInfo?.email_privacy_coming_soon !== "true" && privacyEmail !== "Coming Soon";
 
   const sections = [
     {
@@ -90,7 +98,7 @@ All third-party service providers are contractually obligated to protect your da
 
 **Right to Withdraw Consent:** Withdraw previously given consent at any time.
 
-To exercise these rights, contact us at privacy@asirex.com. We will respond within 30 days.`
+To exercise these rights, contact us at ${privacyEmail}. We will respond within 30 days.`
     },
     {
       title: "6. Data Retention",
@@ -165,7 +173,7 @@ If you are a parent or guardian and believe your child has provided us with pers
       icon: Trash2,
       content: `You may request deletion of your personal data at any time by:
 
-• Contacting us at privacy@asirex.com
+• Contacting us at ${privacyEmail}
 • Using the account deletion option in your settings
 • Submitting a written request to our postal address
 
@@ -294,7 +302,16 @@ We encourage you to review this policy periodically. Continued use of our servic
                   For any questions about this Privacy Policy or to exercise your data protection rights, please contact us:
                 </p>
                 <div className="space-y-2 text-sm">
-                  <p><strong>Email:</strong> privacy@asirex.com</p>
+                  <p>
+                    <strong>Email:</strong>{" "}
+                    {isPrivacyEmailActive ? (
+                      <a href={`mailto:${privacyEmail}`} className="text-primary hover:underline">
+                        {privacyEmail}
+                      </a>
+                    ) : (
+                      <span className="text-amber-500">{privacyEmail}</span>
+                    )}
+                  </p>
                   <p><strong>Subject Line:</strong> Privacy Inquiry / Data Request</p>
                 </div>
                 <div className="flex gap-3 mt-4">

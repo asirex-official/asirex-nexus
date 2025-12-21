@@ -42,8 +42,15 @@ type SocialLink = {
 export function Footer() {
   const { data: companyInfo } = useCompanyInfo();
 
+  const whatsappNumber = companyInfo?.whatsapp_number || "919876543210";
+  const whatsappComingSoon = companyInfo?.whatsapp_coming_soon === "true";
+
   const socialLinks: SocialLink[] = [
-    { image: whatsappLogo, href: "https://wa.me/919876543210", label: "WhatsApp" },
+    { 
+      image: whatsappLogo, 
+      href: whatsappComingSoon ? "#" : `https://wa.me/${whatsappNumber}`, 
+      label: whatsappComingSoon ? "WhatsApp (Coming Soon)" : "WhatsApp" 
+    },
     { image: instagramLogo, href: companyInfo?.social_instagram || "https://instagram.com/asirex", label: "Instagram" },
     { image: twitterLogo, href: companyInfo?.social_twitter || "https://twitter.com/asirex", label: "Twitter" },
     { image: gmailLogo, href: companyInfo?.contact_email ? `mailto:${companyInfo.contact_email}` : "mailto:support@asirex.in", label: "Email" },
