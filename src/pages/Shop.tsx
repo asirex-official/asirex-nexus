@@ -227,7 +227,8 @@ export default function Shop() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group"
+                  className="group cursor-pointer"
+                  onClick={() => navigate(`/shop/${product.id}`)}
                 >
                   <div
                     className={`glass-card card-hover overflow-hidden ${
