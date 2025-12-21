@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users, Clock, Filter, ArrowRight, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Filter, ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,7 +60,7 @@ const getEventIcon = (name: string): string => {
 export default function Events() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isRegistered, registerForEvent, loading: registering } = useEventRegistration();
+  const { isRegistered, registerForEvent, unregisterFromEvent, loading: registering } = useEventRegistration();
   const { getCount } = useEventRegistrationCounts();
   const { data: dbEvents, isLoading } = useEvents();
   const [selectedCity, setSelectedCity] = useState("All Locations");
@@ -105,13 +105,21 @@ export default function Events() {
     const capacity = event.capacity || 100;
     const registered = getCount(event.id);
     const remaining = Math.max(0, capacity - registered);
+    const percentFull = Math.min(100, (registered / capacity) * 100);
     
     if (remaining === 0) {
-      return { text: "Fully booked", color: "text-destructive" };
+      return { text: "Sold Out!", color: "text-destructive", remaining: 0, percentFull, isFull: true };
     } else if (remaining <= 10) {
-      return { text: `Only ${remaining} spots left!`, color: "text-orange-500" };
+      return { text: `Only ${remaining} spots left!`, color: "text-orange-500", remaining, percentFull, isFull: false };
+    } else if (remaining <= 25) {
+      return { text: `${remaining} spots left`, color: "text-yellow-500", remaining, percentFull, isFull: false };
     }
-    return { text: `${remaining} spots available`, color: "text-accent" };
+    return { text: `${remaining} spots available`, color: "text-accent", remaining, percentFull, isFull: false };
+  };
+
+  const handleUnregister = async (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    await unregisterFromEvent(eventId);
   };
 
   return (
@@ -275,34 +283,73 @@ export default function Events() {
                           </div>
 
                           {/* Price & CTA */}
-                          <div className="flex flex-row lg:flex-col items-center lg:items-end gap-4 lg:gap-2 flex-shrink-0">
+                          <div className="flex flex-col items-end gap-2 flex-shrink-0 min-w-[140px]">
                             <div className="text-right">
-                              <div className="font-display text-2xl font-bold">
+                              <div className="font-display text-xl sm:text-2xl font-bold">
                                 {event.ticket_price === 0 ? "Free" : `₹${event.ticket_price?.toLocaleString()}`}
                               </div>
-                              <div className={`text-sm ${availability.color}`}>
-                                <Users className="w-3 h-3 inline mr-1" />
+                              <div className={`text-xs sm:text-sm ${availability.color} flex items-center justify-end gap-1`}>
+                                <Users className="w-3 h-3" />
                                 {availability.text}
                               </div>
                             </div>
+                            
+                            {/* Capacity Progress Bar */}
+                            {event.capacity && (
+                              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all ${
+                                    availability.isFull 
+                                      ? "bg-destructive" 
+                                      : availability.percentFull > 75 
+                                        ? "bg-orange-500" 
+                                        : "bg-accent"
+                                  }`}
+                                  style={{ width: `${availability.percentFull}%` }}
+                                />
+                              </div>
+                            )}
+                            
                             {isRegistered(event.id) ? (
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="bg-accent/20 border-accent text-accent hover:bg-accent/30 text-xs sm:text-sm"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  Registered
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs sm:text-sm"
+                                  onClick={(e) => handleUnregister(e, event.id)}
+                                  disabled={registering}
+                                >
+                                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                </Button>
+                              </div>
+                            ) : availability.isFull ? (
                               <Button 
                                 variant="outline" 
-                                className="whitespace-nowrap bg-accent/20 border-accent text-accent hover:bg-accent/30"
-                                onClick={(e) => e.stopPropagation()}
+                                size="sm"
+                                className="text-destructive border-destructive/50 cursor-not-allowed text-xs sm:text-sm"
+                                disabled
                               >
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Registered!
+                                Sold Out
                               </Button>
                             ) : (
                               <Button 
                                 variant="hero" 
-                                className="whitespace-nowrap"
+                                size="sm"
+                                className="text-xs sm:text-sm"
                                 onClick={(e) => handleRegister(e, event.id)}
                                 disabled={registering}
                               >
-                                Register Now
-                                <ArrowRight className="w-4 h-4 ml-1" />
+                                Register
+                                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                               </Button>
                             )}
                           </div>
@@ -366,22 +413,35 @@ export default function Events() {
                 )}
 
                 {/* Capacity */}
-                {selectedEvent.capacity && (
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Capacity</span>
-                      <span className="font-medium">
-                        {getCount(selectedEvent.id)}/{selectedEvent.capacity} registered
-                      </span>
+                {selectedEvent.capacity && (() => {
+                  const modalAvailability = getAvailability(selectedEvent);
+                  return (
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-muted-foreground">Capacity</span>
+                        <span className={`font-medium ${modalAvailability.color}`}>
+                          {getCount(selectedEvent.id)}/{selectedEvent.capacity} registered
+                          {modalAvailability.isFull && " (Sold Out!)"}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all ${
+                            modalAvailability.isFull 
+                              ? "bg-destructive" 
+                              : modalAvailability.percentFull > 75 
+                                ? "bg-orange-500" 
+                                : "bg-gradient-to-r from-primary to-accent"
+                          }`}
+                          style={{ width: `${modalAvailability.percentFull}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {modalAvailability.remaining} spots remaining
+                      </div>
                     </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" 
-                        style={{ width: `${Math.min(100, (getCount(selectedEvent.id) / selectedEvent.capacity) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2">
@@ -403,26 +463,56 @@ export default function Events() {
                       {selectedEvent.ticket_price === 0 ? "Free" : `₹${selectedEvent.ticket_price?.toLocaleString()}`}
                     </div>
                   </div>
-                  {isRegistered(selectedEvent.id) ? (
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      className="bg-accent/20 border-accent text-accent hover:bg-accent/30"
-                    >
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      You're Registered!
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="hero" 
-                      size="lg"
-                      onClick={(e) => handleRegister(e, selectedEvent.id)}
-                      disabled={registering}
-                    >
-                      Register Now
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  )}
+                  {(() => {
+                    const modalAvailability = getAvailability(selectedEvent);
+                    if (isRegistered(selectedEvent.id)) {
+                      return (
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="lg" 
+                            className="bg-accent/20 border-accent text-accent hover:bg-accent/30"
+                          >
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            Registered!
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="lg"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={(e) => handleUnregister(e, selectedEvent.id)}
+                            disabled={registering}
+                          >
+                            <XCircle className="w-5 h-5 mr-2" />
+                            Cancel
+                          </Button>
+                        </div>
+                      );
+                    } else if (modalAvailability.isFull) {
+                      return (
+                        <Button 
+                          variant="outline" 
+                          size="lg"
+                          className="text-destructive border-destructive/50 cursor-not-allowed"
+                          disabled
+                        >
+                          Sold Out
+                        </Button>
+                      );
+                    } else {
+                      return (
+                        <Button 
+                          variant="hero" 
+                          size="lg"
+                          onClick={(e) => handleRegister(e, selectedEvent.id)}
+                          disabled={registering}
+                        >
+                          Register Now
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
             </motion.div>
