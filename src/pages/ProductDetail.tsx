@@ -21,6 +21,16 @@ export default function ProductDetail() {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
+  // Track scroll for sticky bar
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyBar(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const product = products?.find((p) => p.id === productId);
 
@@ -137,36 +147,36 @@ export default function ProductDetail() {
 
   return (
     <Layout>
-      <section className="py-6 lg:py-10">
-        <div className="container mx-auto px-4 lg:px-6">
+      <section className="py-6 lg:py-12 pb-24 lg:pb-12">
+        <div className="container mx-auto px-4 lg:px-8">
           {/* Back Button */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="mb-4"
+            className="mb-6"
           >
-            <Button variant="ghost" size="sm" onClick={() => navigate("/shop")} className="gap-1.5 text-xs">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back
+            <Button variant="ghost" onClick={() => navigate("/shop")} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Shop
             </Button>
           </motion.div>
 
-          <div className="grid lg:grid-cols-5 gap-6 lg:gap-8">
-            {/* Image Section - 2 columns */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Image Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="lg:col-span-2 space-y-3"
+              className="space-y-4"
             >
               {/* Main Image */}
-              <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted group">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted group">
                 {product.badge && (
-                  <Badge className="absolute top-3 left-3 z-10 bg-accent text-accent-foreground text-[10px] px-2 py-0.5">
+                  <Badge className="absolute top-4 left-4 z-10 bg-accent text-accent-foreground">
                     {product.badge}
                   </Badge>
                 )}
                 {!isInStock(product.stock_status) && (
-                  <Badge className="absolute top-3 right-3 z-10 bg-destructive text-destructive-foreground text-[10px]">
+                  <Badge className="absolute top-4 right-4 z-10 bg-destructive text-destructive-foreground">
                     Out of Stock
                   </Badge>
                 )}
@@ -190,15 +200,15 @@ export default function ProductDetail() {
                   <>
                     <button
                       onClick={() => setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length)}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setCurrentImageIndex((prev) => (prev + 1) % allImages.length)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-5 h-5" />
                     </button>
                   </>
                 )}
@@ -206,25 +216,25 @@ export default function ProductDetail() {
                 {/* View Photos */}
                 {allImages.length > 0 && (
                   <button
-                    className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-background/90 hover:bg-background text-xs font-medium transition-all"
+                    className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-background/90 hover:bg-background text-sm font-medium transition-all"
                     onClick={() => setIsLightboxOpen(true)}
                   >
-                    <Images className="w-3.5 h-3.5" />
-                    {allImages.length}
+                    <Images className="w-4 h-4" />
+                    View {allImages.length} Photos
                   </button>
                 )}
               </div>
 
               {/* Thumbnails */}
               {allImages.length > 1 && (
-                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {allImages.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
-                      className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
                         idx === currentImageIndex
-                          ? "border-primary ring-1 ring-primary/30"
+                          ? "border-primary ring-2 ring-primary/30"
                           : "border-border/50 hover:border-primary/50"
                       }`}
                     >
@@ -235,113 +245,135 @@ export default function ProductDetail() {
               )}
             </motion.div>
 
-            {/* Product Info - 3 columns */}
+            {/* Product Info */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="lg:col-span-3 space-y-5"
+              className="space-y-6"
             >
               {/* Header */}
               <div>
-                <p className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-1">
+                <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-2">
                   {product.category}
                 </p>
-                <h1 className="font-display text-2xl lg:text-3xl font-bold leading-tight">{product.name}</h1>
+                <h1 className="font-display text-3xl lg:text-4xl font-bold leading-tight mb-3">{product.name}</h1>
                 
                 {product.rating && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <Star className="w-4 h-4 fill-accent text-accent" />
-                    <span className="text-sm font-medium">{product.rating}</span>
+                  <div className="flex items-center gap-2">
+                    <Star className="w-5 h-5 fill-accent text-accent" />
+                    <span className="text-base font-semibold">{product.rating}</span>
+                    <span className="text-muted-foreground">rating</span>
                   </div>
                 )}
               </div>
 
               {/* Description */}
-              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+              <p className="text-base text-muted-foreground leading-relaxed">
                 {product.description || "No description available"}
               </p>
 
               {/* Features & Benefits Grid */}
               {(features.length > 0 || benefits.length > 0) && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {/* Features */}
                   {features.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-accent" />
-                        <span className="text-xs font-bold uppercase tracking-wide">Features</span>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-accent" />
+                        <span className="text-sm font-bold uppercase tracking-wide">Features</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {features.slice(0, 4).map((spec, i) => (
+                      <div className="space-y-2">
+                        {features.map((spec, i) => (
                           <motion.div
                             key={i}
-                            initial={{ opacity: 0, x: -5 }}
+                            initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.03 }}
-                            className="flex items-start gap-1.5 p-1.5 rounded-md bg-accent/5 border border-accent/10"
+                            transition={{ delay: i * 0.05 }}
+                            className="flex items-start gap-2.5 p-3 rounded-lg bg-accent/10 border border-accent/20 hover:border-accent/40 transition-all"
                           >
-                            <Sparkles className="w-2.5 h-2.5 text-accent mt-0.5 flex-shrink-0" />
-                            <p className="text-[10px] text-foreground/70 leading-tight line-clamp-2">{spec}</p>
+                            <Sparkles className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-foreground/90 leading-relaxed">{spec}</p>
                           </motion.div>
                         ))}
-                        {features.length > 4 && (
-                          <p className="text-[10px] text-muted-foreground pl-4">+{features.length - 4} more</p>
-                        )}
                       </div>
                     </div>
                   )}
 
                   {/* Benefits */}
                   {benefits.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-xs font-bold uppercase tracking-wide">Benefits</span>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-5 h-5 text-primary" />
+                        <span className="text-sm font-bold uppercase tracking-wide">Benefits</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {benefits.slice(0, 4).map((benefit, i) => (
+                      <div className="space-y-2">
+                        {benefits.map((benefit, i) => (
                           <motion.div
                             key={i}
-                            initial={{ opacity: 0, x: -5 }}
+                            initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.03 }}
-                            className="flex items-start gap-1.5 p-1.5 rounded-md bg-primary/5 border border-primary/10"
+                            transition={{ delay: i * 0.05 }}
+                            className="flex items-start gap-2.5 p-3 rounded-lg bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all"
                           >
-                            <Check className="w-2.5 h-2.5 text-primary mt-0.5 flex-shrink-0" />
-                            <p className="text-[10px] text-foreground/70 leading-tight line-clamp-2">{benefit}</p>
+                            <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-foreground/90 leading-relaxed">{benefit}</p>
                           </motion.div>
                         ))}
-                        {benefits.length > 4 && (
-                          <p className="text-[10px] text-muted-foreground pl-4">+{benefits.length - 4} more</p>
-                        )}
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Price & Actions */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 border-t border-border/50">
+              {/* Price & Actions - Desktop */}
+              <div className="hidden lg:flex items-center gap-6 pt-6 border-t border-border/50">
+                <div className="flex items-baseline gap-1">
+                  <span className="font-display text-4xl font-bold">₹{product.price.toLocaleString()}</span>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="gap-2"
+                    disabled={!isInStock(product.stock_status)}
+                    onClick={handleAddToCart}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Add to Cart
+                  </Button>
+                  <Button
+                    variant="glow"
+                    size="lg"
+                    className="gap-2"
+                    disabled={!isInStock(product.stock_status)}
+                    onClick={handleBuyNow}
+                  >
+                    <Zap className="w-5 h-5" />
+                    Buy Now
+                  </Button>
+                </div>
+              </div>
+
+              {/* Price & Actions - Mobile (inline, above sticky) */}
+              <div className="lg:hidden flex flex-col gap-4 pt-4 border-t border-border/50">
                 <div className="flex items-baseline gap-1">
                   <span className="font-display text-3xl font-bold">₹{product.price.toLocaleString()}</span>
                 </div>
-
-                <div className="flex gap-2 flex-1 w-full sm:w-auto">
+                <div className="flex gap-3">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="flex-1 sm:flex-none gap-1.5"
+                    className="flex-1 gap-2"
                     disabled={!isInStock(product.stock_status)}
                     onClick={handleAddToCart}
                   >
                     <ShoppingCart className="w-4 h-4" />
-                    Add
+                    Add to Cart
                   </Button>
                   <Button
                     variant="glow"
-                    size="sm"
-                    className="flex-1 sm:flex-none gap-1.5"
+                    className="flex-1 gap-2"
                     disabled={!isInStock(product.stock_status)}
                     onClick={handleBuyNow}
                   >
@@ -354,6 +386,45 @@ export default function ProductDetail() {
           </div>
         </div>
       </section>
+
+      {/* Sticky Mobile Price Bar */}
+      <AnimatePresence>
+        {showStickyBar && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-inset-bottom"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground line-clamp-1">{product.name}</p>
+                <p className="font-display text-xl font-bold">₹{product.price.toLocaleString()}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!isInStock(product.stock_status)}
+                  onClick={handleAddToCart}
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="glow"
+                  size="sm"
+                  className="gap-1.5"
+                  disabled={!isInStock(product.stock_status)}
+                  onClick={handleBuyNow}
+                >
+                  <Zap className="w-4 h-4" />
+                  Buy Now
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Image Lightbox */}
       <ImageLightbox
