@@ -89,10 +89,12 @@ export function ScheduleMeetingDialog({ open, onOpenChange, members, onMeetingSc
 
       if (meetingError) throw meetingError;
 
-      // If notify is enabled, create a notice for all attendees
+      // If notify is enabled, create a notice for all attendees and send emails
       if (notifyAttendees && meetingData) {
         const attendeeNames = attendeeDetails.map(a => a.name).join(', ');
+        const currentUser = (await supabase.auth.getUser()).data.user;
         
+        // Create notice
         await supabase
           .from('notices')
           .insert({
@@ -100,11 +102,29 @@ export function ScheduleMeetingDialog({ open, onOpenChange, members, onMeetingSc
             content: `You have been invited to a meeting.\n\nDate: ${meetingDateTime.toLocaleString()}\nDuration: ${formData.duration} minutes\nAttendees: ${attendeeNames}\n\n${formData.description || 'No additional details.'}`,
             priority: 'high',
             is_active: true,
-            posted_by: (await supabase.auth.getUser()).data.user?.id,
+            posted_by: currentUser?.id,
           });
 
+        // Send email invites
+        try {
+          await supabase.functions.invoke('send-meeting-invite', {
+            body: {
+              meetingTitle: formData.title,
+              meetingDescription: formData.description || undefined,
+              meetingDate: formData.meetingDate,
+              meetingTime: formData.meetingTime,
+              durationMinutes: parseInt(formData.duration),
+              meetingLink: formData.meetingLink || meetingData.meeting_link,
+              attendees: attendeeDetails.map(a => ({ email: a.email, name: a.name })),
+              organizerName: currentUser?.email || 'ASIREX Admin'
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send meeting invite emails:', emailError);
+        }
+
         toast.success("Meeting scheduled and notifications sent!", {
-          description: `${selectedMembers.length} attendees will be notified`,
+          description: `${selectedMembers.length} attendees will be notified via email`,
         });
       } else {
         toast.success("Meeting scheduled successfully!");

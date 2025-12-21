@@ -64,6 +64,14 @@ export function DirectTaskAssignDialog({
       if (taskError) throw taskError;
 
       if (notifyAssignee && taskData) {
+        // Get member email from the database
+        const { data: memberData } = await supabase
+          .from('team_members')
+          .select('email, name')
+          .eq('id', memberId)
+          .single();
+
+        // Create notice
         await supabase
           .from('notices')
           .insert({
@@ -74,8 +82,26 @@ export function DirectTaskAssignDialog({
             posted_by: currentUser?.id,
           });
 
+        // Send email notification
+        if (memberData?.email) {
+          try {
+            await supabase.functions.invoke('send-task-notification', {
+              body: {
+                taskTitle: formData.title,
+                taskDescription: formData.description || undefined,
+                priority: formData.priority,
+                dueDate: formData.dueDate ? new Date(formData.dueDate).toLocaleDateString() : undefined,
+                assignee: { email: memberData.email, name: memberData.name || memberName },
+                assignerName: currentUser?.email || 'ASIREX Admin'
+              }
+            });
+          } catch (emailError) {
+            console.error('Failed to send task notification email:', emailError);
+          }
+        }
+
         toast.success("Task assigned and notification sent!", {
-          description: `${memberName} has been notified`,
+          description: `${memberName} has been notified via email`,
         });
       } else {
         toast.success("Task assigned successfully!", {
