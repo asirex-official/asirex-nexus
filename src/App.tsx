@@ -62,6 +62,7 @@ import VisualEditor from "./pages/admin/VisualEditor";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import TeamDirectory from "./pages/TeamDirectory";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 const queryClient = new QueryClient();
 
@@ -92,7 +93,7 @@ const App = () => (
             <Route path="/authority-login" element={<AuthorityLogin />} />
             <Route path="/card-login" element={<CardLogin />} />
             <Route path="/support-us" element={<SupportUs />} />
-            <Route path="/customers/public" element={<PublicCustomers />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/customers/private" element={<PrivateCompanies />} />
             <Route path="/customers/government" element={<GovernmentCustomers />} />
             <Route path="/values/mission" element={<Mission />} />

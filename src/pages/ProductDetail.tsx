@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check, Shield, Truck, Award, Package, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check, Shield, Truck, Award, Package, AlertTriangle, ExternalLink } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -674,6 +674,15 @@ export default function ProductDetail() {
                     <li>You will use this product in compliance with all applicable laws</li>
                     <li>No refunds will be provided once the product is shipped</li>
                   </ul>
+                  <a 
+                    href="/terms-and-conditions" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-primary hover:underline text-xs font-medium mt-2"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Read Full Terms & Conditions
+                  </a>
                 </div>
 
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border">
@@ -684,7 +693,7 @@ export default function ProductDetail() {
                     className="mt-0.5"
                   />
                   <label htmlFor="agree-terms" className="text-sm cursor-pointer leading-relaxed">
-                    I have read and agree to the terms and conditions. I understand the risks involved and accept full responsibility.
+                    I have read and agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">terms and conditions</a>. I understand the risks involved and accept full responsibility.
                   </label>
                 </div>
               </div>
