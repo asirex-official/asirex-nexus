@@ -798,22 +798,45 @@ const CEODashboard = () => {
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="overflow-x-auto scrollbar-hide">
-            <TabsList className="inline-flex h-12 items-center gap-1 rounded-lg bg-muted p-1 min-w-max">
-              <TabsTrigger value="overview" className="gap-1.5 px-4"><Home className="w-4 h-4" />Overview</TabsTrigger>
-              <TabsTrigger value="analytics" className="gap-1.5 px-4"><ChartArea className="w-4 h-4" />Analytics</TabsTrigger>
-              <TabsTrigger value="tasks" className="gap-1.5 px-4"><BarChart3 className="w-4 h-4" />Tasks</TabsTrigger>
-              <TabsTrigger value="team" className="gap-1.5 px-4"><Users className="w-4 h-4" />Team</TabsTrigger>
-              <TabsTrigger value="attendance" className="gap-1.5 px-4"><Timer className="w-4 h-4" />Attendance</TabsTrigger>
-              <TabsTrigger value="users" className="gap-1.5 px-4"><UserCog className="w-4 h-4" />Users</TabsTrigger>
-              <TabsTrigger value="finance" className="gap-1.5 px-4"><Calculator className="w-4 h-4" />Finance</TabsTrigger>
-              <TabsTrigger value="sales" className="gap-1.5 px-4"><Sparkles className="w-4 h-4" />Sales</TabsTrigger>
-              <TabsTrigger value="coupons" className="gap-1.5 px-4"><Ticket className="w-4 h-4" />Coupons</TabsTrigger>
-              <TabsTrigger value="notifications" className="gap-1.5 px-4"><Send className="w-4 h-4" />Notify</TabsTrigger>
-              <TabsTrigger value="content" className="gap-1.5 px-4"><Layers className="w-4 h-4" />Content</TabsTrigger>
-              <TabsTrigger value="notices" className="gap-1.5 px-4"><Bell className="w-4 h-4" />Notices</TabsTrigger>
-              <TabsTrigger value="audit" className="gap-1.5 px-4"><ScrollText className="w-4 h-4" />Audit</TabsTrigger>
-            </TabsList>
+          {/* Sticky Tab Bar */}
+          <div className="sticky top-[73px] z-40 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-lg border-b border-border/50">
+            {/* Active Tab Indicator Badge */}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Current:</span>
+              <Badge className="bg-primary/20 text-primary border-primary/30 capitalize gap-1.5">
+                {activeTab === "overview" && <><Home className="w-3 h-3" />Overview</>}
+                {activeTab === "analytics" && <><ChartArea className="w-3 h-3" />Analytics</>}
+                {activeTab === "tasks" && <><BarChart3 className="w-3 h-3" />Tasks</>}
+                {activeTab === "team" && <><Users className="w-3 h-3" />Team</>}
+                {activeTab === "attendance" && <><Timer className="w-3 h-3" />Attendance</>}
+                {activeTab === "users" && <><UserCog className="w-3 h-3" />Users</>}
+                {activeTab === "finance" && <><Calculator className="w-3 h-3" />Finance</>}
+                {activeTab === "sales" && <><Sparkles className="w-3 h-3" />Sales</>}
+                {activeTab === "coupons" && <><Ticket className="w-3 h-3" />Coupons</>}
+                {activeTab === "notifications" && <><Send className="w-3 h-3" />Notify</>}
+                {activeTab === "content" && <><Layers className="w-3 h-3" />Content</>}
+                {activeTab === "notices" && <><Bell className="w-3 h-3" />Notices</>}
+                {activeTab === "audit" && <><ScrollText className="w-3 h-3" />Audit</>}
+              </Badge>
+            </div>
+            {/* Scrollable Tabs */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <TabsList className="inline-flex h-11 items-center gap-1 rounded-xl bg-muted/80 p-1 min-w-max shadow-sm">
+                <TabsTrigger value="overview" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Home className="w-4 h-4" />Overview</TabsTrigger>
+                <TabsTrigger value="analytics" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><ChartArea className="w-4 h-4" />Analytics</TabsTrigger>
+                <TabsTrigger value="tasks" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><BarChart3 className="w-4 h-4" />Tasks</TabsTrigger>
+                <TabsTrigger value="team" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Users className="w-4 h-4" />Team</TabsTrigger>
+                <TabsTrigger value="attendance" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Timer className="w-4 h-4" />Attendance</TabsTrigger>
+                <TabsTrigger value="users" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><UserCog className="w-4 h-4" />Users</TabsTrigger>
+                <TabsTrigger value="finance" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Calculator className="w-4 h-4" />Finance</TabsTrigger>
+                <TabsTrigger value="sales" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Sparkles className="w-4 h-4" />Sales</TabsTrigger>
+                <TabsTrigger value="coupons" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Ticket className="w-4 h-4" />Coupons</TabsTrigger>
+                <TabsTrigger value="notifications" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Send className="w-4 h-4" />Notify</TabsTrigger>
+                <TabsTrigger value="content" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Layers className="w-4 h-4" />Content</TabsTrigger>
+                <TabsTrigger value="notices" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Bell className="w-4 h-4" />Notices</TabsTrigger>
+                <TabsTrigger value="audit" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><ScrollText className="w-4 h-4" />Audit</TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           <TabsContent value="tasks" className="space-y-6">
