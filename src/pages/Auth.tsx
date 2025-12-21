@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, Calendar } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, Calendar, AlertTriangle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,11 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { PasswordResetDialog } from "@/components/auth/PasswordResetDialog";
+import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
+import { strongPasswordSchema, emailSchema } from "@/lib/security/passwordValidation";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const loginBenefits = [
   "Track your orders in real-time",
@@ -56,6 +59,12 @@ export default function Auth() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutEndTime, setLockoutEndTime] = useState<Date | null>(null);
+  const lockoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const { signIn, signUp, user, roles, isAdmin, isSuperAdmin, isStaff, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -109,20 +118,173 @@ export default function Auth() {
     }
   }, [user, roles, isAdmin, isSuperAdmin, isStaff, authLoading, navigate, isProcessingOAuth, toast]);
 
+  // Cleanup lockout timer
+  useEffect(() => {
+    return () => {
+      if (lockoutTimerRef.current) {
+        clearTimeout(lockoutTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Check lockout on mount (from localStorage)
+  useEffect(() => {
+    const storedLockout = localStorage.getItem('auth_lockout');
+    if (storedLockout) {
+      const lockoutEnd = new Date(storedLockout);
+      if (lockoutEnd > new Date()) {
+        setIsLocked(true);
+        setLockoutEndTime(lockoutEnd);
+        const remaining = lockoutEnd.getTime() - Date.now();
+        lockoutTimerRef.current = setTimeout(() => {
+          setIsLocked(false);
+          setLockoutEndTime(null);
+          setLoginAttempts(0);
+          localStorage.removeItem('auth_lockout');
+        }, remaining);
+      } else {
+        localStorage.removeItem('auth_lockout');
+      }
+    }
+  }, []);
+
+  // Validate password on change for signup
+  useEffect(() => {
+    if (!isLogin && password) {
+      const result = strongPasswordSchema.safeParse(password);
+      if (!result.success) {
+        setPasswordErrors(result.error.errors.map(e => e.message));
+      } else {
+        setPasswordErrors([]);
+      }
+    } else {
+      setPasswordErrors([]);
+    }
+  }, [password, isLogin]);
+
+  // Validate email
+  useEffect(() => {
+    if (email) {
+      const result = emailSchema.safeParse(email);
+      if (!result.success) {
+        setEmailError(result.error.errors[0]?.message || "Invalid email");
+      } else {
+        setEmailError(null);
+      }
+    } else {
+      setEmailError(null);
+    }
+  }, [email]);
+
+  const handleLoginAttemptFailed = async () => {
+    const newAttempts = loginAttempts + 1;
+    setLoginAttempts(newAttempts);
+    
+    // Lock after 5 failed attempts
+    if (newAttempts >= 5) {
+      const lockoutEnd = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      setIsLocked(true);
+      setLockoutEndTime(lockoutEnd);
+      localStorage.setItem('auth_lockout', lockoutEnd.toISOString());
+      
+      // Log the lockout attempt
+      try {
+        await supabase.rpc('log_auth_attempt', {
+          p_identifier: email,
+          p_attempt_type: 'login_lockout',
+          p_success: false
+        });
+      } catch (err) {
+        console.error('Failed to log auth attempt:', err);
+      }
+      
+      lockoutTimerRef.current = setTimeout(() => {
+        setIsLocked(false);
+        setLockoutEndTime(null);
+        setLoginAttempts(0);
+        localStorage.removeItem('auth_lockout');
+      }, 15 * 60 * 1000);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check lockout
+    if (isLocked) {
+      const remainingMins = lockoutEndTime ? Math.ceil((lockoutEndTime.getTime() - Date.now()) / 60000) : 15;
+      toast({
+        title: "Account Temporarily Locked",
+        description: `Too many failed attempts. Try again in ${remainingMins} minutes.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast({
+        title: "Invalid Email",
+        description: emailResult.error.errors[0]?.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password for signup
+    if (!isLogin) {
+      const passwordResult = strongPasswordSchema.safeParse(password);
+      if (!passwordResult.success) {
+        toast({
+          title: "Weak Password",
+          description: passwordResult.error.errors[0]?.message,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
+          handleLoginAttemptFailed();
+          
+          // Log failed attempt
+          try {
+            await supabase.rpc('log_auth_attempt', {
+              p_identifier: email,
+              p_attempt_type: 'login',
+              p_success: false
+            });
+          } catch (err) {
+            console.error('Failed to log auth attempt:', err);
+          }
+          
           toast({
             title: "Login failed",
             description: error.message,
             variant: "destructive",
           });
         } else {
+          // Reset attempts on success
+          setLoginAttempts(0);
+          localStorage.removeItem('auth_lockout');
+          
+          // Log successful attempt
+          try {
+            await supabase.rpc('log_auth_attempt', {
+              p_identifier: email,
+              p_attempt_type: 'login',
+              p_success: true
+            });
+          } catch (err) {
+            console.error('Failed to log auth attempt:', err);
+          }
+          
           toast({
             title: "Welcome back!",
             description: "You have successfully logged in.",
@@ -226,6 +388,27 @@ export default function Auth() {
             </p>
           </div>
 
+          {/* Lockout Warning */}
+          {isLocked && lockoutEndTime && (
+            <Alert variant="destructive" className="mb-4">
+              <ShieldAlert className="h-4 w-4" />
+              <AlertDescription>
+                Account locked due to too many failed attempts. 
+                Try again in {Math.ceil((lockoutEndTime.getTime() - Date.now()) / 60000)} minutes.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Failed attempts warning */}
+          {!isLocked && loginAttempts > 0 && loginAttempts < 5 && (
+            <Alert className="mb-4 border-yellow-500/50 bg-yellow-500/10">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              <AlertDescription className="text-yellow-600 dark:text-yellow-400">
+                {5 - loginAttempts} login attempts remaining before temporary lockout.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Benefits Section */}
           <div className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/10">
             <p className="text-sm font-medium text-foreground mb-2">
@@ -301,12 +484,12 @@ export default function Auth() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={isLogin ? "••••••••" : "Min 12 chars, mixed case, special"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
-                  className="pl-10 pr-10"
+                  minLength={isLogin ? 6 : 12}
+                  className={`pl-10 pr-10 ${!isLogin && passwordErrors.length > 0 ? 'border-red-500' : ''}`}
                 />
                 <button
                   type="button"
@@ -316,13 +499,16 @@ export default function Auth() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {!isLogin && password && (
+                <PasswordStrengthMeter password={password} showRequirements={true} />
+              )}
             </div>
 
             <Button 
               type="submit" 
               variant="hero" 
               className="w-full" 
-              disabled={loading}
+              disabled={loading || isLocked || (!isLogin && passwordErrors.length > 0)}
             >
               {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
             </Button>
