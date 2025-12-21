@@ -20,15 +20,15 @@ const footerLinks = {
     { name: "Careers", href: "/about#careers" },
   ],
   Support: [
-    { name: "Documentation", href: "#" },
+    { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/about#contact" },
-    { name: "FAQ", href: "#" },
-    { name: "Shipping", href: "#" },
+    { name: "Track Order", href: "/track-order" },
+    { name: "Shipping Info", href: "/shipping-info" },
   ],
   Legal: [
-    { name: "Privacy Policy", href: "#" },
-    { name: "Terms of Service", href: "#" },
-    { name: "Refund Policy", href: "#" },
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Terms of Service", href: "/terms-and-conditions" },
+    { name: "Refund Policy", href: "/refund-policy" },
   ],
 };
 
