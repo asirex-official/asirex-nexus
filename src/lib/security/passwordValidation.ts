@@ -42,31 +42,7 @@ const hasRepeatedChars = (password: string): boolean => {
 export const strongPasswordSchema = z
   .string()
   .min(6, "Password must be at least 6 characters")
-  .max(128, "Password must be less than 128 characters")
-  .refine(
-    (password) => /[a-z]/.test(password),
-    "Password must contain at least one lowercase letter"
-  )
-  .refine(
-    (password) => /[0-9]/.test(password),
-    "Password must contain at least one number"
-  )
-  .refine(
-    (password) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-    "Password must contain at least one special character (!@#$%^&*)"
-  )
-  .refine(
-    (password) => !COMMON_PASSWORDS.includes(password.toLowerCase()),
-    "This password is too common and easily guessed"
-  )
-  .refine(
-    (password) => !hasSequentialChars(password),
-    "Password cannot contain sequential characters (abc, 123, qwerty)"
-  )
-  .refine(
-    (password) => !hasRepeatedChars(password),
-    "Password cannot contain repeated characters (aaa, 111)"
-  );
+  .max(12, "Password must be less than 12 characters");
 
 // Email validation
 export const emailSchema = z
