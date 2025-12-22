@@ -41,12 +41,8 @@ const hasRepeatedChars = (password: string): boolean => {
 // Strong password schema
 export const strongPasswordSchema = z
   .string()
-  .min(12, "Password must be at least 12 characters")
+  .min(6, "Password must be at least 6 characters")
   .max(128, "Password must be less than 128 characters")
-  .refine(
-    (password) => /[A-Z]/.test(password),
-    "Password must contain at least one uppercase letter"
-  )
   .refine(
     (password) => /[a-z]/.test(password),
     "Password must contain at least one lowercase letter"
@@ -121,11 +117,11 @@ export const signupSchema = z.object({
 export const calculatePasswordStrength = (password: string): number => {
   let score = 0;
   
-  if (password.length >= 8) score += 10;
-  if (password.length >= 12) score += 15;
-  if (password.length >= 16) score += 10;
-  if (/[a-z]/.test(password)) score += 10;
-  if (/[A-Z]/.test(password)) score += 15;
+  if (password.length >= 6) score += 10;
+  if (password.length >= 8) score += 15;
+  if (password.length >= 12) score += 10;
+  if (/[a-z]/.test(password)) score += 15;
+  if (/[A-Z]/.test(password)) score += 10;
   if (/[0-9]/.test(password)) score += 15;
   if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 20;
   if (!hasSequentialChars(password)) score += 5;
@@ -133,7 +129,7 @@ export const calculatePasswordStrength = (password: string): number => {
   if (!COMMON_PASSWORDS.includes(password.toLowerCase())) score += 5;
   
   // Penalize short passwords
-  if (password.length < 8) score = Math.min(score, 30);
+  if (password.length < 6) score = Math.min(score, 30);
   
   return Math.min(score, 100);
 };
