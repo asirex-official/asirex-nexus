@@ -364,14 +364,16 @@ export default function Auth() {
 
     setOtpLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('verify-signup-otp', {
+      const response = await supabase.functions.invoke('verify-signup-otp', {
         body: { email, otp: otpValue }
       });
 
-      if (error || data?.error) {
+      // Check for error in response data (edge function returns error in body with 400 status)
+      if (response.error || response.data?.error) {
+        const errorMessage = response.data?.error || "Invalid code. Please try again.";
         toast({
-          title: "Verification failed",
-          description: data?.error || error?.message || "Invalid verification code",
+          title: "Invalid Code",
+          description: errorMessage,
           variant: "destructive",
         });
         setOtpValue("");
@@ -396,11 +398,13 @@ export default function Auth() {
         setIsLogin(true);
       }
     } catch (err: any) {
+      // Handle network errors or edge function failures
       toast({
-        title: "Error",
-        description: err.message || "Verification failed",
+        title: "Invalid Code",
+        description: "The code you entered is incorrect. Please try again.",
         variant: "destructive",
       });
+      setOtpValue("");
     } finally {
       setOtpLoading(false);
     }
