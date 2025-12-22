@@ -9,8 +9,7 @@ interface PasswordStrengthMeterProps {
 }
 
 const requirements = [
-  { regex: /.{12,}/, label: "At least 12 characters" },
-  { regex: /[A-Z]/, label: "One uppercase letter" },
+  { regex: /.{6,}/, label: "At least 6 characters" },
   { regex: /[a-z]/, label: "One lowercase letter" },
   { regex: /[0-9]/, label: "One number" },
   { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, label: "One special character" },
