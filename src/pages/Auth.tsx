@@ -677,7 +677,7 @@ export default function Auth() {
                   </button>
                 </div>
                 {!isLogin && password && (
-                  <PasswordStrengthMeter password={password} showRequirements={true} />
+                  <PasswordStrengthMeter password={password} />
                 )}
               </div>
 
