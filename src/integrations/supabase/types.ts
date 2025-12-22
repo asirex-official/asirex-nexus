@@ -1281,6 +1281,45 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_otps: {
+        Row: {
+          attempts: number
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          expires_at: string
+          full_name: string | null
+          id: string
+          otp_hash: string
+          password_hash: string | null
+          verified: boolean
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          expires_at: string
+          full_name?: string | null
+          id?: string
+          otp_hash: string
+          password_hash?: string | null
+          verified?: boolean
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          otp_hash?: string
+          password_hash?: string | null
+          verified?: boolean
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string
@@ -1809,6 +1848,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

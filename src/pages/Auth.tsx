@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, Calendar, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, Calendar, AlertTriangle, ShieldAlert, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 const loginBenefits = [
   "Track your orders in real-time",
   "Access exclusive member discounts",
@@ -70,6 +70,12 @@ export default function Auth() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutEndTime, setLockoutEndTime] = useState<Date | null>(null);
   const lockoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // OTP verification states
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   
   const { signIn, signUp, user, roles, isAdmin, isSuperAdmin, isStaff, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -180,6 +186,14 @@ export default function Auth() {
       setEmailError(null);
     }
   }, [email]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const handleLoginAttemptFailed = async () => {
     const newAttempts = loginAttempts + 1;
@@ -297,24 +311,104 @@ export default function Auth() {
           navigate("/");
         }
       } else {
-        const { error } = await signUp(email, password, fullName, dateOfBirth);
-        if (error) {
-          toast({
-            title: "Sign up failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Account created!",
-            description: "You can now log in with your credentials.",
-          });
-          setIsLogin(true);
-        }
+        // For signup, send OTP first
+        await sendOTP();
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const sendOTP = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { email, fullName }
+      });
+
+      if (error) {
+        toast({
+          title: "Failed to send verification code",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Verification code sent!",
+        description: `We've sent a 6-digit code to ${email}`,
+      });
+      setShowOTPVerification(true);
+      setResendCooldown(60); // 60 seconds cooldown
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to send verification code",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otpValue.length !== 6) {
+      toast({
+        title: "Invalid code",
+        description: "Please enter the 6-digit verification code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setOtpLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-signup-otp', {
+        body: { email, otp: otpValue }
+      });
+
+      if (error || data?.error) {
+        toast({
+          title: "Verification failed",
+          description: data?.error || error?.message || "Invalid verification code",
+          variant: "destructive",
+        });
+        setOtpValue("");
+        return;
+      }
+
+      // OTP verified, now create the account
+      const { error: signUpError } = await signUp(email, password, fullName, dateOfBirth);
+      if (signUpError) {
+        toast({
+          title: "Sign up failed",
+          description: signUpError.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account created!",
+          description: "You can now log in with your credentials.",
+        });
+        setShowOTPVerification(false);
+        setOtpValue("");
+        setIsLogin(true);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Verification failed",
+        variant: "destructive",
+      });
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+    await sendOTP();
   };
 
   const handleAdminRoleSelect = (roleId: string) => {
@@ -429,94 +523,172 @@ export default function Auth() {
             </ul>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="John Doe"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={dateOfBirth}
-                      onChange={(e) => setDateOfBirth(e.target.value)}
-                      className="pl-10"
-                      required
-                      max={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={isLogin ? "••••••••" : "Min 12 chars, mixed case, special"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={isLogin ? 6 : 12}
-                  className={`pl-10 pr-10 ${!isLogin && passwordErrors.length > 0 ? 'border-red-500' : ''}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {!isLogin && password && (
-                <PasswordStrengthMeter password={password} showRequirements={true} />
-              )}
-            </div>
-
-            <Button 
-              type="submit" 
-              variant="hero" 
-              className="w-full" 
-              disabled={loading || isLocked || (!isLogin && passwordErrors.length > 0)}
+          {/* OTP Verification Step */}
+          {showOTPVerification ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
             >
-              {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
-            </Button>
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <KeyRound className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold text-foreground">Verify Your Email</h2>
+                <p className="text-sm text-muted-foreground mt-2">
+                  We've sent a 6-digit verification code to<br />
+                  <span className="font-medium text-foreground">{email}</span>
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <InputOTP
+                  value={otpValue}
+                  onChange={setOtpValue}
+                  maxLength={6}
+                  disabled={otpLoading}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <Button
+                type="button"
+                variant="hero"
+                className="w-full"
+                disabled={otpLoading || otpValue.length !== 6}
+                onClick={handleVerifyOTP}
+              >
+                {otpLoading ? "Verifying..." : "Verify & Create Account"}
+              </Button>
+
+              <div className="text-center space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Didn't receive the code?
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={resendCooldown > 0}
+                  onClick={handleResendOTP}
+                  className="text-primary hover:text-primary/80"
+                >
+                  {resendCooldown > 0 
+                    ? `Resend in ${resendCooldown}s` 
+                    : "Resend Code"}
+                </Button>
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => {
+                  setShowOTPVerification(false);
+                  setOtpValue("");
+                }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Sign Up
+              </Button>
+            </motion.div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {!isLogin && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="fullName"
+                        type="text"
+                        placeholder="John Doe"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={dateOfBirth}
+                        onChange={(e) => setDateOfBirth(e.target.value)}
+                        className="pl-10"
+                        required
+                        max={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={isLogin ? "••••••••" : "Min 12 chars, mixed case, special"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={isLogin ? 6 : 12}
+                    className={`pl-10 pr-10 ${!isLogin && passwordErrors.length > 0 ? 'border-red-500' : ''}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {!isLogin && password && (
+                  <PasswordStrengthMeter password={password} showRequirements={true} />
+                )}
+              </div>
+
+              <Button 
+                type="submit" 
+                variant="hero" 
+                className="w-full" 
+                disabled={loading || isLocked || (!isLogin && passwordErrors.length > 0)}
+              >
+                {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
+              </Button>
 
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
@@ -554,7 +726,8 @@ export default function Auth() {
               </svg>
               {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
-          </form>
+            </form>
+          )}
 
           <div className="mt-4 text-center">
             {isLogin && (
