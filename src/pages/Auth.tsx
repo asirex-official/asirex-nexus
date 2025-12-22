@@ -467,13 +467,23 @@ export default function Auth() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative"
       >
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+          <Link 
+            to="/" 
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
+          
+          <button
+            type="button"
+            onClick={() => setIsLogin(!isLogin)}
+            className="px-4 py-2 text-sm font-medium rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 border border-primary/20 hover:border-primary hover:scale-105"
+          >
+            {isLogin ? "Sign up" : "Sign in"}
+          </button>
+        </div>
 
         <div className="glass-card p-8">
           <div className="text-center mb-6">
@@ -741,17 +751,6 @@ export default function Auth() {
             )}
           </div>
 
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isLogin 
-                ? "Don't have an account? Sign up" 
-                : "Already have an account? Sign in"}
-            </button>
-          </div>
 
           {/* Admin Login Section */}
           <div className="mt-6 pt-6 border-t border-border/50">
