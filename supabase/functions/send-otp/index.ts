@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ASIREX <onboarding@resend.dev>",
+        from: "Welcome <noreply@asirex.in>",
         to: [email],
         subject: "Your ASIREX Verification Code",
         html: `
