@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones, Download } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { generateInvoicePDF } from "@/utils/invoiceGenerator";
 import {
   Dialog,
   DialogContent,
@@ -326,52 +327,14 @@ export default function TrackOrder() {
   };
 
   const handleDownloadInvoice = (order: Order) => {
-    // Generate invoice content
-    const invoiceContent = `
-ASIREX - ORDER INVOICE
-=======================
-
-Order ID: ${order.id.slice(0, 8).toUpperCase()}
-Date: ${new Date(order.created_at).toLocaleDateString("en-IN", { 
-  day: "numeric", 
-  month: "long", 
-  year: "numeric" 
-})}
-
-SHIPPING ADDRESS:
-${order.shipping_address}
-${order.customer_phone ? `Phone: ${order.customer_phone}` : ""}
-
-ITEMS:
-${order.items.map(item => 
-  `- ${item.name} (Qty: ${item.quantity}) - ₹${(item.price * item.quantity).toLocaleString()}`
-).join("\n")}
-
-=======================
-SUBTOTAL: ₹${order.total_amount.toLocaleString()}
-SHIPPING: FREE
-=======================
-TOTAL: ₹${order.total_amount.toLocaleString()}
-
-Payment Method: ${order.payment_method === "cod" ? "Cash on Delivery" : order.payment_method.toUpperCase()}
-Payment Status: ${order.payment_status === "paid" ? "Paid" : "Pending"}
-
-Thank you for shopping with ASIREX!
-For support, contact us at support@asirex.com
-`;
-
-    // Create blob and download
-    const blob = new Blob([invoiceContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ASIREX-Invoice-${order.id.slice(0, 8).toUpperCase()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Get user details
+    const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Valued Customer";
+    const userEmail = user?.email;
     
-    toast.success("Invoice downloaded");
+    // Generate professional PDF invoice with hidden verification
+    generateInvoicePDF(order, userName, userEmail);
+    
+    toast.success("Invoice downloaded as PDF");
   };
 
   const handlePostDeliveryAction = (action: string) => {

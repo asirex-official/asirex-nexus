@@ -22,7 +22,8 @@ import {
   ShieldAlert,
   Key,
   Banknote,
-  HeadphonesIcon
+  HeadphonesIcon,
+  FileCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,7 @@ const navItems = [
   { path: "/admin/refunds", icon: Banknote, label: "Refunds" },
   { path: "/admin/subscribers", icon: Newspaper, label: "Subscribers" },
   { path: "/admin/applications", icon: UserPlus, label: "Applications" },
+  { path: "/admin/invoice-verifier", icon: FileCheck, label: "Invoice Verifier" },
   { path: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 
