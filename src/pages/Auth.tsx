@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, Calendar, AlertTriangle, ShieldAlert, KeyRound } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, AlertTriangle, ShieldAlert, KeyRound } from "lucide-react";
+import { DialDatePicker } from "@/components/ui/dial-date-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -645,18 +646,12 @@ export default function Auth() {
 
                   <div className="space-y-2">
                     <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        value={dateOfBirth}
-                        onChange={(e) => setDateOfBirth(e.target.value)}
-                        className="pl-10"
-                        required
-                        max={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
+                    <DialDatePicker
+                      value={dateOfBirth}
+                      onChange={setDateOfBirth}
+                      required
+                      max={new Date().toISOString().split('T')[0]}
+                    />
                   </div>
                 </>
               )}
