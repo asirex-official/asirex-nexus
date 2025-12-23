@@ -679,11 +679,12 @@ export default function Auth() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={isLogin ? "••••••••" : "Min 12 chars, mixed case, special"}
+                    placeholder={isLogin ? "••••••••" : "4-12 characters"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    minLength={isLogin ? 6 : 12}
+                    minLength={4}
+                    maxLength={12}
                     className={`pl-10 pr-10 ${!isLogin && passwordErrors.length > 0 ? 'border-red-500' : ''}`}
                   />
                   <button
