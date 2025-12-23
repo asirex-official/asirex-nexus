@@ -67,6 +67,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import RefundPolicy from "./pages/RefundPolicy";
 import FAQ from "./pages/FAQ";
 import ShippingInfo from "./pages/ShippingInfo";
+import WarrantyClaims from "./pages/WarrantyClaims";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => (
             <Route path="/refund-policy" element={<RefundPolicy />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/shipping-info" element={<ShippingInfo />} />
+            <Route path="/warranty-claims" element={<WarrantyClaims />} />
             <Route path="/customers/private" element={<PrivateCompanies />} />
             <Route path="/customers/government" element={<GovernmentCustomers />} />
             <Route path="/values/mission" element={<Mission />} />
