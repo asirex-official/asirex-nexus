@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, PhoneCall, Edit2 } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ import { ProductReviewForm } from "@/components/orders/ProductReviewForm";
 import { DamageReportForm } from "@/components/orders/DamageReportForm";
 import { ReturnReplaceForm } from "@/components/orders/ReturnReplaceForm";
 import { toast } from "sonner";
+import { useLiveChat } from "@/hooks/useLiveChat";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -68,6 +69,7 @@ const ORDER_STATUSES = [
 export default function TrackOrder() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { openChat } = useLiveChat();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -321,6 +323,55 @@ export default function TrackOrder() {
     } catch (error) {
       toast.error("Failed to update instructions");
     }
+  };
+
+  const handleDownloadInvoice = (order: Order) => {
+    // Generate invoice content
+    const invoiceContent = `
+ASIREX - ORDER INVOICE
+=======================
+
+Order ID: ${order.id.slice(0, 8).toUpperCase()}
+Date: ${new Date(order.created_at).toLocaleDateString("en-IN", { 
+  day: "numeric", 
+  month: "long", 
+  year: "numeric" 
+})}
+
+SHIPPING ADDRESS:
+${order.shipping_address}
+${order.customer_phone ? `Phone: ${order.customer_phone}` : ""}
+
+ITEMS:
+${order.items.map(item => 
+  `- ${item.name} (Qty: ${item.quantity}) - ₹${(item.price * item.quantity).toLocaleString()}`
+).join("\n")}
+
+=======================
+SUBTOTAL: ₹${order.total_amount.toLocaleString()}
+SHIPPING: FREE
+=======================
+TOTAL: ₹${order.total_amount.toLocaleString()}
+
+Payment Method: ${order.payment_method === "cod" ? "Cash on Delivery" : order.payment_method.toUpperCase()}
+Payment Status: ${order.payment_status === "paid" ? "Paid" : "Pending"}
+
+Thank you for shopping with ASIREX!
+For support, contact us at support@asirex.com
+`;
+
+    // Create blob and download
+    const blob = new Blob([invoiceContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ASIREX-Invoice-${order.id.slice(0, 8).toUpperCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success("Invoice downloaded");
   };
 
   const handlePostDeliveryAction = (action: string) => {
@@ -656,12 +707,28 @@ export default function TrackOrder() {
                             <Edit2 className="w-4 h-4 mr-1" />
                             Delivery Instructions
                           </Button>
-                          {selectedOrder.tracking_provider && (
-                            <Button variant="outline" size="sm">
-                              <PhoneCall className="w-4 h-4 mr-1" />
-                              Contact Delivery Partner
-                            </Button>
-                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              // Generate invoice and download
+                              handleDownloadInvoice(selectedOrder);
+                            }}
+                          >
+                            <FileText className="w-4 h-4 mr-1" />
+                            Download Invoice
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              const message = `Order Query - Order ID: ${selectedOrder.id.slice(0, 8).toUpperCase()}\n\nI have a question about my order. Please help me with this.`;
+                              openChat(message);
+                            }}
+                          >
+                            <Headphones className="w-4 h-4 mr-1" />
+                            Contact Support
+                          </Button>
                         </div>
                       </div>
                     )}
