@@ -389,9 +389,18 @@ export default function Auth() {
           variant: "destructive",
         });
       } else {
+        // Send welcome email (fire and forget, don't block signup flow)
+        supabase.functions.invoke('send-welcome-email', {
+          body: { email, fullName, dateOfBirth }
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Failed to send welcome email:', error);
+          }
+        });
+        
         toast({
           title: "Account created!",
-          description: "You can now log in with your credentials.",
+          description: "Welcome to ASIREX! Check your email for account details.",
         });
         setShowOTPVerification(false);
         setOtpValue("");
