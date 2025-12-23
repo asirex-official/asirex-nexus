@@ -9,11 +9,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 
 export function LiveChat() {
-  const { isOpen, closeChat } = useLiveChat();
+  const { isOpen, closeChat, initialMessage, clearInitialMessage } = useLiveChat();
   const { user } = useAuth();
   const { conversationId, messages, loading, initConversation, sendMessage } = useChatMessages();
   const [inputValue, setInputValue] = useState("");
   const [initialized, setInitialized] = useState(false);
+  const [sentInitialMessage, setSentInitialMessage] = useState(false);
 
   useEffect(() => {
     if (isOpen && user && !initialized) {
@@ -21,9 +22,20 @@ export function LiveChat() {
     }
   }, [isOpen, user, initialized]);
 
+  // Send initial message if provided
+  useEffect(() => {
+    if (initialized && conversationId && initialMessage && !sentInitialMessage) {
+      sendMessage(initialMessage).then(() => {
+        clearInitialMessage();
+        setSentInitialMessage(true);
+      });
+    }
+  }, [initialized, conversationId, initialMessage, sentInitialMessage]);
+
   useEffect(() => {
     if (!isOpen) {
       setInitialized(false);
+      setSentInitialMessage(false);
     }
   }, [isOpen]);
 
