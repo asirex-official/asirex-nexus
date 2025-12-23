@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +17,23 @@ interface OrderConfirmationRequest {
   estimatedDelivery: string;
 }
 
+async function sendEmail(apiKey: string, to: string, subject: string, html: string) {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "ASIREX <orders@resend.dev>",
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+  return response.json();
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,7 +49,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const resend = new Resend(resendApiKey);
     const {
       orderId,
       customerName,
@@ -112,10 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
 
             <div style="margin-top: 30px; text-align: center;">
-              <a href="${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app')}/track-order" 
-                 style="display: inline-block; background-color: #6366f1; color: #fff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                Track Your Order
-              </a>
+              <p style="color: #666;">Track your order on our website</p>
             </div>
           </div>
 
@@ -129,12 +142,12 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: "ASIREX <orders@resend.dev>",
-      to: [customerEmail],
-      subject: `Order Confirmed! #${orderId.slice(0, 8).toUpperCase()}`,
-      html: emailHtml,
-    });
+    const emailResponse = await sendEmail(
+      resendApiKey,
+      customerEmail,
+      `Order Confirmed! #${orderId.slice(0, 8).toUpperCase()}`,
+      emailHtml
+    );
 
     console.log("Order confirmation email sent:", emailResponse);
 

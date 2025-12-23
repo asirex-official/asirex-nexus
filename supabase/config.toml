@@ -1,5 +1,11 @@
 project_id = "hdvjxlirfexofomkmwqc"
 
+[functions.send-order-confirmation]
+verify_jwt = false
+
+[functions.send-order-cancellation]
+verify_jwt = false
+
 [functions.ceo-pin]
 verify_jwt = true
 

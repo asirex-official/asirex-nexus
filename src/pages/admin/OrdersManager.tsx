@@ -28,14 +28,14 @@ const orderStatuses = ["pending", "confirmed", "processing", "shipped", "deliver
 const paymentStatuses = ["pending", "paid", "failed", "refunded"];
 const trackingProviders = ["Delhivery", "BlueDart", "DTDC", "India Post", "FedEx", "Other"];
 
-interface DeliveryAttempt {
+interface DeliveryAttemptLocal {
   id: string;
   attempt_number: number;
   scheduled_date: string;
   status: string;
   failure_reason?: string;
   notes?: string;
-  attempted_at?: string;
+  attempted_at?: string | null;
 }
 
 export default function OrdersManager() {
@@ -46,7 +46,7 @@ export default function OrdersManager() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingProvider, setTrackingProvider] = useState("Delhivery");
-  const [deliveryAttempts, setDeliveryAttempts] = useState<DeliveryAttempt[]>([]);
+  const [deliveryAttempts, setDeliveryAttempts] = useState<DeliveryAttemptLocal[]>([]);
   const [showDeliveryManager, setShowDeliveryManager] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -557,7 +557,12 @@ export default function OrdersManager() {
           paymentMethod={selectedOrder.payment_method}
           paymentStatus={selectedOrder.payment_status}
           totalAmount={selectedOrder.total_amount}
-          deliveryAttempts={deliveryAttempts}
+          currentAttempts={deliveryAttempts.map(a => ({
+            ...a,
+            attempted_at: a.attempted_at || null,
+            failure_reason: a.failure_reason || null,
+            notes: a.notes || null
+          }))}
           onUpdate={() => {
             fetchDeliveryAttempts(selectedOrder.id);
             refetch();
