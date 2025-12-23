@@ -45,6 +45,7 @@ import StatsManager from "./pages/admin/StatsManager";
 import AboutManager from "./pages/admin/AboutManager";
 import RefundsManager from "./pages/admin/RefundsManager";
 import CustomerIssuesManager from "./pages/admin/CustomerIssuesManager";
+import InvoiceVerifier from "./pages/admin/InvoiceVerifier";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -156,11 +157,12 @@ const App = () => (
               <Route path="features" element={<FeaturesManager />} />
               <Route path="stats" element={<StatsManager />} />
               <Route path="about" element={<AboutManager />} />
+              <Route path="invoice-verifier" element={<InvoiceVerifier />} />
               <Route path="settings" element={<SettingsManager />} />
             </Route>
             
-              <Route path="*" element={<NotFound />} />
-              </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
             </BrowserRouter>
           </TooltipProvider>
         </LiveChatProvider>
