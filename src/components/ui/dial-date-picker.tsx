@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,8 +37,11 @@ const DialColumn = ({
   label: string;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const y = useMotionValue(0);
+  const touchStartY = useRef<number>(0);
+  const touchCurrentY = useRef<number>(0);
+  const lastTouchTime = useRef<number>(0);
+  const velocity = useRef<number>(0);
+  const momentumFrame = useRef<number | null>(null);
   
   const itemHeight = 32;
   const visibleItems = 3;
@@ -58,6 +61,82 @@ const DialColumn = ({
     if (value > 0) onChange(value - 1);
   };
 
+  // Touch handlers for swipe support
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (momentumFrame.current) {
+      cancelAnimationFrame(momentumFrame.current);
+      momentumFrame.current = null;
+    }
+    touchStartY.current = e.touches[0].clientY;
+    touchCurrentY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+    velocity.current = 0;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const currentY = e.touches[0].clientY;
+    const deltaY = touchCurrentY.current - currentY;
+    const now = Date.now();
+    const timeDelta = now - lastTouchTime.current;
+    
+    if (timeDelta > 0) {
+      velocity.current = deltaY / timeDelta;
+    }
+    
+    touchCurrentY.current = currentY;
+    lastTouchTime.current = now;
+    
+    // Calculate how many items to scroll based on drag distance
+    const totalDelta = touchStartY.current - currentY;
+    const itemsToScroll = Math.round(totalDelta / (itemHeight * 0.6));
+    
+    if (Math.abs(itemsToScroll) >= 1) {
+      const newValue = Math.max(0, Math.min(items.length - 1, value + itemsToScroll));
+      if (newValue !== value) {
+        onChange(newValue);
+        touchStartY.current = currentY;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    // Apply momentum scrolling
+    const applyMomentum = () => {
+      if (Math.abs(velocity.current) > 0.02) {
+        const direction = velocity.current > 0 ? 1 : -1;
+        const itemsToScroll = Math.ceil(Math.abs(velocity.current) * 8);
+        
+        for (let i = 0; i < itemsToScroll; i++) {
+          setTimeout(() => {
+            const newValue = Math.max(0, Math.min(items.length - 1, value + direction));
+            if (newValue !== value) {
+              onChange(newValue);
+            }
+          }, i * 50);
+        }
+        
+        velocity.current *= 0.85;
+        if (Math.abs(velocity.current) > 0.02) {
+          momentumFrame.current = requestAnimationFrame(applyMomentum);
+        }
+      }
+    };
+    
+    if (Math.abs(velocity.current) > 0.3) {
+      applyMomentum();
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (momentumFrame.current) {
+        cancelAnimationFrame(momentumFrame.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex flex-col items-center gap-0.5">
       <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">
@@ -76,8 +155,11 @@ const DialColumn = ({
         
         <div 
           ref={containerRef}
-          className="relative h-24 w-14 overflow-hidden rounded-lg bg-muted/30 border border-border/50"
+          className="relative h-24 w-14 overflow-hidden rounded-lg bg-muted/30 border border-border/50 touch-none"
           onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Top fade */}
           <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
