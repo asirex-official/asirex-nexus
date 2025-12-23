@@ -552,6 +552,51 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_cards: {
+        Row: {
+          amount: number
+          balance: number
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_redeemed: boolean | null
+          redeemed_at: string | null
+          redeemed_order_id: string | null
+          refund_id: string | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance: number
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_redeemed?: boolean | null
+          redeemed_at?: string | null
+          redeemed_order_id?: string | null
+          refund_id?: string | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance?: number
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_redeemed?: boolean | null
+          redeemed_at?: string | null
+          redeemed_order_id?: string | null
+          refund_id?: string | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           applicant_current_company: string | null
@@ -806,12 +851,163 @@ export type Database = {
         }
         Relationships: []
       }
+      order_cancellations: {
+        Row: {
+          created_at: string | null
+          email_otp_verified: boolean | null
+          id: string
+          order_id: string
+          otp_expires_at: string | null
+          otp_hash: string | null
+          phone_otp_verified: boolean | null
+          reason: string
+          status: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_otp_verified?: boolean | null
+          id?: string
+          order_id: string
+          otp_expires_at?: string | null
+          otp_hash?: string | null
+          phone_otp_verified?: boolean | null
+          reason: string
+          status?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_otp_verified?: boolean | null
+          id?: string
+          order_id?: string
+          otp_expires_at?: string | null
+          otp_hash?: string | null
+          phone_otp_verified?: boolean | null
+          reason?: string
+          status?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_cancellations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_issues: {
+        Row: {
+          address_confirmed: boolean | null
+          admin_notes: string | null
+          created_at: string | null
+          damage_type: string | null
+          description: string
+          id: string
+          images: Json | null
+          issue_type: string
+          order_id: string
+          resolved_at: string | null
+          status: string | null
+          terms_accepted: boolean | null
+          updated_at: string | null
+          user_id: string
+          videos: Json | null
+        }
+        Insert: {
+          address_confirmed?: boolean | null
+          admin_notes?: string | null
+          created_at?: string | null
+          damage_type?: string | null
+          description: string
+          id?: string
+          images?: Json | null
+          issue_type: string
+          order_id: string
+          resolved_at?: string | null
+          status?: string | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          videos?: Json | null
+        }
+        Update: {
+          address_confirmed?: boolean | null
+          admin_notes?: string | null
+          created_at?: string | null
+          damage_type?: string | null
+          description?: string
+          id?: string
+          images?: Json | null
+          issue_type?: string
+          order_id?: string
+          resolved_at?: string | null
+          status?: string | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          videos?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_issues_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_post_delivery_actions: {
+        Row: {
+          action_completed: boolean | null
+          action_type: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          order_id: string
+          user_id: string
+        }
+        Insert: {
+          action_completed?: boolean | null
+          action_type: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          order_id: string
+          user_id: string
+        }
+        Update: {
+          action_completed?: boolean | null
+          action_type?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_post_delivery_actions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
           customer_email: string
           customer_name: string
           customer_phone: string | null
+          delivered_at: string | null
           id: string
           items: Json
           notes: string | null
@@ -832,6 +1028,7 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone?: string | null
+          delivered_at?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -852,6 +1049,7 @@ export type Database = {
           customer_email?: string
           customer_name?: string
           customer_phone?: string | null
+          delivered_at?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -905,6 +1103,98 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verifications: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          last_sent_at: string | null
+          otp_hash: string
+          phone_number: string
+          user_id: string
+          verified: boolean | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          last_sent_at?: string | null
+          otp_hash: string
+          phone_number: string
+          user_id: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          last_sent_at?: string | null
+          otp_hash?: string
+          phone_number?: string
+          user_id?: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      product_reviews: {
+        Row: {
+          created_at: string | null
+          id: string
+          images: Json | null
+          is_verified_purchase: boolean | null
+          order_id: string
+          product_id: string
+          rating: number
+          review_text: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          videos: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          images?: Json | null
+          is_verified_purchase?: boolean | null
+          order_id: string
+          product_id: string
+          rating: number
+          review_text?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          videos?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          images?: Json | null
+          is_verified_purchase?: boolean | null
+          order_id?: string
+          product_id?: string
+          rating?: number
+          review_text?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          videos?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           badge: string | null
@@ -923,6 +1213,7 @@ export type Database = {
           specs: Json | null
           stock_status: string | null
           updated_at: string
+          warranty_months: number | null
         }
         Insert: {
           badge?: string | null
@@ -941,6 +1232,7 @@ export type Database = {
           specs?: Json | null
           stock_status?: string | null
           updated_at?: string
+          warranty_months?: number | null
         }
         Update: {
           badge?: string | null
@@ -959,6 +1251,7 @@ export type Database = {
           specs?: Json | null
           stock_status?: string | null
           updated_at?: string
+          warranty_months?: number | null
         }
         Relationships: []
       }
@@ -1106,6 +1399,152 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: []
+      }
+      refund_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          bank_account_holder: string | null
+          bank_account_number_encrypted: string | null
+          bank_ifsc_encrypted: string | null
+          created_at: string | null
+          gift_card_id: string | null
+          id: string
+          order_id: string
+          payment_method: string
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          refund_method: string
+          status: string | null
+          updated_at: string | null
+          upi_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          bank_account_holder?: string | null
+          bank_account_number_encrypted?: string | null
+          bank_ifsc_encrypted?: string | null
+          created_at?: string | null
+          gift_card_id?: string | null
+          id?: string
+          order_id: string
+          payment_method: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          refund_method: string
+          status?: string | null
+          updated_at?: string | null
+          upi_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          bank_account_holder?: string | null
+          bank_account_number_encrypted?: string | null
+          bank_ifsc_encrypted?: string | null
+          created_at?: string | null
+          gift_card_id?: string | null
+          id?: string
+          order_id?: string
+          payment_method?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          refund_method?: string
+          status?: string | null
+          updated_at?: string | null
+          upi_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      return_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          order_id: string
+          pickup_completed_at: string | null
+          pickup_scheduled_at: string | null
+          product_id: string | null
+          reason: string
+          refund_id: string | null
+          replacement_order_id: string | null
+          request_type: string
+          status: string | null
+          terms_accepted: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          order_id: string
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          product_id?: string | null
+          reason: string
+          refund_id?: string | null
+          replacement_order_id?: string | null
+          request_type: string
+          status?: string | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          order_id?: string
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          product_id?: string | null
+          reason?: string
+          refund_id?: string | null
+          replacement_order_id?: string | null
+          request_type?: string
+          status?: string | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salary_requests: {
         Row: {
@@ -1637,6 +2076,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_claim_history: {
+        Row: {
+          claim_id: string
+          claim_type: string
+          created_at: string | null
+          flagged: boolean | null
+          id: string
+          is_valid: boolean | null
+          user_id: string
+        }
+        Insert: {
+          claim_id: string
+          claim_type: string
+          created_at?: string | null
+          flagged?: boolean | null
+          id?: string
+          is_valid?: boolean | null
+          user_id: string
+        }
+        Update: {
+          claim_id?: string
+          claim_type?: string
+          created_at?: string | null
+          flagged?: boolean | null
+          id?: string
+          is_valid?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_passkeys: {
         Row: {
           counter: number
@@ -1667,6 +2136,30 @@ export type Database = {
           last_used_at?: string | null
           public_key?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_phones: {
+        Row: {
+          created_at: string | null
+          id: string
+          phone_number: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          phone_number: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          phone_number?: string
+          user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -1781,6 +2274,84 @@ export type Database = {
         }
         Relationships: []
       }
+      warranty_claims: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          id: string
+          images: Json | null
+          invoice_url: string | null
+          issue_description: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          resolution_type: string | null
+          resolved_at: string | null
+          status: string | null
+          terms_accepted: boolean | null
+          updated_at: string | null
+          user_id: string
+          videos: Json | null
+          warranty_end_date: string
+          warranty_start_date: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          id?: string
+          images?: Json | null
+          invoice_url?: string | null
+          issue_description: string
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          resolution_type?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          videos?: Json | null
+          warranty_end_date: string
+          warranty_start_date: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          id?: string
+          images?: Json | null
+          invoice_url?: string | null
+          issue_description?: string
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          resolution_type?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          videos?: Json | null
+          warranty_end_date?: string
+          warranty_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranty_claims_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranty_claims_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       event_registration_counts: {
@@ -1852,6 +2423,11 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      create_gift_card_refund: {
+        Args: { p_amount: number; p_refund_id: string; p_user_id: string }
+        Returns: string
+      }
+      generate_gift_card_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
