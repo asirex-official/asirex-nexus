@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { hash, compare, genSalt } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,12 +13,18 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Security constants
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 30;
-const BCRYPT_ROUNDS = 12;
+const BCRYPT_ROUNDS = 10;
 
-// Helper function to hash with bcrypt
+// Helper function to hash with bcrypt (using sync version to avoid Worker issues)
 async function hashPin(pin: string): Promise<string> {
-  const salt = await genSalt(BCRYPT_ROUNDS);
-  return await hash(pin, salt);
+  // Use hashSync to avoid Worker issues in Deno Deploy
+  const salt = await bcrypt.genSaltSync(BCRYPT_ROUNDS);
+  return bcrypt.hashSync(pin, salt);
+}
+
+// Helper function to compare with bcrypt
+function comparePin(pin: string, hash: string): boolean {
+  return bcrypt.compareSync(pin, hash);
 }
 
 interface PinRequest {
@@ -206,12 +212,13 @@ serve(async (req) => {
           );
         }
 
-        // Verify PIN with bcrypt
+        // Verify PIN
         let isValid = false;
         try {
           // Check if it's a bcrypt hash (starts with $2)
           if (securityData.pin_hash.startsWith('$2')) {
-            isValid = await compare(pin, securityData.pin_hash);
+            isValid = comparePin(pin, securityData.pin_hash);
+            console.log('[CEO-PIN] Verified with bcrypt');
           } else {
             // Legacy SHA-256 hash - verify and upgrade
             const encoder = new TextEncoder();
@@ -335,7 +342,7 @@ serve(async (req) => {
         // Verify current PIN
         let isValid = false;
         if (securityData.pin_hash.startsWith('$2')) {
-          isValid = await compare(currentPin, securityData.pin_hash);
+          isValid = comparePin(currentPin, securityData.pin_hash);
         } else {
           // Legacy hash check
           const encoder = new TextEncoder();
