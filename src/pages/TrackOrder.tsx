@@ -361,6 +361,10 @@ export default function TrackOrder() {
         setComplaintType("return");
         setShowComplaintFlow(true);
         break;
+      case "replace":
+        setComplaintType("replace");
+        setShowComplaintFlow(true);
+        break;
       case "warranty":
         setComplaintType("warranty");
         setShowComplaintFlow(true);
@@ -368,10 +372,17 @@ export default function TrackOrder() {
     }
   };
 
-  const handleOrderCancelled = () => {
+  const handleOrderCancelled = (needsRefund?: boolean, orderAmount?: number, paymentMethod?: string) => {
     fetchUserOrders();
-    setSelectedOrder(null);
-    toast.success("Order cancelled successfully");
+    
+    if (needsRefund && selectedOrder) {
+      // Show refund dialog for prepaid cancelled orders
+      toast.info("Please select your refund method below.");
+      setShowRefundDialog(true);
+    } else {
+      setSelectedOrder(null);
+      toast.success("Order cancelled successfully");
+    }
   };
 
   if (authLoading || isLoading) {
@@ -859,7 +870,17 @@ export default function TrackOrder() {
                               }}
                             >
                               <RotateCcw className="w-4 h-4 mr-2" />
-                              Return/Replace
+                              Return
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                setComplaintType("replace");
+                                setShowComplaintFlow(true);
+                              }}
+                            >
+                              <RotateCcw className="w-4 h-4 mr-2" />
+                              Replace
                             </Button>
                             <Button 
                               variant="outline"
