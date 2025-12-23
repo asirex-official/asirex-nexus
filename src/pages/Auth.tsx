@@ -748,15 +748,20 @@ export default function Auth() {
             </form>
           )}
 
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center space-y-2">
             {isLogin && (
-              <button
-                type="button"
-                onClick={() => setShowPasswordReset(true)}
-                className="text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                Forgot your password?
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordReset(true)}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  Forgot your password?
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  You can also sign in with biometrics or passkey if registered from Settings.
+                </p>
+              </>
             )}
           </div>
 
