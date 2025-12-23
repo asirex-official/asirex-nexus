@@ -25,6 +25,7 @@ import {
   HeadphonesIcon,
   FileCheck
 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +47,7 @@ const navItems = [
   { path: "/admin/messages", icon: Mail, label: "Contact Messages" },
   { path: "/admin/chats", icon: MessageSquare, label: "Live Chats", showBadge: true },
   { path: "/admin/orders", icon: ShoppingCart, label: "Orders" },
+  { path: "/admin/order-complaints", icon: AlertCircle, label: "Order Complaints" },
   { path: "/admin/customer-issues", icon: HeadphonesIcon, label: "Customer Issues" },
   { path: "/admin/refunds", icon: Banknote, label: "Refunds" },
   { path: "/admin/subscribers", icon: Newspaper, label: "Subscribers" },

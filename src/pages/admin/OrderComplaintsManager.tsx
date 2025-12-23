@@ -121,6 +121,29 @@ export default function OrderComplaintsManager() {
     setIsLoading(false);
   };
 
+  const sendNotification = async (
+    complaint: OrderComplaint,
+    notificationType: string,
+    additionalData?: Record<string, any>
+  ) => {
+    try {
+      await supabase.functions.invoke("send-complaint-notification", {
+        body: {
+          complaintId: complaint.id,
+          orderId: complaint.order_id,
+          userId: complaint.user_id,
+          notificationType,
+          complaintType: complaint.complaint_type,
+          customerName: complaint.order?.customer_name || "Customer",
+          customerEmail: complaint.order?.customer_email || "",
+          additionalData,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
+  };
+
   const handleResolveAsTrue = async () => {
     if (!selectedComplaint) return;
     setIsUpdating(true);
@@ -148,6 +171,7 @@ export default function OrderComplaintsManager() {
           investigation_status: "resolved_true",
           investigation_notes: adminNotes,
           coupon_code: couponCode,
+          coupon_discount: 20,
         })
         .eq("id", selectedComplaint.id);
 
@@ -157,7 +181,13 @@ export default function OrderComplaintsManager() {
         .update({ complaint_status: "resolved" })
         .eq("id", selectedComplaint.order_id);
 
-      toast.success("Complaint resolved - Coupon generated");
+      // Send notification
+      await sendNotification(selectedComplaint, "complaint_approved", {
+        couponCode,
+        couponDiscount: 20,
+      });
+
+      toast.success("Complaint resolved - Coupon generated & customer notified");
       setSelectedComplaint(null);
       fetchComplaints();
     } catch (error) {
@@ -185,7 +215,12 @@ export default function OrderComplaintsManager() {
         .update({ complaint_status: "false_report" })
         .eq("id", selectedComplaint.order_id);
 
-      toast.success("Marked as false report");
+      // Send rejection notification
+      await sendNotification(selectedComplaint, "complaint_rejected", {
+        rejectionReason: adminNotes || "Investigation determined the claim was not valid.",
+      });
+
+      toast.success("Marked as false report - Customer notified");
       setSelectedComplaint(null);
       fetchComplaints();
     } catch (error) {
@@ -209,7 +244,17 @@ export default function OrderComplaintsManager() {
         })
         .eq("id", selectedComplaint.id);
 
-      toast.success("Pickup scheduled");
+      // Send pickup scheduled notification
+      await sendNotification(selectedComplaint, "pickup_scheduled", {
+        pickupDate: new Date(pickupDate).toLocaleDateString("en-IN", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+      });
+
+      toast.success("Pickup scheduled - Customer notified");
       setSelectedComplaint(null);
       fetchComplaints();
     } catch (error) {
@@ -232,7 +277,10 @@ export default function OrderComplaintsManager() {
         })
         .eq("id", selectedComplaint.id);
 
-      toast.success("Marked as picked up");
+      // Send pickup completed notification
+      await sendNotification(selectedComplaint, "pickup_completed", {});
+
+      toast.success("Marked as picked up - Customer notified");
       fetchComplaints();
     } catch (error) {
       toast.error("Failed to update");
@@ -255,7 +303,7 @@ export default function OrderComplaintsManager() {
           customer_email: selectedComplaint.order.customer_email,
           customer_phone: selectedComplaint.order.customer_phone,
           items: selectedComplaint.order.items,
-          total_amount: 0, // Free replacement
+          total_amount: 0,
           payment_status: "paid",
           payment_method: "replacement",
           order_status: "processing",
@@ -267,7 +315,6 @@ export default function OrderComplaintsManager() {
 
       if (error) throw error;
 
-      // Update complaint with replacement order ID
       await supabase
         .from("order_complaints")
         .update({
@@ -276,7 +323,11 @@ export default function OrderComplaintsManager() {
         })
         .eq("id", selectedComplaint.id);
 
-      toast.success("Replacement order created");
+      await sendNotification(selectedComplaint, "replacement_created", {
+        replacementOrderId: newOrder.id,
+      });
+
+      toast.success("Replacement order created - Customer notified");
       setSelectedComplaint(null);
       fetchComplaints();
     } catch (error) {
