@@ -21,7 +21,8 @@ import {
   Info,
   ShieldAlert,
   Key,
-  Banknote
+  Banknote,
+  HeadphonesIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ const navItems = [
   { path: "/admin/messages", icon: Mail, label: "Contact Messages" },
   { path: "/admin/chats", icon: MessageSquare, label: "Live Chats", showBadge: true },
   { path: "/admin/orders", icon: ShoppingCart, label: "Orders" },
+  { path: "/admin/customer-issues", icon: HeadphonesIcon, label: "Customer Issues" },
   { path: "/admin/refunds", icon: Banknote, label: "Refunds" },
   { path: "/admin/subscribers", icon: Newspaper, label: "Subscribers" },
   { path: "/admin/applications", icon: UserPlus, label: "Applications" },

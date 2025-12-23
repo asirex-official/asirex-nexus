@@ -44,6 +44,7 @@ import FeaturesManager from "./pages/admin/FeaturesManager";
 import StatsManager from "./pages/admin/StatsManager";
 import AboutManager from "./pages/admin/AboutManager";
 import RefundsManager from "./pages/admin/RefundsManager";
+import CustomerIssuesManager from "./pages/admin/CustomerIssuesManager";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -148,6 +149,7 @@ const App = () => (
               <Route path="messages" element={<MessagesManager />} />
               <Route path="chats" element={<ChatManager />} />
               <Route path="orders" element={<OrdersManager />} />
+              <Route path="customer-issues" element={<CustomerIssuesManager />} />
               <Route path="refunds" element={<RefundsManager />} />
               <Route path="subscribers" element={<SubscribersManager />} />
               <Route path="applications" element={<ApplicationsManager />} />
