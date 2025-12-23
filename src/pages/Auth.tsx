@@ -71,6 +71,8 @@ export default function Auth() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutEndTime, setLockoutEndTime] = useState<Date | null>(null);
   const lockoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [lockoutEnabled, setLockoutEnabled] = useState(false);
+  const [checkingLockoutSetting, setCheckingLockoutSetting] = useState(false);
   
   // OTP verification states
   const [showOTPVerification, setShowOTPVerification] = useState(false);
@@ -140,14 +142,17 @@ export default function Auth() {
     };
   }, []);
 
-  // Check lockout on mount (from localStorage)
+  // Check lockout on mount (from localStorage) - only apply if lockout was enabled
   useEffect(() => {
     const storedLockout = localStorage.getItem('auth_lockout');
-    if (storedLockout) {
+    const lockoutEnabledForEmail = localStorage.getItem('auth_lockout_enabled');
+    
+    if (storedLockout && lockoutEnabledForEmail === 'true') {
       const lockoutEnd = new Date(storedLockout);
       if (lockoutEnd > new Date()) {
         setIsLocked(true);
         setLockoutEndTime(lockoutEnd);
+        setLockoutEnabled(true);
         const remaining = lockoutEnd.getTime() - Date.now();
         lockoutTimerRef.current = setTimeout(() => {
           setIsLocked(false);
@@ -197,16 +202,58 @@ export default function Auth() {
     }
   }, [resendCooldown]);
 
+  // Check if lockout is enabled for this email
+  const checkLockoutEnabled = async (userEmail: string): Promise<boolean> => {
+    try {
+      // First find user by email
+      const { data: userData } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '')
+        .single();
+      
+      if (!userData) {
+        // Try to check via auth - for existing users we need to query differently
+        // Since we can't query by email directly, check localStorage for cached setting
+        const cachedSetting = localStorage.getItem(`lockout_enabled_${userEmail}`);
+        return cachedSetting === 'true';
+      }
+      
+      const { data: securitySettings } = await supabase
+        .from('user_security_settings')
+        .select('login_lockout_enabled')
+        .eq('user_id', userData.user_id)
+        .single();
+      
+      return securitySettings?.login_lockout_enabled || false;
+    } catch (error) {
+      // If we can't check, default to disabled (no lockout)
+      return false;
+    }
+  };
+
   const handleLoginAttemptFailed = async () => {
+    // Check if lockout is enabled for this email (from localStorage cache)
+    const cachedLockoutSetting = localStorage.getItem(`lockout_enabled_${email}`);
+    const isLockoutEnabledForUser = cachedLockoutSetting === 'true';
+    
+    // Only apply lockout if user has enabled it
+    if (!isLockoutEnabledForUser) {
+      setLoginAttempts(prev => prev + 1);
+      return;
+    }
+
+    setLockoutEnabled(true);
     const newAttempts = loginAttempts + 1;
     setLoginAttempts(newAttempts);
     
-    // Lock after 5 failed attempts
+    // Lock after 5 failed attempts (only if enabled)
     if (newAttempts >= 5) {
       const lockoutEnd = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
       setIsLocked(true);
       setLockoutEndTime(lockoutEnd);
       localStorage.setItem('auth_lockout', lockoutEnd.toISOString());
+      localStorage.setItem('auth_lockout_enabled', 'true');
       
       // Log the lockout attempt
       try {
@@ -224,6 +271,7 @@ export default function Auth() {
         setLockoutEndTime(null);
         setLoginAttempts(0);
         localStorage.removeItem('auth_lockout');
+        localStorage.removeItem('auth_lockout_enabled');
       }, 15 * 60 * 1000);
     }
   };
@@ -231,8 +279,8 @@ export default function Auth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check lockout
-    if (isLocked) {
+    // Check lockout - only if lockout is enabled
+    if (lockoutEnabled && isLocked) {
       const remainingMins = lockoutEndTime ? Math.ceil((lockoutEndTime.getTime() - Date.now()) / 60000) : 15;
       toast({
         title: "Account Temporarily Locked",
@@ -687,8 +735,8 @@ export default function Auth() {
             </p>
           </div>
 
-          {/* Lockout Warning */}
-          {isLocked && lockoutEndTime && (
+          {/* Lockout Warning - only show if lockout is enabled */}
+          {lockoutEnabled && isLocked && lockoutEndTime && (
             <Alert variant="destructive" className="mb-4">
               <ShieldAlert className="h-4 w-4" />
               <AlertDescription>
@@ -698,8 +746,8 @@ export default function Auth() {
             </Alert>
           )}
 
-          {/* Failed attempts warning */}
-          {!isLocked && loginAttempts > 0 && loginAttempts < 5 && (
+          {/* Failed attempts warning - only show if lockout is enabled */}
+          {lockoutEnabled && !isLocked && loginAttempts > 0 && loginAttempts < 5 && (
             <Alert className="mb-4 border-yellow-500/50 bg-yellow-500/10">
               <AlertTriangle className="h-4 w-4 text-yellow-500" />
               <AlertDescription className="text-yellow-600 dark:text-yellow-400">

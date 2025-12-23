@@ -2271,6 +2271,7 @@ export type Database = {
           ip_whitelist: string[] | null
           is_2fa_setup_complete: boolean | null
           last_password_change: string | null
+          login_lockout_enabled: boolean | null
           max_sessions: number | null
           notify_new_login: boolean | null
           require_2fa: boolean | null
@@ -2286,6 +2287,7 @@ export type Database = {
           ip_whitelist?: string[] | null
           is_2fa_setup_complete?: boolean | null
           last_password_change?: string | null
+          login_lockout_enabled?: boolean | null
           max_sessions?: number | null
           notify_new_login?: boolean | null
           require_2fa?: boolean | null
@@ -2301,6 +2303,7 @@ export type Database = {
           ip_whitelist?: string[] | null
           is_2fa_setup_complete?: boolean | null
           last_password_change?: string | null
+          login_lockout_enabled?: boolean | null
           max_sessions?: number | null
           notify_new_login?: boolean | null
           require_2fa?: boolean | null
