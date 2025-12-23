@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Package, FolderKanban, Calendar, Briefcase, Upload, DollarSign, MapPin, Clock, ImagePlus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,6 +126,10 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
           rating: parseFloat(formData.rating || '0'),
           is_featured: formData.is_featured === 'true',
           specs: specs,
+          warranty_months: formData.warranty_months ? parseInt(formData.warranty_months) : null,
+          return_available: formData.return_available !== 'false',
+          replace_available: formData.replace_available !== 'false',
+          is_premium_grade: formData.is_premium_grade === 'true',
         });
         if (error) throw error;
       } else if (contentType === "project") {
@@ -332,6 +337,55 @@ export function AddContentDialog({ open, onOpenChange, contentType, onAdd }: Add
                 </SelectContent>
               </Select>
             </div>
+            {/* Warranty */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warranty (months)</Label>
+                <Input
+                  type="number"
+                  placeholder="12"
+                  min="0"
+                  value={formData.warranty_months || ""}
+                  onChange={(e) => setFormData({ ...formData, warranty_months: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Premium Grade</Label>
+                <Select value={formData.is_premium_grade || "false"} onValueChange={(v) => setFormData({ ...formData, is_premium_grade: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="false">Standard</SelectItem>
+                    <SelectItem value="true">Premium Grade</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Return/Replace Availability */}
+            <div className="space-y-3">
+              <Label>Return & Replace Options</Label>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="return_available"
+                    checked={formData.return_available !== "false"}
+                    onCheckedChange={(checked) => setFormData({ ...formData, return_available: checked ? "true" : "false" })}
+                  />
+                  <Label htmlFor="return_available" className="text-sm font-normal cursor-pointer">Return Available</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="replace_available"
+                    checked={formData.replace_available !== "false"}
+                    onCheckedChange={(checked) => setFormData({ ...formData, replace_available: checked ? "true" : "false" })}
+                  />
+                  <Label htmlFor="replace_available" className="text-sm font-normal cursor-pointer">Replacement Available</Label>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
