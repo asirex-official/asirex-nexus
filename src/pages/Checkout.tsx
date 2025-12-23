@@ -371,27 +371,27 @@ export default function Checkout() {
 
                   <RadioGroup
                     value={form.paymentMethod}
-                    onValueChange={(v) => setForm({ ...form, paymentMethod: v })}
+                    onValueChange={(value) => setForm((prev) => ({ ...prev, paymentMethod: value }))}
                     className="space-y-3"
                   >
                     {PAYMENT_METHODS.map((method) => (
-                      <div
+                      <Label
                         key={method.id}
+                        htmlFor={method.id}
                         className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
                           form.paymentMethod === method.id
                             ? 'border-primary bg-primary/5'
                             : 'border-border hover:border-primary/50'
                         }`}
-                        onClick={() => setForm({ ...form, paymentMethod: method.id })}
                       >
                         <RadioGroupItem value={method.id} id={method.id} />
                         <div className="flex-1">
-                          <Label htmlFor={method.id} className="font-medium cursor-pointer">
+                          <span className="font-medium block">
                             {method.label}
-                          </Label>
-                          <p className="text-sm text-muted-foreground">{method.description}</p>
+                          </span>
+                          <span className="text-sm text-muted-foreground">{method.description}</span>
                         </div>
-                      </div>
+                      </Label>
                     ))}
                   </RadioGroup>
 
