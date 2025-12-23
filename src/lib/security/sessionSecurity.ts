@@ -121,6 +121,7 @@ export async function updateUserSecuritySettings(
     is_2fa_setup_complete: boolean;
     session_timeout_minutes: number;
     require_reauth_for_sensitive: boolean;
+    notify_new_login: boolean;
   }>
 ) {
   const { error } = await supabase

@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   User, Lock, MapPin, Calendar, ArrowLeft, Save, Plus, Trash2, 
-  Star, LogOut, Heart, Clock, Shield
+  Star, LogOut, Heart, Clock, Shield, Bell
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -105,6 +106,10 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // Security settings state
+  const [notifyNewLogin, setNotifyNewLogin] = useState(false);
+  const [securityLoading, setSecurityLoading] = useState(false);
+
   // Address form state
   const [showAddressDialog, setShowAddressDialog] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -184,6 +189,17 @@ export default function Settings() {
           event: reg.events,
         }));
         setRegistrations(transformed);
+      }
+
+      // Fetch security settings
+      const { data: securityData } = await supabase
+        .from("user_security_settings")
+        .select("notify_new_login")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (securityData) {
+        setNotifyNewLogin(securityData.notify_new_login || false);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -424,6 +440,40 @@ export default function Settings() {
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleToggleLoginNotification = async (enabled: boolean) => {
+    if (!user) return;
+    
+    setSecurityLoading(true);
+    try {
+      const { error } = await supabase
+        .from("user_security_settings")
+        .upsert({
+          user_id: user.id,
+          notify_new_login: enabled,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
+      setNotifyNewLogin(enabled);
+      toast({
+        title: enabled ? "Notifications Enabled" : "Notifications Disabled",
+        description: enabled 
+          ? "You'll receive email alerts for new device logins." 
+          : "Login notifications have been turned off.",
+      });
+    } catch (error: any) {
+      console.error("Error updating security settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update notification settings.",
+        variant: "destructive",
+      });
+    } finally {
+      setSecurityLoading(false);
+    }
   };
 
   if (loading) {
@@ -906,7 +956,36 @@ export default function Settings() {
             </TabsContent>
 
             {/* Security Tab */}
-            <TabsContent value="security">
+            <TabsContent value="security" className="space-y-6">
+              {/* Login Notifications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="w-5 h-5" />
+                    Login Notifications
+                  </CardTitle>
+                  <CardDescription>
+                    Get notified when someone logs into your account from a new device or location.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                    <div className="space-y-1">
+                      <p className="font-medium">Email me on new login</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive an email alert whenever a login is detected from a new device.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notifyNewLogin}
+                      onCheckedChange={handleToggleLoginNotification}
+                      disabled={securityLoading}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Passkey Management */}
               <PasskeyManagement />
             </TabsContent>
           </Tabs>
