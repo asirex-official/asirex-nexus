@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "https://esm.sh/bcryptjs@2.4.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,10 +15,9 @@ const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 30;
 const BCRYPT_ROUNDS = 10;
 
-// Helper function to hash with bcrypt (using sync version to avoid Worker issues)
+// Helper function to hash with bcrypt (bcryptjs is pure JS and works in edge runtime)
 async function hashPin(pin: string): Promise<string> {
-  // Use hashSync to avoid Worker issues in Deno Deploy
-  const salt = await bcrypt.genSaltSync(BCRYPT_ROUNDS);
+  const salt = bcrypt.genSaltSync(BCRYPT_ROUNDS);
   return bcrypt.hashSync(pin, salt);
 }
 

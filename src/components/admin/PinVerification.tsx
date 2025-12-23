@@ -157,9 +157,37 @@ export default function PinVerification({ userId, onVerified, onSetupComplete }:
         body: { action: 'verify', pin: pinString }
       });
 
-      if (error) throw error;
+      // For non-2xx responses Supabase returns `error` and `data` is null.
+      if (error) {
+        const msg = (error as any)?.message as string | undefined;
+        const match = msg?.match(/,\s*(\{[\s\S]*\})\s*$/);
+        if (match) {
+          try {
+            const payload = JSON.parse(match[1]);
+            if (payload?.needsSetup) {
+              setIsSetupMode(true);
+              setConfirmPin(["", "", "", "", "", ""]);
+              setRemainingAttempts(null);
+              toast({
+                title: "PIN setup required",
+                description: "No PIN is set yet. Please create a new 6-digit PIN to continue.",
+              });
+              return;
+            }
+            if (payload?.locked) {
+              setIsLocked(true);
+              setLockoutMinutes(payload.remainingMinutes || 30);
+            } else if (payload?.remainingAttempts !== undefined) {
+              setRemainingAttempts(payload.remainingAttempts);
+            }
+          } catch {
+            // ignore parse errors
+          }
+        }
+        throw error;
+      }
 
-      if (data.error) {
+      if (data?.error) {
         if (data.locked) {
           setIsLocked(true);
           setLockoutMinutes(data.remainingMinutes || 30);
