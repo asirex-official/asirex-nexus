@@ -820,7 +820,7 @@ const CEODashboard = () => {
               </Badge>
             </div>
             {/* Scrollable Tabs */}
-            <div className="overflow-x-auto scrollbar-hide">
+            <div className="overflow-x-auto overflow-y-hidden pb-2 -mb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
               <TabsList className="inline-flex h-11 items-center gap-1 rounded-xl bg-muted/80 p-1 min-w-max shadow-sm">
                 <TabsTrigger value="overview" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Home className="w-4 h-4" />Overview</TabsTrigger>
                 <TabsTrigger value="analytics" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><ChartArea className="w-4 h-4" />Analytics</TabsTrigger>
