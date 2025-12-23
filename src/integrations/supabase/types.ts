@@ -948,17 +948,99 @@ export type Database = {
           },
         ]
       }
+      order_complaints: {
+        Row: {
+          admin_notes: string | null
+          complaint_type: string
+          coupon_code: string | null
+          coupon_discount: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          investigation_notes: string | null
+          investigation_status: string | null
+          order_id: string
+          pickup_completed_at: string | null
+          pickup_scheduled_at: string | null
+          pickup_status: string | null
+          refund_method: string | null
+          refund_status: string | null
+          replacement_order_id: string | null
+          resolution_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          complaint_type: string
+          coupon_code?: string | null
+          coupon_discount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          investigation_notes?: string | null
+          investigation_status?: string | null
+          order_id: string
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          pickup_status?: string | null
+          refund_method?: string | null
+          refund_status?: string | null
+          replacement_order_id?: string | null
+          resolution_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          complaint_type?: string
+          coupon_code?: string | null
+          coupon_discount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          investigation_notes?: string | null
+          investigation_status?: string | null
+          order_id?: string
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          pickup_status?: string | null
+          refund_method?: string | null
+          refund_status?: string | null
+          replacement_order_id?: string | null
+          resolution_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_complaints_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_issues: {
         Row: {
           address_confirmed: boolean | null
           admin_notes: string | null
+          coupon_code: string | null
           created_at: string | null
           damage_type: string | null
           description: string
           id: string
           images: Json | null
+          investigation_result: string | null
+          investigation_status: string | null
           issue_type: string
           order_id: string
+          refund_method: string | null
+          refund_status: string | null
           resolved_at: string | null
           status: string | null
           terms_accepted: boolean | null
@@ -969,13 +1051,18 @@ export type Database = {
         Insert: {
           address_confirmed?: boolean | null
           admin_notes?: string | null
+          coupon_code?: string | null
           created_at?: string | null
           damage_type?: string | null
           description: string
           id?: string
           images?: Json | null
+          investigation_result?: string | null
+          investigation_status?: string | null
           issue_type: string
           order_id: string
+          refund_method?: string | null
+          refund_status?: string | null
           resolved_at?: string | null
           status?: string | null
           terms_accepted?: boolean | null
@@ -986,13 +1073,18 @@ export type Database = {
         Update: {
           address_confirmed?: boolean | null
           admin_notes?: string | null
+          coupon_code?: string | null
           created_at?: string | null
           damage_type?: string | null
           description?: string
           id?: string
           images?: Json | null
+          investigation_result?: string | null
+          investigation_status?: string | null
           issue_type?: string
           order_id?: string
+          refund_method?: string | null
+          refund_status?: string | null
           resolved_at?: string | null
           status?: string | null
           terms_accepted?: boolean | null
@@ -1050,6 +1142,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          active_complaint_id: string | null
+          complaint_status: string | null
           created_at: string
           customer_email: string
           customer_name: string
@@ -1061,6 +1155,8 @@ export type Database = {
           items: Json
           notes: string | null
           order_status: string | null
+          order_type: string | null
+          parent_order_id: string | null
           payment_id: string | null
           payment_method: string | null
           payment_status: string | null
@@ -1075,6 +1171,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          active_complaint_id?: string | null
+          complaint_status?: string | null
           created_at?: string
           customer_email: string
           customer_name: string
@@ -1086,6 +1184,8 @@ export type Database = {
           items?: Json
           notes?: string | null
           order_status?: string | null
+          order_type?: string | null
+          parent_order_id?: string | null
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
@@ -1100,6 +1200,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          active_complaint_id?: string | null
+          complaint_status?: string | null
           created_at?: string
           customer_email?: string
           customer_name?: string
@@ -1111,6 +1213,8 @@ export type Database = {
           items?: Json
           notes?: string | null
           order_status?: string | null
+          order_type?: string | null
+          parent_order_id?: string | null
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
@@ -1124,7 +1228,22 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_active_complaint_id_fkey"
+            columns: ["active_complaint_id"]
+            isOneToOne: false
+            referencedRelation: "order_complaints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_parent_order_id_fkey"
+            columns: ["parent_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       page_content: {
         Row: {
