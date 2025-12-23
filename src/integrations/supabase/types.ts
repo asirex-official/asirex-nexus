@@ -1702,6 +1702,7 @@ export type Database = {
           is_2fa_setup_complete: boolean | null
           last_password_change: string | null
           max_sessions: number | null
+          notify_new_login: boolean | null
           require_2fa: boolean | null
           require_reauth_for_sensitive: boolean | null
           security_questions_set: boolean | null
@@ -1716,6 +1717,7 @@ export type Database = {
           is_2fa_setup_complete?: boolean | null
           last_password_change?: string | null
           max_sessions?: number | null
+          notify_new_login?: boolean | null
           require_2fa?: boolean | null
           require_reauth_for_sensitive?: boolean | null
           security_questions_set?: boolean | null
@@ -1730,6 +1732,7 @@ export type Database = {
           is_2fa_setup_complete?: boolean | null
           last_password_change?: string | null
           max_sessions?: number | null
+          notify_new_login?: boolean | null
           require_2fa?: boolean | null
           require_reauth_for_sensitive?: boolean | null
           security_questions_set?: boolean | null

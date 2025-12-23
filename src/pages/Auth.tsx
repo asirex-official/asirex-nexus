@@ -305,6 +305,38 @@ export default function Auth() {
           } catch (err) {
             console.error('Failed to log auth attempt:', err);
           }
+
+          // Get the current user for login notification
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          
+          // Send login notification (non-blocking)
+          if (currentUser) {
+            const deviceInfo = await generateDeviceFingerprint();
+            const fingerprintString = deviceInfo.fingerprint;
+            
+            // Check if this is a new device
+            const { data: trustedDevice } = await supabase
+              .from('trusted_devices')
+              .select('id')
+              .eq('user_id', currentUser.id)
+              .eq('device_fingerprint', fingerprintString)
+              .maybeSingle();
+
+            const isNewDevice = !trustedDevice;
+
+            // Fire and forget - don't block login
+            supabase.functions.invoke('send-login-notification', {
+              body: {
+                userId: currentUser.id,
+                email: email,
+                deviceInfo: {
+                  userAgent: navigator.userAgent,
+                  deviceFingerprint: fingerprintString,
+                  isNewDevice: isNewDevice,
+                }
+              }
+            }).catch(err => console.error('Failed to send login notification:', err));
+          }
           
           toast({
             title: "Welcome back!",
