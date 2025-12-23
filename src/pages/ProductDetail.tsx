@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check, Shield, Truck, Award, Package, AlertTriangle, ExternalLink } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Zap, Star, Images, ChevronLeft, ChevronRight, Sparkles, Check, Shield, Truck, Award, Package, AlertTriangle, ExternalLink, RotateCcw, RefreshCw, Crown } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -378,6 +378,46 @@ export default function ProductDetail() {
                     <Zap className="w-5 h-5" />
                     Buy Now
                   </Button>
+                </div>
+              </motion.div>
+
+              {/* Product Policies Info */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="p-4 rounded-2xl bg-muted/30 border border-border/30 space-y-3"
+              >
+                <h4 className="text-sm font-semibold">Product Policies</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Warranty */}
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-muted-foreground">
+                      {product.warranty_months ? `${product.warranty_months} months warranty` : 'No warranty'}
+                    </span>
+                  </div>
+                  {/* Premium Grade */}
+                  {(product as any).is_premium_grade && (
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-accent" />
+                      <span className="text-xs text-accent font-medium">Premium Grade</span>
+                    </div>
+                  )}
+                  {/* Return */}
+                  <div className="flex items-center gap-2">
+                    <RotateCcw className={`w-4 h-4 ${(product as any).return_available !== false ? 'text-green-500' : 'text-destructive'}`} />
+                    <span className={`text-xs ${(product as any).return_available !== false ? 'text-green-600' : 'text-destructive'}`}>
+                      {(product as any).return_available !== false ? 'Return Available' : 'No Returns'}
+                    </span>
+                  </div>
+                  {/* Replace */}
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className={`w-4 h-4 ${(product as any).replace_available !== false ? 'text-green-500' : 'text-destructive'}`} />
+                    <span className={`text-xs ${(product as any).replace_available !== false ? 'text-green-600' : 'text-destructive'}`}>
+                      {(product as any).replace_available !== false ? 'Replacement Available' : 'No Replacement'}
+                    </span>
+                  </div>
                 </div>
               </motion.div>
 
