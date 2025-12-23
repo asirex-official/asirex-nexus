@@ -47,3 +47,42 @@ verify_jwt = false
 
 [functions.send-order-cancellation]
 verify_jwt = true
+
+[functions.send-cancellation-otp]
+verify_jwt = true
+
+[functions.verify-cancellation-otp]
+verify_jwt = true
+
+[functions.send-failed-delivery-email]
+verify_jwt = true
+
+[functions.process-gift-card-refund]
+verify_jwt = true
+
+[functions.validate-coupon]
+verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.verify-signup-otp]
+verify_jwt = false
+
+[functions.setup-2fa]
+verify_jwt = true
+
+[functions.verify-2fa]
+verify_jwt = false
+
+[functions.send-phone-otp]
+verify_jwt = true
+
+[functions.verify-phone-otp]
+verify_jwt = true
+
+[functions.send-bulk-notifications]
+verify_jwt = true
+
+[functions.send-login-notification]
+verify_jwt = false
