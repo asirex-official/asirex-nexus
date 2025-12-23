@@ -846,7 +846,7 @@ export default function TrackOrder() {
             onOpenChange={setShowReviewForm}
             orderId={selectedOrder.id}
             userId={user.id}
-            items={selectedOrder.items}
+            orderItems={selectedOrder.items.map(item => ({ id: item.id, name: item.name, product_id: item.id }))}
             onSubmitted={() => {
               setShowReviewForm(false);
               toast.success("Review submitted successfully!");
@@ -869,7 +869,7 @@ export default function TrackOrder() {
             onOpenChange={setShowReturnForm}
             orderId={selectedOrder.id}
             userId={user.id}
-            items={selectedOrder.items}
+            orderItems={selectedOrder.items.map(item => ({ id: item.id, name: item.name, product_id: item.id }))}
             onSubmitted={() => {
               setShowReturnForm(false);
               toast.success("Return request submitted!");
