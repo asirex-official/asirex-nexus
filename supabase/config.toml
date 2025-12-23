@@ -51,9 +51,6 @@ verify_jwt = false
 [functions.verify-password-reset-otp]
 verify_jwt = false
 
-[functions.send-order-cancellation]
-verify_jwt = true
-
 [functions.send-cancellation-otp]
 verify_jwt = true
 
@@ -91,4 +88,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-login-notification]
+verify_jwt = false
+
+[functions.send-complaint-notification]
 verify_jwt = false

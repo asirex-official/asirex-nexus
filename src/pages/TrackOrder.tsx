@@ -12,6 +12,8 @@ import { RefundSelectionDialog } from "@/components/orders/RefundSelectionDialog
 import { ProductReviewForm } from "@/components/orders/ProductReviewForm";
 import { DamageReportForm } from "@/components/orders/DamageReportForm";
 import { ReturnReplaceForm } from "@/components/orders/ReturnReplaceForm";
+import { OrderNotReceivedFlow } from "@/components/orders/OrderNotReceivedFlow";
+import { OrderComplaintStatus } from "@/components/orders/OrderComplaintStatus";
 import { toast } from "sonner";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { Input } from "@/components/ui/input";
@@ -58,6 +60,8 @@ interface Order {
   returning_to_provider: boolean;
   customer_phone: string | null;
   notes: string | null;
+  complaint_status: string | null;
+  order_type: string | null;
 }
 
 const ORDER_STATUSES = [
@@ -83,6 +87,7 @@ export default function TrackOrder() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showDamageForm, setShowDamageForm] = useState(false);
   const [showReturnForm, setShowReturnForm] = useState(false);
+  const [showNotReceivedFlow, setShowNotReceivedFlow] = useState(false);
   const [showUpdatePhoneDialog, setShowUpdatePhoneDialog] = useState(false);
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   
@@ -138,6 +143,8 @@ export default function TrackOrder() {
           returning_to_provider: order.returning_to_provider || false,
           customer_phone: order.customer_phone,
           notes: order.notes,
+          complaint_status: order.complaint_status || null,
+          order_type: order.order_type || null,
         };
       });
 
@@ -345,6 +352,8 @@ export default function TrackOrder() {
         setShowReviewForm(true);
         break;
       case "not_received":
+        setShowNotReceivedFlow(true);
+        break;
       case "damaged":
         setShowDamageForm(true);
         break;
@@ -551,6 +560,17 @@ export default function TrackOrder() {
                             );
                           })}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Complaint Status - Show if there's an active complaint */}
+                    {selectedOrder.complaint_status && (
+                      <div className="mb-6">
+                        <OrderComplaintStatus 
+                          orderId={selectedOrder.id}
+                          complaintStatus={selectedOrder.complaint_status}
+                          orderType={selectedOrder.order_type}
+                        />
                       </div>
                     )}
 
@@ -905,6 +925,18 @@ export default function TrackOrder() {
             onSubmitted={() => {
               setShowReturnForm(false);
               toast.success("Return request submitted!");
+            }}
+          />
+
+          <OrderNotReceivedFlow
+            open={showNotReceivedFlow}
+            onOpenChange={setShowNotReceivedFlow}
+            orderId={selectedOrder.id}
+            userId={user.id}
+            orderPaymentMethod={selectedOrder.payment_method}
+            onCompleted={() => {
+              setShowNotReceivedFlow(false);
+              fetchUserOrders();
             }}
           />
 
