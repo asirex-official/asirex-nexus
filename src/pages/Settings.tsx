@@ -108,6 +108,7 @@ export default function Settings() {
 
   // Security settings state
   const [notifyNewLogin, setNotifyNewLogin] = useState(false);
+  const [loginLockoutEnabled, setLoginLockoutEnabled] = useState(false);
   const [securityLoading, setSecurityLoading] = useState(false);
 
   // Address form state
@@ -194,12 +195,13 @@ export default function Settings() {
       // Fetch security settings
       const { data: securityData } = await supabase
         .from("user_security_settings")
-        .select("notify_new_login")
+        .select("notify_new_login, login_lockout_enabled")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (securityData) {
         setNotifyNewLogin(securityData.notify_new_login || false);
+        setLoginLockoutEnabled(securityData.login_lockout_enabled || false);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -469,6 +471,44 @@ export default function Settings() {
       toast({
         title: "Error",
         description: "Failed to update notification settings.",
+        variant: "destructive",
+      });
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleToggleLoginLockout = async (enabled: boolean) => {
+    if (!user) return;
+    
+    setSecurityLoading(true);
+    try {
+      const { error } = await supabase
+        .from("user_security_settings")
+        .upsert({
+          user_id: user.id,
+          login_lockout_enabled: enabled,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
+      setLoginLockoutEnabled(enabled);
+      
+      // Cache the setting for login page to check
+      localStorage.setItem(`lockout_enabled_${user.email}`, enabled ? 'true' : 'false');
+      
+      toast({
+        title: enabled ? "Login Protection Enabled" : "Login Protection Disabled",
+        description: enabled 
+          ? "Your account will be temporarily locked after 5 failed login attempts." 
+          : "Login attempt protection has been turned off.",
+      });
+    } catch (error: any) {
+      console.error("Error updating security settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update login protection settings.",
         variant: "destructive",
       });
     } finally {
@@ -957,6 +997,34 @@ export default function Settings() {
 
             {/* Security Tab */}
             <TabsContent value="security" className="space-y-6">
+              {/* Login Protection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Login Protection
+                  </CardTitle>
+                  <CardDescription>
+                    Protect your account from unauthorized access attempts.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                    <div className="space-y-1">
+                      <p className="font-medium">Enable login attempt protection</p>
+                      <p className="text-sm text-muted-foreground">
+                        Temporarily lock your account after 5 failed login attempts for 15 minutes.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={loginLockoutEnabled}
+                      onCheckedChange={handleToggleLoginLockout}
+                      disabled={securityLoading}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Login Notifications */}
               <Card>
                 <CardHeader>
