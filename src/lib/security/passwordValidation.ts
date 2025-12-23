@@ -42,7 +42,7 @@ const hasRepeatedChars = (password: string): boolean => {
 export const strongPasswordSchema = z
   .string()
   .min(4, "Password must be at least 4 characters")
-  .max(8, "Password must be less than 8 characters");
+  .max(12, "Password must be less than 12 characters");
 
 // Email validation
 export const emailSchema = z
