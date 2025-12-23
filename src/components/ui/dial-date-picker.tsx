@@ -12,6 +12,11 @@ interface DialDatePickerProps {
 }
 
 const months = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+const monthsFull = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
@@ -35,8 +40,8 @@ const DialColumn = ({
   const [isDragging, setIsDragging] = useState(false);
   const y = useMotionValue(0);
   
-  const itemHeight = 40;
-  const visibleItems = 5;
+  const itemHeight = 32;
+  const visibleItems = 3;
   
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -54,34 +59,35 @@ const DialColumn = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">
         {label}
       </span>
       <div className="flex flex-col items-center">
         <motion.button
           type="button"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.2, y: -2 }}
+          whileTap={{ scale: 0.9 }}
           onClick={decrementValue}
-          className="p-1 text-muted-foreground/50 hover:text-primary transition-colors"
+          className="p-0.5 text-primary/70 hover:text-primary transition-colors"
         >
-          <ChevronUp className="w-4 h-4" />
+          <ChevronUp className="w-5 h-5" />
         </motion.button>
         
         <div 
           ref={containerRef}
-          className="relative h-[120px] w-16 overflow-hidden"
+          className="relative h-24 w-14 overflow-hidden rounded-lg bg-muted/30 border border-border/50"
           onWheel={handleWheel}
-          style={{
-            maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)'
-          }}
         >
+          {/* Top fade */}
+          <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+          {/* Bottom fade */}
+          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+          
           <motion.div
             className="absolute w-full"
             animate={{ y: -value * itemHeight + itemHeight }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: "spring", stiffness: 400, damping: 35 }}
           >
             {items.map((item, index) => {
               const distance = Math.abs(index - value);
@@ -91,18 +97,17 @@ const DialColumn = ({
                 <motion.div
                   key={index}
                   className={cn(
-                    "h-10 flex items-center justify-center cursor-pointer transition-all duration-200",
+                    "h-8 flex items-center justify-center cursor-pointer select-none",
                     isSelected 
-                      ? "text-primary font-bold text-lg" 
-                      : "text-muted-foreground/40 text-sm"
+                      ? "text-primary font-bold text-base" 
+                      : "text-muted-foreground text-xs"
                   )}
-                  style={{
-                    opacity: isSelected ? 1 : Math.max(0.2, 1 - distance * 0.3),
-                    transform: `scale(${isSelected ? 1.1 : Math.max(0.7, 1 - distance * 0.15)}) rotateX(${distance * 15 * (index < value ? 1 : -1)}deg)`,
-                    transformStyle: 'preserve-3d',
+                  animate={{
+                    opacity: isSelected ? 1 : Math.max(0.3, 1 - distance * 0.35),
+                    scale: isSelected ? 1.15 : Math.max(0.75, 1 - distance * 0.12),
                   }}
                   onClick={() => onChange(index)}
-                  whileHover={{ scale: isSelected ? 1.1 : 0.95 }}
+                  whileHover={{ scale: isSelected ? 1.15 : 0.9 }}
                 >
                   {item}
                 </motion.div>
@@ -111,19 +116,19 @@ const DialColumn = ({
           </motion.div>
           
           {/* Selection highlight */}
-          <div className="absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 pointer-events-none">
-            <div className="absolute inset-0 border-y border-primary/30 bg-primary/5 rounded-sm" />
+          <div className="absolute top-1/2 left-1 right-1 h-8 -translate-y-1/2 pointer-events-none z-0">
+            <div className="absolute inset-0 border border-primary/50 bg-primary/10 rounded-md shadow-sm shadow-primary/20" />
           </div>
         </div>
         
         <motion.button
           type="button"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.2, y: 2 }}
+          whileTap={{ scale: 0.9 }}
           onClick={incrementValue}
-          className="p-1 text-muted-foreground/50 hover:text-primary transition-colors"
+          className="p-0.5 text-primary/70 hover:text-primary transition-colors"
         >
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-5 h-5" />
         </motion.button>
       </div>
     </div>
@@ -198,7 +203,7 @@ export const DialDatePicker = ({
   const formatDisplayDate = () => {
     if (!value) return "Select your date of birth";
     const { day, month, year } = parseDate(value);
-    return `${months[month]} ${day}, ${year}`;
+    return `${monthsFull[month]} ${day}, ${year}`;
   };
 
   return (
@@ -245,25 +250,24 @@ export const DialDatePicker = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95, rotateX: -10 }}
-            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95, rotateX: -10 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="absolute z-50 top-full left-0 right-0 mt-2 p-4 rounded-xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl"
-            style={{ transformOrigin: 'top center', perspective: '1000px' }}
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="absolute z-50 top-full left-0 right-0 mt-2 p-3 rounded-xl border border-border bg-background shadow-2xl"
           >
             {/* Glow effect */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
             
-            <div className="relative flex justify-center gap-2">
+            <div className="relative flex justify-center items-start gap-1">
               <DialColumn
                 label="Month"
                 items={months}
                 value={selectedMonth}
                 onChange={setSelectedMonth}
               />
-              <div className="flex items-center pt-6">
-                <span className="text-2xl text-muted-foreground/30 font-light">/</span>
+              <div className="flex items-center pt-5">
+                <span className="text-xl text-muted-foreground/40 font-light">/</span>
               </div>
               <DialColumn
                 label="Day"
@@ -271,8 +275,8 @@ export const DialDatePicker = ({
                 value={selectedDay - 1}
                 onChange={(val) => setSelectedDay(val + 1)}
               />
-              <div className="flex items-center pt-6">
-                <span className="text-2xl text-muted-foreground/30 font-light">/</span>
+              <div className="flex items-center pt-5">
+                <span className="text-xl text-muted-foreground/40 font-light">/</span>
               </div>
               <DialColumn
                 label="Year"
@@ -286,7 +290,7 @@ export const DialDatePicker = ({
             <motion.button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="w-full mt-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+              className="w-full mt-3 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
