@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones, Download } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones, Download, ClipboardList, PackageX } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,10 +10,9 @@ import { OrderCancellationDialog } from "@/components/orders/OrderCancellationDi
 import { PostDeliveryActionModal } from "@/components/orders/PostDeliveryActionModal";
 import { RefundSelectionDialog } from "@/components/orders/RefundSelectionDialog";
 import { ProductReviewForm } from "@/components/orders/ProductReviewForm";
-import { DamageReportForm } from "@/components/orders/DamageReportForm";
-import { ReturnReplaceForm } from "@/components/orders/ReturnReplaceForm";
-import { OrderNotReceivedFlow } from "@/components/orders/OrderNotReceivedFlow";
-import { OrderComplaintStatus } from "@/components/orders/OrderComplaintStatus";
+import { UnifiedComplaintFlow } from "@/components/orders/UnifiedComplaintFlow";
+import { ComplaintTimeline } from "@/components/orders/ComplaintTimeline";
+import { MyComplaintsViewer } from "@/components/orders/MyComplaintsViewer";
 import { toast } from "sonner";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { Input } from "@/components/ui/input";
@@ -85,16 +84,15 @@ export default function TrackOrder() {
   const [showPostDeliveryModal, setShowPostDeliveryModal] = useState(false);
   const [showRefundDialog, setShowRefundDialog] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [showDamageForm, setShowDamageForm] = useState(false);
-  const [showReturnForm, setShowReturnForm] = useState(false);
-  const [showNotReceivedFlow, setShowNotReceivedFlow] = useState(false);
+  const [showComplaintFlow, setShowComplaintFlow] = useState(false);
+  const [complaintType, setComplaintType] = useState<"not_received" | "damaged" | "return" | "replace" | "warranty">("damaged");
+  const [showMyComplaints, setShowMyComplaints] = useState(false);
   const [showUpdatePhoneDialog, setShowUpdatePhoneDialog] = useState(false);
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   
   // Form states
   const [newPhone, setNewPhone] = useState("");
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<OrderItem | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -352,16 +350,20 @@ export default function TrackOrder() {
         setShowReviewForm(true);
         break;
       case "not_received":
-        setShowNotReceivedFlow(true);
+        setComplaintType("not_received");
+        setShowComplaintFlow(true);
         break;
       case "damaged":
-        setShowDamageForm(true);
+        setComplaintType("damaged");
+        setShowComplaintFlow(true);
         break;
       case "return":
-        setShowReturnForm(true);
+        setComplaintType("return");
+        setShowComplaintFlow(true);
         break;
       case "warranty":
-        navigate("/warranty-claims");
+        setComplaintType("warranty");
+        setShowComplaintFlow(true);
         break;
     }
   };
@@ -396,12 +398,22 @@ export default function TrackOrder() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
           >
-            <h1 className="font-display text-4xl font-bold mb-2">
-              Track <span className="gradient-text">Orders</span>
-            </h1>
-            <p className="text-muted-foreground">View and track all your orders</p>
+            <div>
+              <h1 className="font-display text-4xl font-bold mb-2">
+                Track <span className="gradient-text">Orders</span>
+              </h1>
+              <p className="text-muted-foreground">View and track all your orders</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowMyComplaints(true)}
+              className="self-start"
+            >
+              <ClipboardList className="w-4 h-4 mr-2" />
+              My Complaints & Requests
+            </Button>
           </motion.div>
 
           {orders.length === 0 ? (
@@ -440,13 +452,25 @@ export default function TrackOrder() {
                       }`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(order.created_at).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(order.created_at).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                          {order.order_type === "replacement" && (
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-500/20 text-yellow-500 font-medium">
+                              Replacement
+                            </span>
+                          )}
+                          {order.order_type === "warranty_replacement" && (
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-purple-500/20 text-purple-500 font-medium">
+                              Warranty
+                            </span>
+                          )}
+                        </div>
                         <span className={`px-2 py-1 text-xs rounded-full flex items-center gap-1 ${statusDisplay.color}`}>
                           <StatusIcon className="w-3 h-3" />
                           {statusDisplay.text.split("–")[0].trim()}
@@ -456,7 +480,10 @@ export default function TrackOrder() {
                         {order.items.length} item{order.items.length > 1 ? "s" : ""}
                       </p>
                       <p className="text-lg font-bold text-primary">
-                        ₹{order.total_amount.toLocaleString()}
+                        {order.order_type === "replacement" || order.order_type === "warranty_replacement" 
+                          ? "FREE" 
+                          : `₹${order.total_amount.toLocaleString()}`
+                        }
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         {getEstimatedDelivery(order)}
@@ -566,7 +593,7 @@ export default function TrackOrder() {
                     {/* Complaint Status - Show if there's an active complaint */}
                     {selectedOrder.complaint_status && (
                       <div className="mb-6">
-                        <OrderComplaintStatus 
+                        <ComplaintTimeline 
                           orderId={selectedOrder.id}
                           complaintStatus={selectedOrder.complaint_status}
                           orderType={selectedOrder.order_type}
@@ -826,14 +853,20 @@ export default function TrackOrder() {
                             </Button>
                             <Button 
                               variant="outline"
-                              onClick={() => setShowReturnForm(true)}
+                              onClick={() => {
+                                setComplaintType("return");
+                                setShowComplaintFlow(true);
+                              }}
                             >
                               <RotateCcw className="w-4 h-4 mr-2" />
                               Return/Replace
                             </Button>
                             <Button 
                               variant="outline"
-                              onClick={() => navigate("/warranty-claims")}
+                              onClick={() => {
+                                setComplaintType("warranty");
+                                setShowComplaintFlow(true);
+                              }}
                             >
                               <Shield className="w-4 h-4 mr-2" />
                               Warranty Claim
@@ -905,38 +938,35 @@ export default function TrackOrder() {
             }}
           />
 
-          <DamageReportForm
-            open={showDamageForm}
-            onOpenChange={setShowDamageForm}
+          <UnifiedComplaintFlow
+            open={showComplaintFlow}
+            onOpenChange={setShowComplaintFlow}
             orderId={selectedOrder.id}
             userId={user.id}
-            onSubmitted={() => {
-              setShowDamageForm(false);
-              toast.success("Report submitted successfully!");
-            }}
-          />
-
-          <ReturnReplaceForm
-            open={showReturnForm}
-            onOpenChange={setShowReturnForm}
-            orderId={selectedOrder.id}
-            userId={user.id}
-            orderItems={selectedOrder.items.map(item => ({ id: item.id, name: item.name, product_id: item.id }))}
-            onSubmitted={() => {
-              setShowReturnForm(false);
-              toast.success("Return request submitted!");
-            }}
-          />
-
-          <OrderNotReceivedFlow
-            open={showNotReceivedFlow}
-            onOpenChange={setShowNotReceivedFlow}
-            orderId={selectedOrder.id}
-            userId={user.id}
+            complaintType={complaintType}
+            orderItems={selectedOrder.items.map(item => ({ 
+              id: item.id, 
+              name: item.name, 
+              product_id: item.id,
+              price: item.price,
+              quantity: item.quantity 
+            }))}
             orderPaymentMethod={selectedOrder.payment_method}
+            orderAmount={selectedOrder.total_amount}
+            deliveredAt={selectedOrder.delivered_at || undefined}
             onCompleted={() => {
-              setShowNotReceivedFlow(false);
+              setShowComplaintFlow(false);
               fetchUserOrders();
+            }}
+          />
+
+          <MyComplaintsViewer
+            open={showMyComplaints}
+            onOpenChange={setShowMyComplaints}
+            userId={user.id}
+            onViewOrder={(orderId) => {
+              const order = orders.find(o => o.id === orderId);
+              if (order) setSelectedOrder(order);
             }}
           />
 

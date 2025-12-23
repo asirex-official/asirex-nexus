@@ -46,7 +46,7 @@ import AboutManager from "./pages/admin/AboutManager";
 import RefundsManager from "./pages/admin/RefundsManager";
 import CustomerIssuesManager from "./pages/admin/CustomerIssuesManager";
 import InvoiceVerifier from "./pages/admin/InvoiceVerifier";
-import OrderComplaintsManager from "./pages/admin/OrderComplaintsManager";
+import UnifiedComplaintsManager from "./pages/admin/UnifiedComplaintsManager";
 import ProductsShipped from "./pages/stats/ProductsShipped";
 import CustomerSatisfaction from "./pages/stats/CustomerSatisfaction";
 import ActiveProjects from "./pages/stats/ActiveProjects";
@@ -152,7 +152,7 @@ const App = () => (
               <Route path="chats" element={<ChatManager />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="customer-issues" element={<CustomerIssuesManager />} />
-              <Route path="order-complaints" element={<OrderComplaintsManager />} />
+              <Route path="order-complaints" element={<UnifiedComplaintsManager />} />
               <Route path="refunds" element={<RefundsManager />} />
               <Route path="subscribers" element={<SubscribersManager />} />
               <Route path="applications" element={<ApplicationsManager />} />
