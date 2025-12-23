@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, AlertTriangle, ShieldAlert, KeyRound } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, AlertTriangle, ShieldAlert, KeyRound, Fingerprint } from "lucide-react";
 import { DialDatePicker } from "@/components/ui/dial-date-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +77,7 @@ export default function Auth() {
   const [otpValue, setOtpValue] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
   
   const { signIn, signUp, user, roles, isAdmin, isSuperAdmin, isStaff, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -450,6 +451,149 @@ export default function Auth() {
     }
   };
 
+  // Passkey/Biometric sign-in handler
+  const handlePasskeySignIn = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address to sign in with passkey.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast({
+        title: "Invalid Email",
+        description: emailResult.error.errors[0]?.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPasskeyLoading(true);
+    try {
+      // Check if browser supports WebAuthn
+      if (!window.PublicKeyCredential) {
+        toast({
+          title: "Not Supported",
+          description: "Your browser doesn't support passkey authentication.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get authentication options from backend
+      const optionsResponse = await supabase.functions.invoke('passkey-auth-options', {
+        body: { userEmail: email }
+      });
+
+      if (optionsResponse.error || optionsResponse.data?.error) {
+        const errorMsg = optionsResponse.data?.error || optionsResponse.error?.message;
+        if (errorMsg?.includes('No passkey registered')) {
+          toast({
+            title: "No Passkey Found",
+            description: "No passkey is registered for this email. Please register one from Settings first.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Authentication Error",
+            description: errorMsg || "Failed to start passkey authentication.",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      const options = optionsResponse.data;
+      
+      // Decode challenge
+      const challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
+      
+      // Prepare allowed credentials
+      const allowCredentials = options.allowCredentials?.map((cred: any) => ({
+        id: Uint8Array.from(atob(cred.id), c => c.charCodeAt(0)),
+        type: cred.type,
+        transports: cred.transports || ['internal', 'usb', 'ble', 'nfc'],
+      })) || [];
+
+      // Request credential
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: options.rpId,
+          allowCredentials,
+          userVerification: options.userVerification || 'preferred',
+          timeout: options.timeout || 60000,
+        }
+      }) as PublicKeyCredential | null;
+
+      if (!credential) {
+        toast({
+          title: "Authentication Cancelled",
+          description: "Passkey authentication was cancelled.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = credential.response as AuthenticatorAssertionResponse;
+
+      // Verify with backend
+      const verifyResponse = await supabase.functions.invoke('passkey-auth-verify', {
+        body: {
+          userEmail: email,
+          credential: {
+            id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+            response: {
+              authenticatorData: btoa(String.fromCharCode(...new Uint8Array(response.authenticatorData))),
+              clientDataJSON: btoa(String.fromCharCode(...new Uint8Array(response.clientDataJSON))),
+              signature: btoa(String.fromCharCode(...new Uint8Array(response.signature))),
+            }
+          }
+        }
+      });
+
+      if (verifyResponse.error || verifyResponse.data?.error) {
+        toast({
+          title: "Verification Failed",
+          description: verifyResponse.data?.error || "Failed to verify passkey.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Passkey verified - now sign in the user
+      // For regular users, we need to sign them in via Supabase auth
+      // Since passkey verification confirms identity, we can use a special flow
+      toast({
+        title: "Passkey Verified!",
+        description: "Please enter your password to complete sign-in, or use the regular login.",
+      });
+      
+    } catch (error: any) {
+      console.error('Passkey authentication error:', error);
+      if (error.name === 'NotAllowedError') {
+        toast({
+          title: "Authentication Cancelled",
+          description: "Passkey authentication was cancelled or timed out.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Authentication Error",
+          description: error.message || "An error occurred during passkey authentication.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
+
   // Show loading state during OAuth processing
   if (isProcessingOAuth || (user && !authLoading)) {
     return (
@@ -718,50 +862,60 @@ export default function Auth() {
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              {isLogin ? "Sign in with Google" : "Sign up with Google"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={handleGoogleSignIn}
+                disabled={loading || passkeyLoading}
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                Google
+              </Button>
+              
+              {isLogin && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handlePasskeySignIn}
+                  disabled={loading || passkeyLoading}
+                >
+                  <Fingerprint className="w-5 h-5 mr-2" />
+                  {passkeyLoading ? "Verifying..." : "Passkey"}
+                </Button>
+              )}
+            </div>
             </form>
           )}
 
           <div className="mt-4 text-center space-y-2">
             {isLogin && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordReset(true)}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
-                >
-                  Forgot your password?
-                </button>
-                <p className="text-xs text-muted-foreground">
-                  You can also sign in with biometrics or passkey if registered from Settings.
-                </p>
-              </>
+              <button
+                type="button"
+                onClick={() => setShowPasswordReset(true)}
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Forgot your password?
+              </button>
             )}
           </div>
 
