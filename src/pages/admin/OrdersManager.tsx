@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Package, User, Calendar, CreditCard, Truck, MapPin, Send, CheckCircle } from "lucide-react";
+import { Package, User, Calendar, CreditCard, Truck, MapPin, Send, CheckCircle, AlertTriangle, Ban, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,19 +21,53 @@ import { useOrders, useUpdateOrderStatus } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { DeliveryAttemptsManager } from "@/components/admin/DeliveryAttemptsManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const orderStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatuses = ["pending", "paid", "failed", "refunded"];
 const trackingProviders = ["Delhivery", "BlueDart", "DTDC", "India Post", "FedEx", "Other"];
 
+interface DeliveryAttempt {
+  id: string;
+  attempt_number: number;
+  scheduled_date: string;
+  status: string;
+  failure_reason?: string;
+  notes?: string;
+  attempted_at?: string;
+}
+
 export default function OrdersManager() {
-  const { data: orders, isLoading } = useOrders();
+  const { data: orders, isLoading, refetch } = useOrders();
   const updateStatus = useUpdateOrderStatus();
   const { toast } = useToast();
   const auditLog = useAuditLog();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingProvider, setTrackingProvider] = useState("Delhivery");
+  const [deliveryAttempts, setDeliveryAttempts] = useState<DeliveryAttempt[]>([]);
+  const [showDeliveryManager, setShowDeliveryManager] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+
+  const fetchDeliveryAttempts = async (orderId: string) => {
+    const { data, error } = await supabase
+      .from("delivery_attempts")
+      .select("*")
+      .eq("order_id", orderId)
+      .order("attempt_number", { ascending: true });
+
+    if (!error && data) {
+      setDeliveryAttempts(data);
+    }
+  };
+
+  const handleOrderSelect = async (order: any) => {
+    setSelectedOrder(order);
+    setTrackingNumber(order.tracking_number || "");
+    setTrackingProvider(order.tracking_provider || "Delhivery");
+    await fetchDeliveryAttempts(order.id);
+  };
 
   const handleUpdateStatus = async (id: string, updates: Record<string, any>) => {
     try {
@@ -43,7 +77,6 @@ export default function OrdersManager() {
         setSelectedOrder({ ...selectedOrder, ...updates });
       }
       
-      // Log status changes
       if (updates.order_status && oldOrder) {
         await auditLog.logOrderStatusUpdated(id, oldOrder.customer_name, oldOrder.order_status, updates.order_status);
       }
@@ -70,7 +103,6 @@ export default function OrdersManager() {
     await handleUpdateStatus(selectedOrder.id, updates);
     await auditLog.logOrderShipped(selectedOrder.id, selectedOrder.customer_name, trackingNumber.trim() || undefined, trackingProvider);
     
-    // Send shipping notification email
     try {
       await supabase.functions.invoke('send-shipping-notification', {
         body: {
@@ -85,7 +117,7 @@ export default function OrdersManager() {
           status: "shipped"
         }
       });
-      toast({ title: "Shipping notification sent", description: "Customer has been notified via email" });
+      toast({ title: "Shipping notification sent" });
     } catch (error) {
       console.error("Failed to send shipping notification:", error);
     }
@@ -103,6 +135,34 @@ export default function OrdersManager() {
     setTrackingNumber("");
   };
 
+  const handleMarkDelivered = async () => {
+    if (!selectedOrder) return;
+
+    await handleUpdateStatus(selectedOrder.id, { 
+      order_status: "delivered",
+      delivered_at: new Date().toISOString()
+    });
+    
+    try {
+      await supabase.functions.invoke('send-shipping-notification', {
+        body: {
+          orderId: selectedOrder.id,
+          customerName: selectedOrder.customer_name,
+          customerEmail: selectedOrder.customer_email,
+          trackingNumber: selectedOrder.tracking_number,
+          trackingProvider: selectedOrder.tracking_provider,
+          items: selectedOrder.items,
+          totalAmount: selectedOrder.total_amount,
+          shippingAddress: selectedOrder.shipping_address,
+          status: "delivered"
+        }
+      });
+      toast({ title: "Delivery notification sent" });
+    } catch (error) {
+      console.error("Failed to send delivery notification:", error);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending": return "text-yellow-500 bg-yellow-500/10";
@@ -118,6 +178,36 @@ export default function OrdersManager() {
     }
   };
 
+  const getDeliveryStatusBadge = (order: any) => {
+    if (order.returning_to_provider) {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-500 flex items-center gap-1">
+          <Ban className="w-3 h-3" />
+          Returning
+        </span>
+      );
+    }
+    if (order.delivery_status === "failed") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500 flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          Delivery Failed
+        </span>
+      );
+    }
+    return null;
+  };
+
+  const filteredOrders = orders?.filter(order => {
+    if (activeTab === "all") return true;
+    if (activeTab === "pending") return order.order_status === "pending";
+    if (activeTab === "processing") return ["confirmed", "processing"].includes(order.order_status || "");
+    if (activeTab === "shipped") return order.order_status === "shipped";
+    if (activeTab === "delivered") return order.order_status === "delivered";
+    if (activeTab === "issues") return order.returning_to_provider || order.delivery_status === "failed";
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -127,31 +217,38 @@ export default function OrdersManager() {
         </p>
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="processing">Processing</TabsTrigger>
+          <TabsTrigger value="shipped">Shipped</TabsTrigger>
+          <TabsTrigger value="delivered">Delivered</TabsTrigger>
+          <TabsTrigger value="issues" className="text-orange-500">Issues</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
         </div>
-      ) : orders?.length === 0 ? (
+      ) : filteredOrders?.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-semibold text-lg mb-2">No orders yet</h3>
+          <h3 className="font-semibold text-lg mb-2">No orders found</h3>
           <p className="text-muted-foreground">
-            Orders will appear here when customers make purchases.
+            {activeTab === "all" ? "Orders will appear here when customers make purchases." : "No orders in this category."}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
-          {orders?.map((order, index) => (
+          {filteredOrders?.map((order, index) => (
             <motion.div
               key={order.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03 }}
-              onClick={() => {
-                setSelectedOrder(order);
-                setTrackingNumber((order as any).tracking_number || "");
-                setTrackingProvider((order as any).tracking_provider || "Delhivery");
-              }}
+              onClick={() => handleOrderSelect(order)}
               className="glass-card p-4 cursor-pointer transition-all hover:bg-muted/50"
             >
               <div className="flex items-center justify-between">
@@ -186,6 +283,7 @@ export default function OrdersManager() {
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.payment_status || '')}`}>
                       {order.payment_status}
                     </span>
+                    {getDeliveryStatusBadge(order)}
                   </div>
                 </div>
               </div>
@@ -195,7 +293,7 @@ export default function OrdersManager() {
       )}
 
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {selectedOrder && (
             <>
               <DialogHeader>
@@ -206,6 +304,29 @@ export default function OrdersManager() {
               </DialogHeader>
 
               <div className="space-y-6">
+                {/* Delivery Status Alert */}
+                {(selectedOrder.returning_to_provider || selectedOrder.delivery_status === "failed") && (
+                  <div className={`p-4 rounded-lg ${selectedOrder.returning_to_provider ? "bg-red-500/10 border border-red-500/30" : "bg-yellow-500/10 border border-yellow-500/30"}`}>
+                    <div className="flex items-center gap-3">
+                      {selectedOrder.returning_to_provider ? (
+                        <Ban className="w-6 h-6 text-red-500" />
+                      ) : (
+                        <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                      )}
+                      <div>
+                        <p className={`font-semibold ${selectedOrder.returning_to_provider ? "text-red-500" : "text-yellow-500"}`}>
+                          {selectedOrder.returning_to_provider 
+                            ? "Order Returning to Provider" 
+                            : "Delivery Attempt Failed"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedOrder.return_reason || "Multiple delivery attempts failed"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Customer Info */}
                 <div className="glass-card p-4 bg-muted/30">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
@@ -233,12 +354,6 @@ export default function OrdersManager() {
                       <p className="text-muted-foreground">Shipping Address</p>
                       <p className="font-medium">{selectedOrder.shipping_address || 'Not provided'}</p>
                     </div>
-                    {selectedOrder.notes && (
-                      <div className="sm:col-span-2">
-                        <p className="text-muted-foreground">Order Notes</p>
-                        <p className="font-medium">{selectedOrder.notes}</p>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -261,6 +376,46 @@ export default function OrdersManager() {
                     </div>
                   </div>
                 </div>
+
+                {/* Delivery Attempts Section */}
+                {selectedOrder.order_status === "shipped" && !selectedOrder.returning_to_provider && (
+                  <div className="glass-card p-4 bg-orange-500/5 border border-orange-500/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold flex items-center gap-2 text-orange-400">
+                        <CalendarClock className="w-4 h-4" />
+                        Delivery Management
+                      </h4>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setShowDeliveryManager(true)}
+                      >
+                        Manage Delivery
+                      </Button>
+                    </div>
+                    
+                    {deliveryAttempts.length > 0 ? (
+                      <div className="space-y-2">
+                        {deliveryAttempts.slice(-2).map((attempt) => (
+                          <div key={attempt.id} className={`p-2 rounded text-sm ${
+                            attempt.status === "failed" ? "bg-red-500/10" 
+                            : attempt.status === "scheduled" ? "bg-yellow-500/10"
+                            : "bg-muted/30"
+                          }`}>
+                            <div className="flex justify-between">
+                              <span>Attempt #{attempt.attempt_number}</span>
+                              <span className="capitalize">{attempt.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No delivery attempts scheduled yet
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Tracking & Shipping */}
                 <div className="glass-card p-4 bg-cyan-500/5 border border-cyan-500/20">
@@ -295,7 +450,7 @@ export default function OrdersManager() {
                     </div>
                     
                     <div className="flex flex-wrap gap-2">
-                      {selectedOrder.order_status !== "shipped" && selectedOrder.order_status !== "delivered" && (
+                      {selectedOrder.order_status !== "shipped" && selectedOrder.order_status !== "delivered" && selectedOrder.order_status !== "cancelled" && (
                         <Button 
                           onClick={handleMarkAsShipped}
                           className="bg-cyan-600 hover:bg-cyan-700"
@@ -312,30 +467,9 @@ export default function OrdersManager() {
                         </Button>
                       )}
                       
-                      {selectedOrder.order_status === "shipped" && (
+                      {selectedOrder.order_status === "shipped" && !selectedOrder.returning_to_provider && (
                         <Button 
-                          onClick={async () => {
-                            await handleUpdateStatus(selectedOrder.id, { order_status: "delivered" });
-                            // Send delivery notification email
-                            try {
-                              await supabase.functions.invoke('send-shipping-notification', {
-                                body: {
-                                  orderId: selectedOrder.id,
-                                  customerName: selectedOrder.customer_name,
-                                  customerEmail: selectedOrder.customer_email,
-                                  trackingNumber: selectedOrder.tracking_number,
-                                  trackingProvider: selectedOrder.tracking_provider,
-                                  items: selectedOrder.items,
-                                  totalAmount: selectedOrder.total_amount,
-                                  shippingAddress: selectedOrder.shipping_address,
-                                  status: "delivered"
-                                }
-                              });
-                              toast({ title: "Delivery notification sent" });
-                            } catch (error) {
-                              console.error("Failed to send delivery notification:", error);
-                            }
-                          }}
+                          onClick={handleMarkDelivered}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
@@ -410,6 +544,26 @@ export default function OrdersManager() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delivery Attempts Manager Dialog */}
+      {selectedOrder && (
+        <DeliveryAttemptsManager
+          open={showDeliveryManager}
+          onOpenChange={setShowDeliveryManager}
+          orderId={selectedOrder.id}
+          customerName={selectedOrder.customer_name}
+          customerEmail={selectedOrder.customer_email}
+          customerPhone={selectedOrder.customer_phone}
+          paymentMethod={selectedOrder.payment_method}
+          paymentStatus={selectedOrder.payment_status}
+          totalAmount={selectedOrder.total_amount}
+          deliveryAttempts={deliveryAttempts}
+          onUpdate={() => {
+            fetchDeliveryAttempts(selectedOrder.id);
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }
