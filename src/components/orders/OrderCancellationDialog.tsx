@@ -14,7 +14,7 @@ interface OrderCancellationDialogProps {
   onOpenChange: (open: boolean) => void;
   orderId: string;
   userId: string;
-  onCancelled: () => void;
+  onCancelled: (needsRefund?: boolean, orderAmount?: number, paymentMethod?: string) => void;
 }
 
 const CANCELLATION_REASONS = [
@@ -107,15 +107,10 @@ export function OrderCancellationDialog({
       if (error) throw error;
 
       toast.success("Order cancelled successfully!");
-      onCancelled();
+      
+      // Trigger callback with refund info
+      onCancelled(data.needs_refund, data.order_amount, data.payment_method);
       onOpenChange(false);
-
-      // Show refund info if applicable
-      if (data.needs_refund) {
-        toast.info("You'll be redirected to select your refund method.", {
-          duration: 5000,
-        });
-      }
     } catch (error: any) {
       console.error("Error verifying OTP:", error);
       toast.error(error.message || "Failed to verify OTP");
