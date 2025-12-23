@@ -956,18 +956,23 @@ export type Database = {
           coupon_discount: number | null
           created_at: string | null
           description: string | null
+          eligible_for_coupon: boolean | null
           id: string
           images: Json | null
           investigation_notes: string | null
           investigation_status: string | null
+          max_pickup_attempts: number | null
           order_id: string
+          pickup_attempt_number: number | null
           pickup_completed_at: string | null
+          pickup_failed_at: string | null
           pickup_scheduled_at: string | null
           pickup_status: string | null
           refund_method: string | null
           refund_status: string | null
           replacement_order_id: string | null
           resolution_type: string | null
+          return_status: string | null
           updated_at: string | null
           user_id: string
         }
@@ -978,18 +983,23 @@ export type Database = {
           coupon_discount?: number | null
           created_at?: string | null
           description?: string | null
+          eligible_for_coupon?: boolean | null
           id?: string
           images?: Json | null
           investigation_notes?: string | null
           investigation_status?: string | null
+          max_pickup_attempts?: number | null
           order_id: string
+          pickup_attempt_number?: number | null
           pickup_completed_at?: string | null
+          pickup_failed_at?: string | null
           pickup_scheduled_at?: string | null
           pickup_status?: string | null
           refund_method?: string | null
           refund_status?: string | null
           replacement_order_id?: string | null
           resolution_type?: string | null
+          return_status?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1000,18 +1010,23 @@ export type Database = {
           coupon_discount?: number | null
           created_at?: string | null
           description?: string | null
+          eligible_for_coupon?: boolean | null
           id?: string
           images?: Json | null
           investigation_notes?: string | null
           investigation_status?: string | null
+          max_pickup_attempts?: number | null
           order_id?: string
+          pickup_attempt_number?: number | null
           pickup_completed_at?: string | null
+          pickup_failed_at?: string | null
           pickup_scheduled_at?: string | null
           pickup_status?: string | null
           refund_method?: string | null
           refund_status?: string | null
           replacement_order_id?: string | null
           resolution_type?: string | null
+          return_status?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1598,6 +1613,8 @@ export type Database = {
           email_sent_at: string | null
           gift_card_id: string | null
           id: string
+          late_refund_coupon_code: string | null
+          late_refund_coupon_sent: boolean | null
           link_expires_at: string | null
           link_token: string | null
           order_id: string
@@ -1621,6 +1638,8 @@ export type Database = {
           email_sent_at?: string | null
           gift_card_id?: string | null
           id?: string
+          late_refund_coupon_code?: string | null
+          late_refund_coupon_sent?: boolean | null
           link_expires_at?: string | null
           link_token?: string | null
           order_id: string
@@ -1644,6 +1663,8 @@ export type Database = {
           email_sent_at?: string | null
           gift_card_id?: string | null
           id?: string
+          late_refund_coupon_code?: string | null
+          late_refund_coupon_sent?: boolean | null
           link_expires_at?: string | null
           link_token?: string | null
           order_id?: string
@@ -1660,6 +1681,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "refund_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      return_pickup_attempts: {
+        Row: {
+          attempt_number: number
+          attempted_at: string | null
+          complaint_id: string
+          created_at: string | null
+          failure_reason: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          scheduled_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_number: number
+          attempted_at?: string | null
+          complaint_id: string
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          scheduled_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_number?: number
+          attempted_at?: string | null
+          complaint_id?: string
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          scheduled_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_pickup_attempts_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "order_complaints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_pickup_attempts_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"

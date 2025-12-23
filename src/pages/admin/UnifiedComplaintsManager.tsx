@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { 
   AlertTriangle, Loader2, CheckCircle, XCircle, Clock, RefreshCw, 
   Truck, Package, Gift, Eye, RotateCcw, Shield, CreditCard, 
-  PackageX, Calendar, User, Mail, Phone, DollarSign
+  PackageX, Calendar, User, Mail, Phone, DollarSign, AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,12 @@ interface OrderComplaint {
   admin_notes: string | null;
   created_at: string;
   updated_at: string;
+  // New fields
+  pickup_attempt_number: number;
+  max_pickup_attempts: number;
+  pickup_failed_at: string | null;
+  return_status: string;
+  eligible_for_coupon: boolean;
   order?: {
     customer_name: string;
     customer_email: string;
@@ -59,6 +65,16 @@ interface OrderComplaint {
   };
 }
 
+interface PickupAttempt {
+  id: string;
+  complaint_id: string;
+  attempt_number: number;
+  scheduled_date: string;
+  attempted_at: string | null;
+  status: string;
+  failure_reason: string | null;
+}
+
 const COMPLAINT_TYPES = {
   not_received: { label: "Not Received", color: "bg-red-500", icon: PackageX },
   damaged: { label: "Damaged", color: "bg-orange-500", icon: AlertTriangle },
@@ -66,6 +82,10 @@ const COMPLAINT_TYPES = {
   replace: { label: "Replace", color: "bg-cyan-500", icon: Package },
   warranty: { label: "Warranty", color: "bg-purple-500", icon: Shield },
 };
+
+// Coupon is only for: replace, warranty, not_received (our fault)
+// NOT for returns (customer's choice)
+const COUPON_ELIGIBLE_TYPES = ["replace", "warranty", "not_received", "damaged"];
 
 export default function UnifiedComplaintsManager() {
   const [complaints, setComplaints] = useState<OrderComplaint[]>([]);
@@ -75,6 +95,8 @@ export default function UnifiedComplaintsManager() {
   const [adminNotes, setAdminNotes] = useState("");
   const [pickupDate, setPickupDate] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [pickupAttempts, setPickupAttempts] = useState<PickupAttempt[]>([]);
+  const [failureReason, setFailureReason] = useState("");
 
   useEffect(() => {
     fetchComplaints();
@@ -106,12 +128,29 @@ export default function UnifiedComplaintsManager() {
           .select("customer_name, customer_email, customer_phone, total_amount, payment_method, shipping_address, items")
           .eq("id", c.order_id)
           .single();
-        return { ...c, images: c.images as string[] | null, order: order ? { ...order, items: Array.isArray(order.items) ? order.items : [] } : undefined } as OrderComplaint;
+        return { 
+          ...c, 
+          images: c.images as string[] | null, 
+          order: order ? { ...order, items: Array.isArray(order.items) ? order.items : [] } : undefined,
+          pickup_attempt_number: c.pickup_attempt_number || 0,
+          max_pickup_attempts: c.max_pickup_attempts || 3,
+          return_status: c.return_status || 'pending',
+          eligible_for_coupon: c.eligible_for_coupon || false,
+        } as OrderComplaint;
       })
     );
 
     setComplaints(withOrders);
     setIsLoading(false);
+  };
+
+  const fetchPickupAttempts = async (complaintId: string) => {
+    const { data } = await supabase
+      .from("return_pickup_attempts")
+      .select("*")
+      .eq("complaint_id", complaintId)
+      .order("attempt_number", { ascending: true });
+    setPickupAttempts((data as PickupAttempt[]) || []);
   };
 
   const sendNotification = async (
@@ -138,23 +177,29 @@ export default function UnifiedComplaintsManager() {
   };
 
   // Action: Approve complaint
+  // Coupon ONLY for replace, warranty, not_received, damaged - NOT for return
   const handleApprove = async () => {
     if (!selectedComplaint) return;
     setIsUpdating(true);
 
     try {
-      // Generate coupon
-      const couponCode = `SORRY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      await supabase.from("coupons").insert({
-        code: couponCode,
-        description: "Apology coupon",
-        discount_type: "percentage",
-        discount_value: 20,
-        usage_limit: 1,
-        per_user_limit: 1,
-        is_active: true,
-        valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-      });
+      const isEligibleForCoupon = COUPON_ELIGIBLE_TYPES.includes(selectedComplaint.complaint_type);
+      let couponCode: string | null = null;
+
+      // Only generate coupon for eligible types (NOT returns)
+      if (isEligibleForCoupon) {
+        couponCode = `SORRY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        await supabase.from("coupons").insert({
+          code: couponCode,
+          description: "Apology coupon for order issue",
+          discount_type: "percentage",
+          discount_value: 20,
+          usage_limit: 1,
+          per_user_limit: 1,
+          is_active: true,
+          valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
 
       // Update complaint
       await supabase
@@ -164,6 +209,7 @@ export default function UnifiedComplaintsManager() {
           investigation_notes: adminNotes,
           coupon_code: couponCode,
           admin_notes: adminNotes,
+          eligible_for_coupon: isEligibleForCoupon,
         })
         .eq("id", selectedComplaint.id);
 
@@ -173,8 +219,16 @@ export default function UnifiedComplaintsManager() {
         .update({ complaint_status: "approved" })
         .eq("id", selectedComplaint.order_id);
 
-      await sendNotification(selectedComplaint, "complaint_approved", { couponCode, couponDiscount: 20 });
-      toast.success("Complaint approved - Customer notified");
+      await sendNotification(selectedComplaint, "complaint_approved", { 
+        couponCode: isEligibleForCoupon ? couponCode : null, 
+        couponDiscount: isEligibleForCoupon ? 20 : null,
+        isReturn: selectedComplaint.complaint_type === "return",
+      });
+
+      const message = isEligibleForCoupon 
+        ? "Complaint approved with 20% coupon - Customer notified"
+        : "Return approved (no coupon for returns) - Customer notified";
+      toast.success(message);
       setSelectedComplaint(null);
       fetchComplaints();
     } catch (error) {
@@ -218,7 +272,7 @@ export default function UnifiedComplaintsManager() {
     }
   };
 
-  // Action: Schedule pickup
+  // Action: Schedule pickup attempt (tracks attempt number)
   const handleSchedulePickup = async () => {
     if (!selectedComplaint || !pickupDate) {
       toast.error("Please select a pickup date");
@@ -227,21 +281,38 @@ export default function UnifiedComplaintsManager() {
     setIsUpdating(true);
 
     try {
+      const attemptNumber = (selectedComplaint.pickup_attempt_number || 0) + 1;
+
+      // Create pickup attempt record
+      await supabase.from("return_pickup_attempts").insert({
+        complaint_id: selectedComplaint.id,
+        order_id: selectedComplaint.order_id,
+        attempt_number: attemptNumber,
+        scheduled_date: pickupDate,
+        status: "scheduled",
+      });
+
+      // Update complaint
       await supabase
         .from("order_complaints")
         .update({
           pickup_status: "scheduled",
           pickup_scheduled_at: new Date(pickupDate).toISOString(),
+          pickup_attempt_number: attemptNumber,
           admin_notes: adminNotes,
+          return_status: "pickup_scheduled",
         })
         .eq("id", selectedComplaint.id);
 
       await sendNotification(selectedComplaint, "pickup_scheduled", {
         pickupDate: format(new Date(pickupDate), "EEEE, MMMM d, yyyy"),
+        attemptNumber,
+        maxAttempts: selectedComplaint.max_pickup_attempts,
       });
 
-      toast.success("Pickup scheduled - Customer notified");
+      toast.success(`Pickup attempt ${attemptNumber}/${selectedComplaint.max_pickup_attempts} scheduled`);
       fetchComplaints();
+      fetchPickupAttempts(selectedComplaint.id);
     } catch (error) {
       toast.error("Failed to schedule pickup");
     } finally {
@@ -249,22 +320,42 @@ export default function UnifiedComplaintsManager() {
     }
   };
 
-  // Action: Mark as picked up
+  // Action: Mark pickup as successful
   const handleMarkPickedUp = async () => {
     if (!selectedComplaint) return;
     setIsUpdating(true);
 
     try {
+      // Update the latest pickup attempt
+      const { data: attempts } = await supabase
+        .from("return_pickup_attempts")
+        .select("*")
+        .eq("complaint_id", selectedComplaint.id)
+        .eq("status", "scheduled")
+        .order("attempt_number", { ascending: false })
+        .limit(1);
+
+      if (attempts && attempts.length > 0) {
+        await supabase
+          .from("return_pickup_attempts")
+          .update({
+            status: "completed",
+            attempted_at: new Date().toISOString(),
+          })
+          .eq("id", attempts[0].id);
+      }
+
       await supabase
         .from("order_complaints")
         .update({
           pickup_status: "picked_up",
           pickup_completed_at: new Date().toISOString(),
+          return_status: "picked_up",
         })
         .eq("id", selectedComplaint.id);
 
       await sendNotification(selectedComplaint, "pickup_completed");
-      toast.success("Marked as picked up - Customer notified");
+      toast.success("Item picked up successfully!");
       fetchComplaints();
     } catch (error) {
       toast.error("Failed to update");
@@ -273,15 +364,84 @@ export default function UnifiedComplaintsManager() {
     }
   };
 
-  // Action: Create replacement order
+  // Action: Mark pickup attempt as failed
+  const handlePickupFailed = async () => {
+    if (!selectedComplaint || !failureReason.trim()) {
+      toast.error("Please provide a failure reason");
+      return;
+    }
+    setIsUpdating(true);
+
+    try {
+      const currentAttempt = selectedComplaint.pickup_attempt_number || 1;
+      const maxAttempts = selectedComplaint.max_pickup_attempts || 3;
+
+      // Update the latest pickup attempt as failed
+      const { data: attempts } = await supabase
+        .from("return_pickup_attempts")
+        .select("*")
+        .eq("complaint_id", selectedComplaint.id)
+        .eq("status", "scheduled")
+        .order("attempt_number", { ascending: false })
+        .limit(1);
+
+      if (attempts && attempts.length > 0) {
+        await supabase
+          .from("return_pickup_attempts")
+          .update({
+            status: "failed",
+            attempted_at: new Date().toISOString(),
+            failure_reason: failureReason,
+          })
+          .eq("id", attempts[0].id);
+      }
+
+      if (currentAttempt >= maxAttempts) {
+        // All attempts exhausted - mark return as failed
+        await supabase
+          .from("order_complaints")
+          .update({
+            pickup_status: "failed",
+            pickup_failed_at: new Date().toISOString(),
+            return_status: "failed",
+            admin_notes: `Return failed after ${maxAttempts} pickup attempts. Last reason: ${failureReason}`,
+          })
+          .eq("id", selectedComplaint.id);
+
+        await sendNotification(selectedComplaint, "return_failed", {
+          reason: `All ${maxAttempts} pickup attempts failed`,
+        });
+
+        toast.error(`Return failed - All ${maxAttempts} pickup attempts exhausted`);
+      } else {
+        // Can schedule another attempt
+        await supabase
+          .from("order_complaints")
+          .update({
+            pickup_status: "attempt_failed",
+            return_status: "pending_retry",
+          })
+          .eq("id", selectedComplaint.id);
+
+        toast.warning(`Pickup attempt ${currentAttempt} failed. ${maxAttempts - currentAttempt} attempts remaining.`);
+      }
+
+      setFailureReason("");
+      fetchComplaints();
+      fetchPickupAttempts(selectedComplaint.id);
+    } catch (error) {
+      toast.error("Failed to update");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Action: Create replacement order (with coupon for eligible types)
   const handleCreateReplacement = async () => {
     if (!selectedComplaint?.order) return;
     setIsUpdating(true);
 
     try {
-      // Create pickup order (to track pickup logistics)
-      // Note: In production, this would integrate with logistics API
-
       // Create replacement order
       const { data: newOrder, error } = await supabase
         .from("orders")
@@ -310,11 +470,13 @@ export default function UnifiedComplaintsManager() {
         .update({
           replacement_order_id: newOrder.id,
           resolution_type: "replacement",
+          return_status: "completed",
         })
         .eq("id", selectedComplaint.id);
 
       await sendNotification(selectedComplaint, "replacement_created", {
         replacementOrderId: newOrder.id,
+        couponCode: selectedComplaint.coupon_code,
       });
 
       toast.success("Replacement order created - Customer notified");
@@ -328,37 +490,41 @@ export default function UnifiedComplaintsManager() {
     }
   };
 
-  // Action: Process refund
+  // Action: Process refund - Creates refund request for user to select method
   const handleProcessRefund = async () => {
     if (!selectedComplaint?.order) return;
     setIsUpdating(true);
 
     try {
-      // Create refund request
+      // For returns: NO coupon, user gets money back
+      // For not_received/damaged: Already has coupon from approval
+      
+      // Create refund request (user needs to select payment method)
       await supabase.from("refund_requests").insert({
         order_id: selectedComplaint.order_id,
         user_id: selectedComplaint.user_id,
         amount: selectedComplaint.order.total_amount,
         payment_method: selectedComplaint.order.payment_method,
-        refund_method: selectedComplaint.refund_method || "original",
-        reason: `Complaint: ${selectedComplaint.complaint_type}`,
-        status: "pending",
+        refund_method: "pending_selection", // User will choose
+        reason: `${selectedComplaint.complaint_type}: ${selectedComplaint.description || "No description"}`,
+        status: "pending_user_selection",
       });
 
       await supabase
         .from("order_complaints")
         .update({
-          refund_status: "pending",
+          refund_status: "pending_user_selection",
           resolution_type: "refund",
+          return_status: selectedComplaint.complaint_type === "return" ? "completed" : selectedComplaint.return_status,
         })
         .eq("id", selectedComplaint.id);
 
       await sendNotification(selectedComplaint, "refund_initiated", {
         refundAmount: selectedComplaint.order.total_amount,
-        refundMethod: selectedComplaint.refund_method || "original",
+        needsSelection: true,
       });
 
-      toast.success("Refund initiated - Customer notified");
+      toast.success("Refund initiated - Customer asked to select payment method");
       fetchComplaints();
     } catch (error) {
       toast.error("Failed to process refund");
@@ -375,15 +541,15 @@ export default function UnifiedComplaintsManager() {
     if (activeTab === "all") return true;
     if (activeTab === "investigating") return c.investigation_status === "investigating";
     if (activeTab === "approved") return c.investigation_status === "resolved_true" && !c.replacement_order_id && c.refund_status !== "completed";
-    if (activeTab === "pickup") return c.pickup_status === "scheduled" || c.pickup_status === "picked_up";
-    if (activeTab === "resolved") return c.replacement_order_id || c.refund_status === "completed";
+    if (activeTab === "pickup") return c.pickup_status === "scheduled" || c.pickup_status === "attempt_failed" || c.pickup_status === "picked_up";
+    if (activeTab === "resolved") return c.replacement_order_id || c.refund_status === "completed" || c.return_status === "failed";
     return true;
   });
 
   const counts = {
     investigating: complaints.filter(c => c.investigation_status === "investigating").length,
-    approved: complaints.filter(c => c.investigation_status === "resolved_true" && !c.replacement_order_id && c.refund_status !== "completed").length,
-    pickup: complaints.filter(c => c.pickup_status === "scheduled" || c.pickup_status === "picked_up").length,
+    approved: complaints.filter(c => c.investigation_status === "resolved_true" && !c.replacement_order_id && c.refund_status !== "completed" && c.return_status !== "failed").length,
+    pickup: complaints.filter(c => c.pickup_status === "scheduled" || c.pickup_status === "attempt_failed" || c.pickup_status === "picked_up").length,
   };
 
   if (isLoading) {
@@ -469,11 +635,12 @@ export default function UnifiedComplaintsManager() {
                 <Card
                   className={`p-4 cursor-pointer transition-all hover:bg-muted/50 ${
                     complaint.investigation_status === "investigating" ? "border-red-500/50 bg-red-500/5" : ""
-                  }`}
+                  } ${complaint.return_status === "failed" ? "border-orange-500/50 bg-orange-500/5" : ""}`}
                   onClick={() => {
                     setSelectedComplaint(complaint);
                     setAdminNotes(complaint.admin_notes || "");
                     setPickupDate(complaint.pickup_scheduled_at ? complaint.pickup_scheduled_at.split("T")[0] : "");
+                    fetchPickupAttempts(complaint.id);
                   }}
                 >
                   <div className="flex items-center justify-between">
@@ -485,10 +652,18 @@ export default function UnifiedComplaintsManager() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{complaint.order?.customer_name}</h3>
                           <Badge className={config.color}>{config.label}</Badge>
+                          {complaint.complaint_type === "return" && (
+                            <Badge variant="outline" className="text-xs">No Coupon</Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Order #{complaint.order_id.slice(0, 8)} • {format(new Date(complaint.created_at), "MMM d, h:mm a")}
                         </p>
+                        {complaint.pickup_attempt_number > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Pickup Attempts: {complaint.pickup_attempt_number}/{complaint.max_pickup_attempts}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -507,13 +682,22 @@ export default function UnifiedComplaintsManager() {
                           <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>
                         )}
                         {complaint.pickup_status === "scheduled" && (
-                          <Badge className="bg-blue-500"><Truck className="w-3 h-3 mr-1" />Pickup Scheduled</Badge>
+                          <Badge className="bg-blue-500"><Truck className="w-3 h-3 mr-1" />Pickup #{complaint.pickup_attempt_number}</Badge>
+                        )}
+                        {complaint.pickup_status === "attempt_failed" && (
+                          <Badge className="bg-orange-500"><AlertCircle className="w-3 h-3 mr-1" />Retry Needed</Badge>
                         )}
                         {complaint.pickup_status === "picked_up" && !complaint.replacement_order_id && (
                           <Badge className="bg-purple-500"><Package className="w-3 h-3 mr-1" />Picked Up</Badge>
                         )}
+                        {complaint.return_status === "failed" && (
+                          <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Return Failed</Badge>
+                        )}
                         {complaint.replacement_order_id && (
                           <Badge className="bg-green-600"><Package className="w-3 h-3 mr-1" />Replaced</Badge>
+                        )}
+                        {complaint.refund_status === "completed" && (
+                          <Badge className="bg-green-600"><CreditCard className="w-3 h-3 mr-1" />Refunded</Badge>
                         )}
                         {complaint.investigation_status === "resolved_false" && (
                           <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
@@ -540,6 +724,9 @@ export default function UnifiedComplaintsManager() {
                     const Icon = config.icon;
                     return <><Icon className="w-5 h-5" /> {config.label} Complaint</>;
                   })()}
+                  {selectedComplaint.complaint_type === "return" && (
+                    <Badge variant="outline">No Coupon for Returns</Badge>
+                  )}
                 </DialogTitle>
               </DialogHeader>
 
@@ -580,6 +767,33 @@ export default function UnifiedComplaintsManager() {
                   </div>
                 </Card>
               </div>
+
+              {/* Pickup Attempts History */}
+              {pickupAttempts.length > 0 && (
+                <Card className="p-4">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Truck className="w-4 h-4" /> Pickup Attempts ({pickupAttempts.length}/{selectedComplaint.max_pickup_attempts})
+                  </h4>
+                  <div className="space-y-2">
+                    {pickupAttempts.map((attempt) => (
+                      <div key={attempt.id} className={`p-2 rounded text-sm flex justify-between items-center ${
+                        attempt.status === "completed" ? "bg-green-500/10" :
+                        attempt.status === "failed" ? "bg-red-500/10" :
+                        "bg-blue-500/10"
+                      }`}>
+                        <span>Attempt #{attempt.attempt_number} - {format(new Date(attempt.scheduled_date), "MMM d, yyyy")}</span>
+                        <Badge className={
+                          attempt.status === "completed" ? "bg-green-500" :
+                          attempt.status === "failed" ? "bg-red-500" :
+                          "bg-blue-500"
+                        }>
+                          {attempt.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
 
               {/* Description */}
               <Card className="p-4">
@@ -625,24 +839,45 @@ export default function UnifiedComplaintsManager() {
                     <div className="flex gap-2">
                       <Button onClick={handleApprove} disabled={isUpdating} className="bg-green-500 hover:bg-green-600">
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve & Generate Coupon
+                        {selectedComplaint.complaint_type === "return" 
+                          ? "Approve Return (No Coupon)" 
+                          : "Approve & Generate Coupon"
+                        }
                       </Button>
                       <Button onClick={handleReject} disabled={isUpdating} variant="destructive">
                         <XCircle className="w-4 h-4 mr-2" />
                         Reject (Requires Notes)
                       </Button>
                     </div>
+                    {selectedComplaint.complaint_type === "return" && (
+                      <p className="text-sm text-muted-foreground">
+                        Note: Returns don't receive a 20% coupon. Only replacements, warranty claims, and order issues (damaged/not received) are eligible.
+                      </p>
+                    )}
                   </div>
                 )}
 
-                {/* Step 2: Approved - Schedule Pickup */}
+                {/* Step 2: Approved - Schedule Pickup (for return, replace, damaged, warranty) */}
                 {selectedComplaint.investigation_status === "resolved_true" && 
-                 !selectedComplaint.pickup_status && 
-                 selectedComplaint.complaint_type !== "not_received" && (
+                 (!selectedComplaint.pickup_status || selectedComplaint.pickup_status === "attempt_failed") && 
+                 selectedComplaint.complaint_type !== "not_received" &&
+                 selectedComplaint.return_status !== "failed" && (
                   <div className="space-y-3">
-                    <h4 className="font-semibold">Step 2: Schedule Pickup</h4>
+                    <h4 className="font-semibold">
+                      Step 2: Schedule Pickup 
+                      {selectedComplaint.pickup_attempt_number > 0 && (
+                        <span className="text-muted-foreground font-normal ml-2">
+                          (Attempt {selectedComplaint.pickup_attempt_number + 1}/{selectedComplaint.max_pickup_attempts})
+                        </span>
+                      )}
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      Defective item needs to be picked up before shipping replacement.
+                      Item needs to be picked up before processing refund/replacement.
+                      {selectedComplaint.pickup_status === "attempt_failed" && (
+                        <span className="text-orange-500 ml-1">
+                          Previous attempt failed. {selectedComplaint.max_pickup_attempts - selectedComplaint.pickup_attempt_number} attempts remaining.
+                        </span>
+                      )}
                     </p>
                     <div className="flex gap-2">
                       <Input
@@ -665,6 +900,9 @@ export default function UnifiedComplaintsManager() {
                  !selectedComplaint.refund_status && (
                   <div className="space-y-3">
                     <h4 className="font-semibold">Step 2: Process Refund</h4>
+                    <p className="text-sm text-muted-foreground">
+                      No pickup needed for order not received. Customer already received 20% coupon.
+                    </p>
                     <Button onClick={handleProcessRefund} disabled={isUpdating}>
                       <CreditCard className="w-4 h-4 mr-2" />
                       Initiate Refund (₹{selectedComplaint.order?.total_amount?.toLocaleString()})
@@ -672,37 +910,78 @@ export default function UnifiedComplaintsManager() {
                   </div>
                 )}
 
-                {/* Step 3: Pickup Scheduled - Mark as Picked Up */}
+                {/* Step 3: Pickup Scheduled - Mark as Picked Up or Failed */}
                 {selectedComplaint.pickup_status === "scheduled" && (
                   <div className="space-y-3">
-                    <h4 className="font-semibold">Step 3: Confirm Pickup</h4>
+                    <h4 className="font-semibold">Step 3: Confirm Pickup Result</h4>
                     <p className="text-sm text-muted-foreground">
                       Scheduled for: {format(new Date(selectedComplaint.pickup_scheduled_at!), "PPP")}
+                      <span className="ml-2">(Attempt {selectedComplaint.pickup_attempt_number}/{selectedComplaint.max_pickup_attempts})</span>
                     </p>
-                    <Button onClick={handleMarkPickedUp} disabled={isUpdating}>
-                      <Package className="w-4 h-4 mr-2" />
-                      Mark as Picked Up
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={handleMarkPickedUp} disabled={isUpdating} className="bg-green-500 hover:bg-green-600">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Pickup Successful
+                      </Button>
+                      <Button variant="outline" onClick={() => document.getElementById("failure-input")?.focus()}>
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Pickup Failed
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        id="failure-input"
+                        placeholder="Failure reason (e.g., customer not available)"
+                        value={failureReason}
+                        onChange={(e) => setFailureReason(e.target.value)}
+                      />
+                      <Button 
+                        variant="destructive" 
+                        onClick={handlePickupFailed} 
+                        disabled={!failureReason.trim() || isUpdating}
+                      >
+                        Mark Failed
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Return Failed - Admin manages */}
+                {selectedComplaint.return_status === "failed" && (
+                  <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-orange-600 mb-2">
+                      <AlertCircle className="w-5 h-5" />
+                      <span className="font-semibold">Return Failed - All {selectedComplaint.max_pickup_attempts} pickup attempts exhausted</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Customer has been notified. You may need to contact them directly to resolve this issue.
+                    </p>
                   </div>
                 )}
 
                 {/* Step 4: Picked Up - Create Replacement or Refund */}
                 {selectedComplaint.pickup_status === "picked_up" && 
                  !selectedComplaint.replacement_order_id && 
-                 selectedComplaint.refund_status !== "completed" && (
+                 selectedComplaint.refund_status !== "completed" &&
+                 !selectedComplaint.refund_status && (
                   <div className="space-y-3">
                     <h4 className="font-semibold">Step 4: Issue Resolution</h4>
                     <p className="text-sm text-muted-foreground">
-                      Item has been picked up. Now create replacement or process refund.
+                      Item has been picked up. {selectedComplaint.complaint_type === "return" 
+                        ? "Process refund for return." 
+                        : "Create replacement or process refund."
+                      }
                     </p>
                     <div className="flex gap-2">
-                      <Button onClick={handleCreateReplacement} disabled={isUpdating}>
-                        <Package className="w-4 h-4 mr-2" />
-                        Create Replacement Order
-                      </Button>
-                      <Button variant="outline" onClick={handleProcessRefund} disabled={isUpdating}>
+                      {selectedComplaint.complaint_type !== "return" && (
+                        <Button onClick={handleCreateReplacement} disabled={isUpdating}>
+                          <Package className="w-4 h-4 mr-2" />
+                          Create Replacement Order
+                        </Button>
+                      )}
+                      <Button variant={selectedComplaint.complaint_type === "return" ? "default" : "outline"} onClick={handleProcessRefund} disabled={isUpdating}>
                         <CreditCard className="w-4 h-4 mr-2" />
-                        Process Refund Instead
+                        Process Refund
                       </Button>
                     </div>
                   </div>
@@ -723,8 +1002,8 @@ export default function UnifiedComplaintsManager() {
                   </div>
                 )}
 
-                {/* Coupon Info */}
-                {selectedComplaint.coupon_code && (
+                {/* Coupon Info - Only show for eligible types */}
+                {selectedComplaint.coupon_code && selectedComplaint.complaint_type !== "return" && (
                   <div className="p-3 bg-primary/10 rounded-lg flex items-center gap-2">
                     <Gift className="w-4 h-4 text-primary" />
                     <span className="text-sm">
