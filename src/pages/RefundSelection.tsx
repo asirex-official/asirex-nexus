@@ -105,7 +105,7 @@ export default function RefundSelection() {
       }
 
       // Check if already processed
-      if (data.status !== "pending") {
+      if (!["pending", "pending_user_selection"].includes(data.status)) {
         setError(`This refund has already been ${data.status}.`);
         setIsLoading(false);
         return;

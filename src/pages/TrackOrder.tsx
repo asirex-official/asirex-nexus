@@ -274,7 +274,9 @@ export default function TrackOrder() {
 
   const canCancelOrder = (order: Order) => {
     // Can only cancel if order status is "pending" (Order Placed)
-    return order.order_status === "pending" && !order.returning_to_provider;
+    // Once order moves to "processing", "shipped", or "delivered" - cancellation is NOT available
+    const cancellableStatuses = ["pending", "placed"];
+    return cancellableStatuses.includes(order.order_status?.toLowerCase() || "") && !order.returning_to_provider;
   };
 
   const isOrderActive = (order: Order) => {

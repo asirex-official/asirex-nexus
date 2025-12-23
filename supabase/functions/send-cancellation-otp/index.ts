@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+
+const Resend = (await import("https://esm.sh/resend@2.0.0")).Resend;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -62,10 +63,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if order can be cancelled
-    if (!["pending", "processing", "placed"].includes(order.order_status?.toLowerCase() || "")) {
+    // Check if order can be cancelled - ONLY "pending" (Order Placed) status
+    // Once order moves to "processing" or beyond, cancellation is not allowed
+    const status = order.order_status?.toLowerCase() || "";
+    if (status !== "pending" && status !== "placed") {
       return new Response(
-        JSON.stringify({ error: "This order cannot be cancelled. Only orders with 'Pending' or 'Processing' status can be cancelled." }),
+        JSON.stringify({ error: "Order cancellation is only available for orders in 'Order Placed' status. Once processing begins, cancellation is no longer available." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
