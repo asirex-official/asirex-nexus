@@ -10,10 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Banknote, CreditCard, Gift, CheckCircle, Clock, AlertTriangle, Eye, Loader2,
   Building, Smartphone, RefreshCw, ExternalLink, User, Package, Calendar,
+  AlertCircle, Send,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, differenceInHours } from "date-fns";
 
 interface RefundRequest {
   id: string;
@@ -36,6 +37,8 @@ interface RefundRequest {
   link_token: string | null;
   link_expires_at: string | null;
   email_sent_at: string | null;
+  late_refund_coupon_code: string | null;
+  late_refund_coupon_sent: boolean;
 }
 
 interface OrderInfo {
@@ -56,6 +59,12 @@ export function RefundManager() {
 
   useEffect(() => {
     fetchRefunds();
+    // Realtime subscription
+    const channel = supabase
+      .channel("refunds_realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "refund_requests" }, fetchRefunds)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const fetchRefunds = async () => {
@@ -70,7 +79,7 @@ export function RefundManager() {
 
       // Fetch order info for each refund
       const refundsWithOrders = await Promise.all(
-        (data || []).map(async (refund) => {
+        (data || []).map(async (refund: any) => {
           const { data: orderData } = await supabase
             .from("orders")
             .select("customer_name, customer_email, customer_phone, total_amount, order_status")
@@ -80,6 +89,8 @@ export function RefundManager() {
           return {
             ...refund,
             order: orderData as OrderInfo | undefined,
+            late_refund_coupon_code: refund.late_refund_coupon_code || null,
+            late_refund_coupon_sent: refund.late_refund_coupon_sent || false,
           };
         })
       );
@@ -93,30 +104,91 @@ export function RefundManager() {
     }
   };
 
-  const handleApproveRefund = async (refund: RefundRequest) => {
+  // Check if refund took more than 1 day - eligible for late refund coupon
+  const isLateRefund = (refund: RefundRequest) => {
+    const createdAt = new Date(refund.created_at);
+    const now = new Date();
+    return differenceInHours(now, createdAt) >= 24;
+  };
+
+  const handleApproveRefund = async (refund: RefundRequest & { order?: OrderInfo }) => {
     setProcessingId(refund.id);
     try {
+      const isLate = isLateRefund(refund);
+      let couponCode: string | null = null;
+
+      // If refund took more than 1 day, generate apology coupon
+      if (isLate && !refund.late_refund_coupon_code) {
+        couponCode = `DELAY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        await supabase.from("coupons").insert({
+          code: couponCode,
+          description: "Apology coupon for delayed refund",
+          discount_type: "percentage",
+          discount_value: 20,
+          usage_limit: 1,
+          per_user_limit: 1,
+          is_active: true,
+          valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+
       const { error } = await supabase
         .from("refund_requests")
         .update({
           status: "completed",
           processed_at: new Date().toISOString(),
           admin_notes: adminNotes || null,
+          late_refund_coupon_code: couponCode || refund.late_refund_coupon_code,
+          late_refund_coupon_sent: isLate,
         })
         .eq("id", refund.id);
 
       if (error) throw error;
 
+      // Update order complaint refund status
+      await supabase
+        .from("order_complaints")
+        .update({ refund_status: "completed" })
+        .eq("order_id", refund.order_id);
+
       // Send notification to user
+      let message = `Your refund of ₹${refund.amount.toLocaleString()} has been processed via ${getRefundMethodLabel(refund.refund_method)}.`;
+      if (isLate && couponCode) {
+        message += ` As an apology for the delay, here's a 20% discount code: ${couponCode}`;
+      }
+
       await supabase.from("notifications").insert({
         user_id: refund.user_id,
-        title: "Refund Completed",
-        message: `Your refund of ₹${refund.amount.toLocaleString()} has been processed via ${getRefundMethodLabel(refund.refund_method)}. If not received, please contact support.`,
+        title: "Refund Completed! 🎉",
+        message,
         type: "refund",
         link: "/track-order",
       });
 
-      toast.success("Refund marked as completed. User notified.");
+      // Send email notification
+      try {
+        await supabase.functions.invoke("send-complaint-notification", {
+          body: {
+            notificationType: "refund_completed",
+            userId: refund.user_id,
+            orderId: refund.order_id,
+            customerEmail: refund.order?.customer_email,
+            customerName: refund.order?.customer_name,
+            additionalData: {
+              refundAmount: refund.amount,
+              refundMethod: getRefundMethodLabel(refund.refund_method),
+              lateCouponCode: isLate ? couponCode : null,
+            },
+          },
+        });
+      } catch (e) {
+        console.error("Email notification failed:", e);
+      }
+
+      const toastMessage = isLate 
+        ? `Refund completed with 20% apology coupon for delay`
+        : "Refund marked as completed. User notified.";
+      toast.success(toastMessage);
       setSelectedRefund(null);
       setAdminNotes("");
       fetchRefunds();
@@ -170,6 +242,8 @@ export function RefundManager() {
         return Smartphone;
       case "bank":
         return Building;
+      case "pending_selection":
+        return Clock;
       default:
         return CreditCard;
     }
@@ -184,7 +258,7 @@ export function RefundManager() {
       case "bank":
         return "Bank Transfer";
       case "pending_selection":
-        return "Pending Selection";
+        return "Awaiting User Selection";
       default:
         return method;
     }
@@ -195,8 +269,9 @@ export function RefundManager() {
       case "completed":
         return "text-green-500 bg-green-500/10";
       case "pending":
-      case "pending_user_selection":
         return "text-yellow-500 bg-yellow-500/10";
+      case "pending_user_selection":
+        return "text-orange-500 bg-orange-500/10";
       case "processing":
         return "text-blue-500 bg-blue-500/10";
       case "failed":
@@ -207,13 +282,15 @@ export function RefundManager() {
   };
 
   const filteredRefunds = refunds.filter((r) => {
-    if (activeTab === "pending") return r.status === "pending" || r.status === "pending_user_selection";
+    if (activeTab === "pending") return r.status === "pending";
+    if (activeTab === "awaiting") return r.status === "pending_user_selection";
     if (activeTab === "completed") return r.status === "completed";
     if (activeTab === "failed") return r.status === "failed";
     return true;
   });
 
-  const pendingCount = refunds.filter((r) => r.status === "pending" || r.status === "pending_user_selection").length;
+  const pendingCount = refunds.filter((r) => r.status === "pending").length;
+  const awaitingCount = refunds.filter((r) => r.status === "pending_user_selection").length;
 
   if (isLoading) {
     return (
@@ -232,7 +309,7 @@ export function RefundManager() {
             Refund Management
           </h2>
           <p className="text-muted-foreground">
-            Process and track customer refunds • {pendingCount} pending
+            Process and track customer refunds • {pendingCount} ready to pay • {awaitingCount} awaiting user
           </p>
         </div>
         <Button variant="outline" onClick={fetchRefunds}>
@@ -244,11 +321,20 @@ export function RefundManager() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="pending" className="gap-1">
-            <Clock className="w-4 h-4" />
-            Pending
+            <CreditCard className="w-4 h-4" />
+            Ready to Pay
             {pendingCount > 0 && (
               <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 justify-center">
                 {pendingCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="awaiting" className="gap-1">
+            <Clock className="w-4 h-4" />
+            Awaiting User
+            {awaitingCount > 0 && (
+              <Badge className="ml-1 h-5 w-5 p-0 justify-center bg-orange-500">
+                {awaitingCount}
               </Badge>
             )}
           </TabsTrigger>
@@ -275,6 +361,8 @@ export function RefundManager() {
             <div className="grid gap-4">
               {filteredRefunds.map((refund, index) => {
                 const MethodIcon = getRefundMethodIcon(refund.refund_method);
+                const isLate = isLateRefund(refund);
+                
                 return (
                   <motion.div
                     key={refund.id}
@@ -282,7 +370,9 @@ export function RefundManager() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="hover:border-primary/50 transition-all">
+                    <Card className={`hover:border-primary/50 transition-all ${
+                      isLate && refund.status === "pending" ? "border-orange-500/50 bg-orange-500/5" : ""
+                    }`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-4">
@@ -295,9 +385,17 @@ export function RefundManager() {
                                   ₹{refund.amount.toLocaleString()}
                                 </span>
                                 <Badge className={getStatusColor(refund.status)}>
-                                  {refund.status.replace(/_/g, " ").charAt(0).toUpperCase() +
-                                    refund.status.replace(/_/g, " ").slice(1)}
+                                  {refund.status === "pending_user_selection" 
+                                    ? "Awaiting User" 
+                                    : refund.status.charAt(0).toUpperCase() + refund.status.slice(1)
+                                  }
                                 </Badge>
+                                {isLate && refund.status === "pending" && (
+                                  <Badge className="bg-orange-500">
+                                    <AlertCircle className="w-3 h-3 mr-1" />
+                                    Delayed &gt;24h
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <User className="w-3 h-3" />
@@ -321,10 +419,11 @@ export function RefundManager() {
                                   {format(new Date(refund.created_at), "MMM d, yyyy")}
                                 </span>
                               </div>
-                              {refund.reason && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Reason: {refund.reason}
-                                </p>
+                              {refund.late_refund_coupon_code && (
+                                <div className="mt-2 flex items-center gap-1 text-sm text-orange-600">
+                                  <Gift className="w-3 h-3" />
+                                  <span>Late coupon: <code className="font-mono">{refund.late_refund_coupon_code}</code></span>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -365,10 +464,32 @@ export function RefundManager() {
                     <p className="text-2xl font-bold">₹{selectedRefund.amount.toLocaleString()}</p>
                     <p className="text-sm text-muted-foreground">Refund Amount</p>
                   </div>
-                  <Badge className={`${getStatusColor(selectedRefund.status)} text-lg px-3 py-1`}>
-                    {selectedRefund.status.replace(/_/g, " ").toUpperCase()}
-                  </Badge>
+                  <div className="text-right">
+                    <Badge className={`${getStatusColor(selectedRefund.status)} text-lg px-3 py-1`}>
+                      {selectedRefund.status === "pending_user_selection" 
+                        ? "AWAITING USER" 
+                        : selectedRefund.status.replace(/_/g, " ").toUpperCase()
+                      }
+                    </Badge>
+                    {isLateRefund(selectedRefund) && selectedRefund.status === "pending" && (
+                      <p className="text-xs text-orange-500 mt-1">Delayed &gt;24 hours - will get coupon</p>
+                    )}
+                  </div>
                 </div>
+
+                {/* Awaiting User Selection Notice */}
+                {selectedRefund.status === "pending_user_selection" && (
+                  <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-orange-600 mb-2">
+                      <Clock className="w-5 h-5" />
+                      <span className="font-semibold">Waiting for Customer</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Customer needs to select their preferred refund method (Gift Card, UPI, or Bank Transfer).
+                      They will be prompted to do so in Track Order.
+                    </p>
+                  </div>
+                )}
 
                 {/* Customer Info */}
                 <div className="space-y-2">
@@ -398,14 +519,14 @@ export function RefundManager() {
                     {selectedRefund.upi_id && (
                       <p className="text-sm">
                         <span className="text-muted-foreground">UPI ID:</span>{" "}
-                        <span className="font-mono">{selectedRefund.upi_id}</span>
+                        <span className="font-mono font-bold text-primary">{selectedRefund.upi_id}</span>
                       </p>
                     )}
                     {selectedRefund.bank_account_holder && (
                       <>
                         <p className="text-sm">
                           <span className="text-muted-foreground">Account Holder:</span>{" "}
-                          {selectedRefund.bank_account_holder}
+                          <span className="font-medium">{selectedRefund.bank_account_holder}</span>
                         </p>
                         <p className="text-sm">
                           <span className="text-muted-foreground">Account Number:</span>{" "}
@@ -413,18 +534,73 @@ export function RefundManager() {
                         </p>
                         <p className="text-sm">
                           <span className="text-muted-foreground">IFSC:</span>{" "}
-                          <span className="font-mono">{selectedRefund.bank_ifsc_encrypted}</span>
+                          <span className="font-mono font-bold">{selectedRefund.bank_ifsc_encrypted}</span>
                         </p>
                       </>
                     )}
                   </div>
                 </div>
 
+                {/* Payment Instructions for Admin */}
+                {selectedRefund.status === "pending" && selectedRefund.refund_method !== "gift_card" && (
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <h4 className="font-semibold text-blue-600 mb-2 flex items-center gap-2">
+                      <Send className="w-4 h-4" />
+                      Payment Instructions
+                    </h4>
+                    <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
+                      {selectedRefund.refund_method === "upi" && (
+                        <>
+                          <li>Open your UPI app (PhonePe, GPay, Paytm, etc.)</li>
+                          <li>Send ₹{selectedRefund.amount.toLocaleString()} to <code className="font-mono text-primary">{selectedRefund.upi_id}</code></li>
+                          <li>Take a screenshot of the successful payment</li>
+                          <li>Click "Mark as Completed" below</li>
+                        </>
+                      )}
+                      {selectedRefund.refund_method === "bank" && (
+                        <>
+                          <li>Open your bank's NEFT/IMPS portal</li>
+                          <li>Transfer ₹{selectedRefund.amount.toLocaleString()} to:</li>
+                          <li className="ml-4">Name: {selectedRefund.bank_account_holder}</li>
+                          <li className="ml-4">A/C: ****{selectedRefund.bank_account_number_encrypted?.slice(-4)}</li>
+                          <li className="ml-4">IFSC: {selectedRefund.bank_ifsc_encrypted}</li>
+                          <li>Save the transaction reference</li>
+                          <li>Click "Mark as Completed" below</li>
+                        </>
+                      )}
+                    </ol>
+                  </div>
+                )}
+
                 {/* Reason */}
                 {selectedRefund.reason && (
                   <div className="space-y-2">
                     <Label>Reason</Label>
                     <p className="text-sm p-3 bg-muted/50 rounded-lg">{selectedRefund.reason}</p>
+                  </div>
+                )}
+
+                {/* Late Refund Coupon Info */}
+                {isLateRefund(selectedRefund) && selectedRefund.status === "pending" && (
+                  <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-orange-600">
+                      <Gift className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        This refund is delayed (&gt;24h). A 20% apology coupon will be automatically generated when you complete it.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Completed Late Coupon */}
+                {selectedRefund.late_refund_coupon_code && (
+                  <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Gift className="w-4 h-4" />
+                      <span className="text-sm">
+                        Late refund coupon: <code className="font-mono font-bold">{selectedRefund.late_refund_coupon_code}</code> (20% off)
+                      </span>
+                    </div>
                   </div>
                 )}
 
@@ -435,7 +611,7 @@ export function RefundManager() {
                     <Textarea
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
-                      placeholder="Add any notes about this refund..."
+                      placeholder="Add transaction reference or notes..."
                       rows={2}
                     />
                   </div>
