@@ -1,5 +1,8 @@
 project_id = "hdvjxlirfexofomkmwqc"
 
+[functions.ceo-pin]
+verify_jwt = true
+
 [functions.passkey-register-options]
 verify_jwt = false
 
