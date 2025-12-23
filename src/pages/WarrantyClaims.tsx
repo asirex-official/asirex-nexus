@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Loader2, Camera, X, Package, Clock, CheckCircle, AlertTriangle, Info } from "lucide-react";
+import { Shield, Loader2, Camera, X, Package, Clock, CheckCircle, AlertTriangle, Info, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLiveChat } from "@/hooks/useLiveChat";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -20,6 +21,7 @@ interface DeliveredOrder {
 
 export default function WarrantyClaims() {
   const { user, loading: authLoading } = useAuth();
+  const { openChat } = useLiveChat();
   const navigate = useNavigate();
   const [deliveredOrders, setDeliveredOrders] = useState<DeliveredOrder[]>([]);
   const [existingClaims, setExistingClaims] = useState<any[]>([]);
@@ -31,6 +33,10 @@ export default function WarrantyClaims() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  const handleContactSupport = (claimId: string) => {
+    openChat(`Hi, I need help with my warranty claim #${claimId.slice(0, 8)}. Can you assist me?`);
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -256,6 +262,15 @@ export default function WarrantyClaims() {
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{claim.issue_description}</p>
                     <p className="text-xs text-muted-foreground mt-2">Submitted: {new Date(claim.created_at).toLocaleDateString()}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-3 w-full"
+                      onClick={() => handleContactSupport(claim.id)}
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Contact Support
+                    </Button>
                   </div>
                 ))
               )}

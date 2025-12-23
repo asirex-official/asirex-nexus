@@ -5,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Camera, Loader2, Upload, X, Info } from "lucide-react";
+import { AlertTriangle, Camera, Loader2, Upload, X, Info, MessageSquare, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLiveChat } from "@/hooks/useLiveChat";
 
 interface DamageReportFormProps {
   open: boolean;
@@ -32,6 +33,7 @@ export function DamageReportForm({
   userId,
   onSubmitted,
 }: DamageReportFormProps) {
+  const { openChat } = useLiveChat();
   const [damageType, setDamageType] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
@@ -39,8 +41,14 @@ export function DamageReportForm({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const selectedDamageType = DAMAGE_TYPES.find((d) => d.value === damageType);
+
+  const handleContactSupport = () => {
+    openChat(`Hi, I've reported a damage issue for my order #${orderId.slice(0, 8)}. I need help with my claim.`);
+    onOpenChange(false);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -110,8 +118,7 @@ export function DamageReportForm({
       if (error) throw error;
 
       toast.success("Damage report submitted successfully!");
-      onSubmitted();
-      onOpenChange(false);
+      setIsSubmitted(true);
     } catch (error: any) {
       console.error("Error submitting report:", error);
       toast.error(error.message || "Failed to submit report");
@@ -119,6 +126,33 @@ export function DamageReportForm({
       setIsLoading(false);
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <div className="text-center py-6">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Report Submitted!</h2>
+            <p className="text-muted-foreground mb-6">
+              Your damage report has been submitted successfully. Our team will review it and get back to you.
+            </p>
+            <div className="space-y-3">
+              <Button onClick={handleContactSupport} className="w-full">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Contact Support
+              </Button>
+              <Button variant="outline" onClick={() => { onSubmitted(); onOpenChange(false); }} className="w-full">
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
