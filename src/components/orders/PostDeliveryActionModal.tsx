@@ -93,8 +93,8 @@ export function PostDeliveryActionModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-lg [&>button]:hidden">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl">How was your order?</DialogTitle>
           <DialogDescription>
