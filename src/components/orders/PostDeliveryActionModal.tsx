@@ -11,6 +11,7 @@ interface PostDeliveryActionModalProps {
   onOpenChange: (open: boolean) => void;
   orderId: string;
   userId: string;
+  orderPaymentMethod?: string;
   onActionSelected: (action: string) => void;
 }
 
