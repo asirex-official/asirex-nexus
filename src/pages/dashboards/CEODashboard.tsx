@@ -7,7 +7,7 @@ import {
   DollarSign, Eye, CheckCircle, Clock, MoreHorizontal, ArrowUpRight, Activity, ShoppingCart,
   Home, Building, ShoppingBag, Layers, Palette, PieChart, Search, Mail, Phone, Share2,
   Award, Gift, Target, BarChart3, Trash2, Edit, UserCog, Key, ShieldCheck, ChartArea, Save,
-  Circle, Timer, Calculator, Wallet, ScrollText, Ticket, Send, Sparkles,
+  Circle, Timer, Calculator, Wallet, ScrollText, Ticket, Send, Sparkles, Banknote,
 } from "lucide-react";
 import { DashboardAnalytics } from "@/components/admin/DashboardAnalytics";
 import { Button } from "@/components/ui/button";
@@ -835,6 +835,7 @@ const CEODashboard = () => {
                 <TabsTrigger value="content" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Layers className="w-4 h-4" />Content</TabsTrigger>
                 <TabsTrigger value="notices" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Bell className="w-4 h-4" />Notices</TabsTrigger>
                 <TabsTrigger value="audit" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><ScrollText className="w-4 h-4" />Audit</TabsTrigger>
+                <TabsTrigger value="refunds" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Banknote className="w-4 h-4" />Refunds</TabsTrigger>
               </TabsList>
             </div>
           </div>

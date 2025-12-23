@@ -427,6 +427,53 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_attempts: {
+        Row: {
+          attempt_number: number
+          attempted_at: string | null
+          created_at: string | null
+          failure_reason: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          scheduled_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_number: number
+          attempted_at?: string | null
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          scheduled_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_number?: number
+          attempted_at?: string | null
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          scheduled_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_attempts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_registrations: {
         Row: {
           event_id: string
@@ -1008,6 +1055,8 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           delivered_at: string | null
+          delivery_attempts: Json | null
+          delivery_status: string | null
           id: string
           items: Json
           notes: string | null
@@ -1015,6 +1064,8 @@ export type Database = {
           payment_id: string | null
           payment_method: string | null
           payment_status: string | null
+          return_reason: string | null
+          returning_to_provider: boolean | null
           shipped_at: string | null
           shipping_address: string | null
           total_amount: number
@@ -1029,6 +1080,8 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           delivered_at?: string | null
+          delivery_attempts?: Json | null
+          delivery_status?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -1036,6 +1089,8 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          return_reason?: string | null
+          returning_to_provider?: boolean | null
           shipped_at?: string | null
           shipping_address?: string | null
           total_amount: number
@@ -1050,6 +1105,8 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           delivered_at?: string | null
+          delivery_attempts?: Json | null
+          delivery_status?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -1057,6 +1114,8 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          return_reason?: string | null
+          returning_to_provider?: boolean | null
           shipped_at?: string | null
           shipping_address?: string | null
           total_amount?: number
@@ -1417,8 +1476,11 @@ export type Database = {
           bank_account_number_encrypted: string | null
           bank_ifsc_encrypted: string | null
           created_at: string | null
+          email_sent_at: string | null
           gift_card_id: string | null
           id: string
+          link_expires_at: string | null
+          link_token: string | null
           order_id: string
           payment_method: string
           processed_at: string | null
@@ -1437,8 +1499,11 @@ export type Database = {
           bank_account_number_encrypted?: string | null
           bank_ifsc_encrypted?: string | null
           created_at?: string | null
+          email_sent_at?: string | null
           gift_card_id?: string | null
           id?: string
+          link_expires_at?: string | null
+          link_token?: string | null
           order_id: string
           payment_method: string
           processed_at?: string | null
@@ -1457,8 +1522,11 @@ export type Database = {
           bank_account_number_encrypted?: string | null
           bank_ifsc_encrypted?: string | null
           created_at?: string | null
+          email_sent_at?: string | null
           gift_card_id?: string | null
           id?: string
+          link_expires_at?: string | null
+          link_token?: string | null
           order_id?: string
           payment_method?: string
           processed_at?: string | null
@@ -2437,6 +2505,7 @@ export type Database = {
         Returns: string
       }
       generate_gift_card_code: { Args: never; Returns: string }
+      generate_refund_token: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
