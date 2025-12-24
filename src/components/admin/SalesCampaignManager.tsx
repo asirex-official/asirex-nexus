@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Sparkles, Plus, Calendar, Tag, Trash2, Power, ShoppingBag, 
-  Percent, BadgeIndianRupee, Clock, Users, Edit, X, Check
+  Percent, BadgeIndianRupee, Clock, Users, Edit, X, Check, Bell, Mail, Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,18 +35,29 @@ interface SalesCampaign {
   applies_to: string;
   target_categories: string[];
   target_product_ids: string[];
+  festival_theme: string | null;
+  notify_users: boolean;
+  notify_email: boolean;
   created_at: string;
 }
 
 const festivalPresets = [
-  { name: "Diwali Sale", message: "🪔 Diwali Special! Light up your savings!", color: "#f97316" },
-  { name: "Christmas Sale", message: "🎄 Christmas Joy! Unwrap amazing deals!", color: "#22c55e" },
-  { name: "New Year Sale", message: "🎉 New Year, New Savings! Start fresh!", color: "#6366f1" },
-  { name: "Holi Sale", message: "🌈 Holi Bonanza! Colors of savings!", color: "#ec4899" },
-  { name: "Independence Day Sale", message: "🇮🇳 Freedom Sale! Celebrate with discounts!", color: "#f97316" },
-  { name: "Flash Sale", message: "⚡ Flash Sale! Limited time only!", color: "#ef4444" },
-  { name: "Weekend Special", message: "🎊 Weekend Special! Shop & Save!", color: "#8b5cf6" },
-  { name: "Clearance Sale", message: "📦 Clearance! Everything must go!", color: "#f59e0b" },
+  { name: "Diwali Sale", message: "🪔 Diwali Special! Light up your savings!", color: "#f97316", theme: "diwali" },
+  { name: "Christmas Sale", message: "🎄 Christmas Joy! Unwrap amazing deals!", color: "#22c55e", theme: "christmas" },
+  { name: "New Year Sale", message: "🎉 New Year, New Savings! Start fresh!", color: "#6366f1", theme: "new_year" },
+  { name: "Holi Sale", message: "🌈 Holi Bonanza! Colors of savings!", color: "#ec4899", theme: "holi" },
+  { name: "Independence Day Sale", message: "🇮🇳 Freedom Sale! Celebrate with discounts!", color: "#f97316", theme: "independence_day" },
+  { name: "Flash Sale", message: "⚡ Flash Sale! Limited time only!", color: "#ef4444", theme: null },
+  { name: "Weekend Special", message: "🎊 Weekend Special! Shop & Save!", color: "#8b5cf6", theme: null },
+  { name: "Clearance Sale", message: "📦 Clearance! Everything must go!", color: "#f59e0b", theme: null },
+];
+
+const festivalThemes = [
+  { value: "diwali", label: "🪔 Diwali - Firecrackers & Diyas", icon: "🪔" },
+  { value: "christmas", label: "🎄 Christmas - Snow & Santa", icon: "🎄" },
+  { value: "holi", label: "🌈 Holi - Colors Splash", icon: "🌈" },
+  { value: "new_year", label: "🎆 New Year - Confetti & Fireworks", icon: "🎆" },
+  { value: "independence_day", label: "🇮🇳 Independence Day - Tricolor", icon: "🇮🇳" },
 ];
 
 export function SalesCampaignManager() {
@@ -67,6 +78,9 @@ export function SalesCampaignManager() {
   const [bannerMessage, setBannerMessage] = useState("");
   const [bannerColor, setBannerColor] = useState("#6366f1");
   const [appliesTo, setAppliesTo] = useState("all");
+  const [festivalTheme, setFestivalTheme] = useState<string | null>(null);
+  const [notifyUsers, setNotifyUsers] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState(false);
 
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ["sales-campaigns"],
@@ -171,12 +185,16 @@ export function SalesCampaignManager() {
     setBannerMessage("");
     setBannerColor("#6366f1");
     setAppliesTo("all");
+    setFestivalTheme(null);
+    setNotifyUsers(false);
+    setNotifyEmail(false);
   };
 
   const applyPreset = (preset: typeof festivalPresets[0]) => {
     setName(preset.name);
     setBannerMessage(preset.message);
     setBannerColor(preset.color);
+    setFestivalTheme(preset.theme);
   };
 
   const openEditDialog = (campaign: SalesCampaign) => {
@@ -193,6 +211,9 @@ export function SalesCampaignManager() {
     setBannerMessage(campaign.banner_message || "");
     setBannerColor(campaign.banner_color || "#6366f1");
     setAppliesTo(campaign.applies_to);
+    setFestivalTheme(campaign.festival_theme);
+    setNotifyUsers(campaign.notify_users || false);
+    setNotifyEmail(campaign.notify_email || false);
     setIsDialogOpen(true);
   };
 
@@ -215,12 +236,49 @@ export function SalesCampaignManager() {
       banner_message: bannerMessage || null,
       banner_color: bannerColor,
       applies_to: appliesTo,
+      festival_theme: festivalTheme,
+      notify_users: notifyUsers,
+      notify_email: notifyEmail,
     };
 
     if (editingCampaign) {
       updateCampaign.mutate({ id: editingCampaign.id, updates: campaignData });
     } else {
       createCampaign.mutate(campaignData);
+      
+      // Send notifications if enabled
+      if (notifyUsers || notifyEmail) {
+        sendCampaignNotifications(campaignData);
+      }
+    }
+  };
+
+  const sendCampaignNotifications = async (campaignData: any) => {
+    try {
+      // Get all users for notifications
+      const { data: users } = await supabase
+        .from("profiles")
+        .select("user_id");
+      
+      if (users && notifyUsers) {
+        // Create in-app notifications
+        const notifications = users.map((user) => ({
+          user_id: user.user_id,
+          title: `🎉 ${campaignData.name}`,
+          message: campaignData.banner_message || `Get ${campaignData.discount_value}${campaignData.discount_type === 'percentage' ? '%' : '₹'} off!`,
+          type: "promotion",
+          link: "/shop",
+        }));
+        
+        await supabase.from("notifications").insert(notifications);
+        toast.success("In-app notifications sent to all users!");
+      }
+      
+      if (notifyEmail) {
+        toast.info("Email notifications will be sent via the notification service.");
+      }
+    } catch (error) {
+      console.error("Error sending notifications:", error);
     }
   };
 
@@ -425,6 +483,51 @@ export function SalesCampaignManager() {
                       placeholder="Leave empty for unlimited"
                     />
                     <p className="text-xs text-muted-foreground">Set a limit to create urgency (e.g. First 100 orders only)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Festival Theme Settings */}
+              <div className="p-4 bg-muted/30 rounded-lg space-y-4">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Festival Theme & Effects
+                </h4>
+
+                <div className="space-y-2">
+                  <Label>Select Festival Theme</Label>
+                  <Select value={festivalTheme || "none"} onValueChange={(v) => setFestivalTheme(v === "none" ? null : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="No theme (plain sale)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No theme (plain sale)</SelectItem>
+                      {festivalThemes.map((theme) => (
+                        <SelectItem key={theme.value} value={theme.value}>
+                          {theme.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {festivalTheme ? "🎉 Visual effects will appear on the website!" : "Choose a theme to add festive effects"}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-muted-foreground" />
+                      <Label>Notify Users (In-App)</Label>
+                    </div>
+                    <Switch checked={notifyUsers} onCheckedChange={setNotifyUsers} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <Label>Send Email Notification</Label>
+                    </div>
+                    <Switch checked={notifyEmail} onCheckedChange={setNotifyEmail} />
                   </div>
                 </div>
               </div>
