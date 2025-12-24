@@ -301,6 +301,12 @@ export default function OrdersManager() {
                   <Package className="w-5 h-5" />
                   Order Details
                 </DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">Order ID:</span>
+                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono select-all">
+                    {selectedOrder.id}
+                  </code>
+                </div>
               </DialogHeader>
 
               <div className="space-y-6">
