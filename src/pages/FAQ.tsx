@@ -104,7 +104,7 @@ export default function FAQ() {
         },
         {
           question: "How do I claim warranty?",
-          answer: `For warranty claims, email ${supportEmail} with your order ID, product photos, and description of the issue. Our team will guide you through the process.`
+          answer: "To claim warranty: 1) Go to 'Track Order' page and enter your order details. 2) Click on the order to view details. 3) Navigate to 'Warranty Claims' and upload your invoice using the Invoice Checker. Our team will verify and process your warranty claim within 2-3 business days."
         },
         {
           question: "What if I receive a damaged product?",
