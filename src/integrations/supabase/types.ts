@@ -1955,15 +1955,19 @@ export type Database = {
           discount_type: string
           discount_value: number
           end_date: string | null
+          festival_theme: string | null
           id: string
           is_active: boolean | null
           max_discount_amount: number | null
           max_orders: number | null
           min_order_amount: number | null
           name: string
+          notify_email: boolean | null
+          notify_users: boolean | null
           start_date: string
           target_categories: Json | null
           target_product_ids: Json | null
+          theme_effects: Json | null
           updated_at: string
         }
         Insert: {
@@ -1977,15 +1981,19 @@ export type Database = {
           discount_type?: string
           discount_value: number
           end_date?: string | null
+          festival_theme?: string | null
           id?: string
           is_active?: boolean | null
           max_discount_amount?: number | null
           max_orders?: number | null
           min_order_amount?: number | null
           name: string
+          notify_email?: boolean | null
+          notify_users?: boolean | null
           start_date?: string
           target_categories?: Json | null
           target_product_ids?: Json | null
+          theme_effects?: Json | null
           updated_at?: string
         }
         Update: {
@@ -1999,15 +2007,19 @@ export type Database = {
           discount_type?: string
           discount_value?: number
           end_date?: string | null
+          festival_theme?: string | null
           id?: string
           is_active?: boolean | null
           max_discount_amount?: number | null
           max_orders?: number | null
           min_order_amount?: number | null
           name?: string
+          notify_email?: boolean | null
+          notify_users?: boolean | null
           start_date?: string
           target_categories?: Json | null
           target_product_ids?: Json | null
+          theme_effects?: Json | null
           updated_at?: string
         }
         Relationships: []
