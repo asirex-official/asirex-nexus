@@ -58,6 +58,8 @@ interface Order {
   delivery_status: string | null;
   returning_to_provider: boolean;
   customer_phone: string | null;
+  customer_name: string;
+  customer_email: string;
   notes: string | null;
   complaint_status: string | null;
   order_type: string | null;
@@ -140,6 +142,8 @@ export default function TrackOrder() {
           delivery_status: order.delivery_status,
           returning_to_provider: order.returning_to_provider || false,
           customer_phone: order.customer_phone,
+          customer_name: order.customer_name || "",
+          customer_email: order.customer_email || "",
           notes: order.notes,
           complaint_status: order.complaint_status || null,
           order_type: order.order_type || null,
@@ -952,6 +956,20 @@ export default function TrackOrder() {
                             >
                               <Shield className="w-4 h-4 mr-2" />
                               Warranty Claim
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                generateInvoicePDF(
+                                  selectedOrder as any,
+                                  user?.user_metadata?.full_name || selectedOrder.customer_name,
+                                  user?.email || selectedOrder.customer_email
+                                );
+                                toast.success("Invoice downloaded successfully!");
+                              }}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Invoice
                             </Button>
                           </>
                         )}
