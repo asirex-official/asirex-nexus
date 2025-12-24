@@ -110,6 +110,7 @@ const App = () => (
             <Route path="/shipping-info" element={<ShippingInfo />} />
             <Route path="/warranty-claims" element={<WarrantyClaims />} />
             <Route path="/refund" element={<RefundSelection />} />
+            <Route path="/customers/public" element={<PublicCustomers />} />
             <Route path="/customers/private" element={<PrivateCompanies />} />
             <Route path="/customers/government" element={<GovernmentCustomers />} />
             <Route path="/values/mission" element={<Mission />} />
