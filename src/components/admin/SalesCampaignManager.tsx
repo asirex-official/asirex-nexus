@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Sparkles, Plus, Calendar, Tag, Trash2, Power, ShoppingBag, 
-  Percent, BadgeIndianRupee, Clock, Users, Edit, X, Check, Bell, Mail, Palette
+  Percent, BadgeIndianRupee, Clock, Users, Edit, X, Check, Bell, Mail, Palette,
+  Package, Grid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -41,6 +44,14 @@ interface SalesCampaign {
   created_at: string;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  image_url: string | null;
+}
+
 const festivalPresets = [
   { name: "Diwali Sale", message: "🪔 Diwali Special! Light up your savings!", color: "#f97316", theme: "diwali" },
   { name: "Christmas Sale", message: "🎄 Christmas Joy! Unwrap amazing deals!", color: "#22c55e", theme: "christmas" },
@@ -59,6 +70,8 @@ const festivalThemes = [
   { value: "new_year", label: "🎆 New Year - Confetti & Fireworks", icon: "🎆" },
   { value: "independence_day", label: "🇮🇳 Independence Day - Tricolor", icon: "🇮🇳" },
 ];
+
+const productCategories = ["AI Hardware", "Robotics", "Clean Tech", "Gadgets", "Nano Tech", "Accessories"];
 
 export function SalesCampaignManager() {
   const queryClient = useQueryClient();
@@ -81,6 +94,21 @@ export function SalesCampaignManager() {
   const [festivalTheme, setFestivalTheme] = useState<string | null>(null);
   const [notifyUsers, setNotifyUsers] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  // Fetch products for selection
+  const { data: products } = useQuery({
+    queryKey: ["products-for-campaign"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, category, price, image_url")
+        .order("name");
+      if (error) throw error;
+      return data as Product[];
+    },
+  });
 
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ["sales-campaigns"],
@@ -188,6 +216,8 @@ export function SalesCampaignManager() {
     setFestivalTheme(null);
     setNotifyUsers(false);
     setNotifyEmail(false);
+    setSelectedCategories([]);
+    setSelectedProductIds([]);
   };
 
   const applyPreset = (preset: typeof festivalPresets[0]) => {
@@ -214,6 +244,8 @@ export function SalesCampaignManager() {
     setFestivalTheme(campaign.festival_theme);
     setNotifyUsers(campaign.notify_users || false);
     setNotifyEmail(campaign.notify_email || false);
+    setSelectedCategories(campaign.target_categories || []);
+    setSelectedProductIds(campaign.target_product_ids || []);
     setIsDialogOpen(true);
   };
 
@@ -236,6 +268,8 @@ export function SalesCampaignManager() {
       banner_message: bannerMessage || null,
       banner_color: bannerColor,
       applies_to: appliesTo,
+      target_categories: selectedCategories,
+      target_product_ids: selectedProductIds,
       festival_theme: festivalTheme,
       notify_users: notifyUsers,
       notify_email: notifyEmail,
@@ -362,7 +396,13 @@ export function SalesCampaignManager() {
 
                 <div className="space-y-2">
                   <Label>Applies To</Label>
-                  <Select value={appliesTo} onValueChange={setAppliesTo}>
+                  <Select value={appliesTo} onValueChange={(v) => {
+                    setAppliesTo(v);
+                    if (v === "all") {
+                      setSelectedCategories([]);
+                      setSelectedProductIds([]);
+                    }
+                  }}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -374,6 +414,93 @@ export function SalesCampaignManager() {
                   </Select>
                 </div>
               </div>
+
+              {/* Category Selector */}
+              {appliesTo === "category" && (
+                <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Grid className="w-4 h-4" />
+                    Select Categories
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {productCategories.map((cat) => (
+                      <div 
+                        key={cat}
+                        className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
+                          selectedCategories.includes(cat) 
+                            ? "bg-primary/10 border-primary" 
+                            : "bg-background hover:bg-muted/50"
+                        }`}
+                        onClick={() => {
+                          setSelectedCategories(prev => 
+                            prev.includes(cat) 
+                              ? prev.filter(c => c !== cat)
+                              : [...prev, cat]
+                          );
+                        }}
+                      >
+                        <Checkbox 
+                          checked={selectedCategories.includes(cat)}
+                          onCheckedChange={() => {}}
+                        />
+                        <span className="text-sm">{cat}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedCategories.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Selected: {selectedCategories.join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Product Selector */}
+              {appliesTo === "products" && (
+                <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Select Products ({selectedProductIds.length} selected)
+                  </h4>
+                  <ScrollArea className="h-[200px] border rounded-lg">
+                    <div className="p-2 space-y-1">
+                      {products?.map((product) => (
+                        <div 
+                          key={product.id}
+                          className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                            selectedProductIds.includes(product.id) 
+                              ? "bg-primary/10 border border-primary" 
+                              : "hover:bg-muted/50"
+                          }`}
+                          onClick={() => {
+                            setSelectedProductIds(prev => 
+                              prev.includes(product.id) 
+                                ? prev.filter(id => id !== product.id)
+                                : [...prev, product.id]
+                            );
+                          }}
+                        >
+                          <Checkbox 
+                            checked={selectedProductIds.includes(product.id)}
+                            onCheckedChange={() => {}}
+                          />
+                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden">
+                            {product.image_url ? (
+                              <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Package className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.category} • ₹{product.price}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Description</Label>
