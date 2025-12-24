@@ -359,7 +359,7 @@ export default function Projects() {
                             </div>
 
                             {/* Impact & Features */}
-                            <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-4 mb-4">
                               {project.impact && (
                                 <span className="text-sm font-semibold text-green-500">
                                   🎯 {project.impact}
@@ -373,6 +373,20 @@ export default function Projects() {
                                 ))}
                               </div>
                             </div>
+
+                            {/* Learn More Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="group/btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProject(project);
+                              }}
+                            >
+                              Learn More
+                              <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                            </Button>
                           </div>
 
                           {/* Arrow */}
