@@ -1,4 +1,4 @@
-import { ArrowLeft, HelpCircle, Package, Truck, CreditCard, Shield, Users, Wrench } from "lucide-react";
+import { HelpCircle, Package, Truck, CreditCard, Shield, Users, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -166,14 +166,6 @@ export default function FAQ() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Button
-              variant="ghost"
-              onClick={() => navigate(-1)}
-              className="mb-6"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
 
             <div className="text-center mb-12">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">

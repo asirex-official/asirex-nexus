@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, AlertTriangle, Scale, FileText, CheckCircle } from "lucide-react";
+import { Shield, AlertTriangle, Scale, FileText, CheckCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -111,14 +111,6 @@ Violation of these terms may result in legal action and cooperation with law enf
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate(-1)} 
-              className="gap-2 hover:bg-primary/10 mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
             
             <div className="text-center mb-12">
               <motion.div

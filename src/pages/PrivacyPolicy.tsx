@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Eye, Database, Lock, UserCheck, Globe, Mail, Clock, Trash2, FileText } from "lucide-react";
+import { Shield, Eye, Database, Lock, UserCheck, Globe, Mail, Clock, Trash2, FileText } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -209,14 +209,6 @@ We encourage you to review this policy periodically. Continued use of our servic
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate(-1)} 
-              className="gap-2 hover:bg-primary/10 mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
             
             <div className="text-center mb-12">
               <motion.div
