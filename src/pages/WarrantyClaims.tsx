@@ -5,12 +5,14 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Loader2, Clock, CheckCircle, XCircle, MessageSquare, Package, ChevronRight, Gift, ArrowRight, ExternalLink } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Loader2, Clock, CheckCircle, XCircle, MessageSquare, Package, ChevronRight, Gift, ArrowRight, ExternalLink, FileText, Upload } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UnifiedComplaintFlow } from "@/components/orders/UnifiedComplaintFlow";
+import { InvoiceWarrantyClaim } from "@/components/warranty/InvoiceWarrantyClaim";
 import { format } from "date-fns";
 
 interface DeliveredOrder {
@@ -147,240 +149,262 @@ export default function WarrantyClaims() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Eligible Orders */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-4"
-            >
-              <h2 className="font-semibold text-lg flex items-center gap-2">
-                <Package className="w-5 h-5" /> Eligible Orders
-              </h2>
+          {/* Tabs for different claim methods */}
+          <Tabs defaultValue="orders" className="mb-8">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="orders" className="flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                From My Orders
+              </TabsTrigger>
+              <TabsTrigger value="invoice" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Upload Invoice
+              </TabsTrigger>
+            </TabsList>
 
-              {deliveredOrders.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">No Delivered Orders</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    You need delivered orders to file warranty claims.
-                  </p>
-                  <Button variant="outline" onClick={() => navigate("/shop")}>
-                    Browse Products
-                  </Button>
-                </Card>
-              ) : (
-                deliveredOrders.map((order, index) => {
-                  const warranty = getWarrantyStatus(order.delivered_at);
-                  const hasActiveClaim = existingClaims.some(
-                    (c) => c.order_id === order.id && c.investigation_status === "investigating"
-                  );
+            <TabsContent value="invoice">
+              <InvoiceWarrantyClaim 
+                userId={user!.id} 
+                onClaimSubmitted={fetchData} 
+              />
+            </TabsContent>
 
-                  return (
-                    <motion.div
-                      key={order.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Card className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="font-medium">Order #{order.id.slice(0, 8)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Delivered: {new Date(order.delivered_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Badge className={warranty.isValid ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}>
-                            {warranty.isValid ? `Valid till ${warranty.endDate}` : "Expired"}
-                          </Badge>
-                        </div>
+            <TabsContent value="orders">
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Eligible Orders */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-4"
+                >
+                  <h2 className="font-semibold text-lg flex items-center gap-2">
+                    <Package className="w-5 h-5" /> Eligible Orders
+                  </h2>
 
-                        <div className="space-y-2 mb-4">
-                          {order.items.slice(0, 2).map((item) => (
-                            <p key={item.id} className="text-sm text-muted-foreground">
-                              • {item.name}
-                            </p>
-                          ))}
-                          {order.items.length > 2 && (
-                            <p className="text-sm text-muted-foreground">
-                              +{order.items.length - 2} more items
-                            </p>
-                          )}
-                        </div>
+                  {deliveredOrders.length === 0 ? (
+                    <Card className="p-8 text-center">
+                      <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="font-semibold mb-2">No Delivered Orders</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        You need delivered orders to file warranty claims.
+                      </p>
+                      <Button variant="outline" onClick={() => navigate("/shop")}>
+                        Browse Products
+                      </Button>
+                    </Card>
+                  ) : (
+                    deliveredOrders.map((order, index) => {
+                      const warranty = getWarrantyStatus(order.delivered_at);
+                      const hasActiveClaim = existingClaims.some(
+                        (c) => c.order_id === order.id && c.investigation_status === "investigating"
+                      );
 
-                        <Button
-                          onClick={() => handleStartClaim(order)}
-                          disabled={!warranty.isValid || hasActiveClaim}
-                          className="w-full"
-                          variant={hasActiveClaim ? "outline" : "default"}
+                      return (
+                        <motion.div
+                          key={order.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
                         >
-                          {hasActiveClaim ? (
-                            <>
-                              <Clock className="w-4 h-4 mr-2" /> Claim in Progress
-                            </>
-                          ) : !warranty.isValid ? (
-                            "Out of Warranty"
-                          ) : (
-                            <>
-                              <Shield className="w-4 h-4 mr-2" /> File Warranty Claim
-                            </>
-                          )}
-                        </Button>
-                      </Card>
-                    </motion.div>
-                  );
-                })
-              )}
-            </motion.div>
-
-            {/* Existing Claims */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-4"
-            >
-              <h2 className="font-semibold text-lg flex items-center gap-2">
-                <Clock className="w-5 h-5" /> Your Claims
-              </h2>
-
-              {existingClaims.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">No Claims Yet</h3>
-                  <p className="text-sm text-muted-foreground">
-                    You haven't filed any warranty claims yet.
-                  </p>
-                </Card>
-              ) : (
-                existingClaims.map((claim, index) => {
-                  const status = getStatusConfig(claim.investigation_status);
-                  const StatusIcon = status.icon;
-
-                  return (
-                    <motion.div
-                      key={claim.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Card className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-purple-500" />
-                            <span className="font-medium">Warranty Claim</span>
-                          </div>
-                          <Badge className={status.color}>
-                            <StatusIcon className="w-3 h-3 mr-1" />
-                            {status.label}
-                          </Badge>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Order #{claim.order_id.slice(0, 8)} •{" "}
-                          {format(new Date(claim.created_at), "MMM d, yyyy")}
-                        </p>
-
-                        {/* Timeline Steps */}
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm">
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                            <span>Claim Submitted</span>
-                          </div>
-
-                          {claim.investigation_status === "investigating" && (
-                            <div className="flex items-center gap-2 text-sm text-orange-500">
-                              <Clock className="w-4 h-4" />
-                              <span>Under Review</span>
+                          <Card className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div>
+                                <p className="font-medium">Order #{order.id.slice(0, 8)}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Delivered: {new Date(order.delivered_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <Badge className={warranty.isValid ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}>
+                                {warranty.isValid ? `Valid till ${warranty.endDate}` : "Expired"}
+                              </Badge>
                             </div>
-                          )}
 
-                          {claim.investigation_status === "resolved_true" && (
-                            <>
-                              <div className="flex items-center gap-2 text-sm text-green-500">
-                                <CheckCircle className="w-4 h-4" />
-                                <span>Claim Approved</span>
+                            <div className="space-y-2 mb-4">
+                              {order.items.slice(0, 2).map((item) => (
+                                <p key={item.id} className="text-sm text-muted-foreground">
+                                  • {item.name}
+                                </p>
+                              ))}
+                              {order.items.length > 2 && (
+                                <p className="text-sm text-muted-foreground">
+                                  +{order.items.length - 2} more items
+                                </p>
+                              )}
+                            </div>
+
+                            <Button
+                              onClick={() => handleStartClaim(order)}
+                              disabled={!warranty.isValid || hasActiveClaim}
+                              className="w-full"
+                              variant={hasActiveClaim ? "outline" : "default"}
+                            >
+                              {hasActiveClaim ? (
+                                <>
+                                  <Clock className="w-4 h-4 mr-2" /> Claim in Progress
+                                </>
+                              ) : !warranty.isValid ? (
+                                "Out of Warranty"
+                              ) : (
+                                <>
+                                  <Shield className="w-4 h-4 mr-2" /> File Warranty Claim
+                                </>
+                              )}
+                            </Button>
+                          </Card>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </motion.div>
+
+                {/* Existing Claims */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-4"
+                >
+                  <h2 className="font-semibold text-lg flex items-center gap-2">
+                    <Clock className="w-5 h-5" /> Your Claims
+                  </h2>
+
+                  {existingClaims.length === 0 ? (
+                    <Card className="p-8 text-center">
+                      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                      <h3 className="font-semibold mb-2">No Claims Yet</h3>
+                      <p className="text-sm text-muted-foreground">
+                        You haven't filed any warranty claims yet.
+                      </p>
+                    </Card>
+                  ) : (
+                    existingClaims.map((claim, index) => {
+                      const status = getStatusConfig(claim.investigation_status);
+                      const StatusIcon = status.icon;
+
+                      return (
+                        <motion.div
+                          key={claim.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <Card className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <Shield className="w-5 h-5 text-purple-500" />
+                                <span className="font-medium">Warranty Claim</span>
+                              </div>
+                              <Badge className={status.color}>
+                                <StatusIcon className="w-3 h-3 mr-1" />
+                                {status.label}
+                              </Badge>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Order #{claim.order_id.slice(0, 8)} •{" "}
+                              {format(new Date(claim.created_at), "MMM d, yyyy")}
+                            </p>
+
+                            {/* Timeline Steps */}
+                            <div className="space-y-2 mb-4">
+                              <div className="flex items-center gap-2 text-sm">
+                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                <span>Claim Submitted</span>
                               </div>
 
-                              {claim.pickup_status && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  {claim.pickup_status === "scheduled" ? (
-                                    <>
-                                      <Clock className="w-4 h-4 text-blue-500" />
-                                      <span className="text-blue-500">
-                                        Pickup on {claim.pickup_scheduled_at ? format(new Date(claim.pickup_scheduled_at), "MMM d") : "scheduled"}
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CheckCircle className="w-4 h-4 text-green-500" />
-                                      <span className="text-green-500">Item Picked Up</span>
-                                    </>
+                              {claim.investigation_status === "investigating" && (
+                                <div className="flex items-center gap-2 text-sm text-orange-500">
+                                  <Clock className="w-4 h-4" />
+                                  <span>Under Review</span>
+                                </div>
+                              )}
+
+                              {claim.investigation_status === "resolved_true" && (
+                                <>
+                                  <div className="flex items-center gap-2 text-sm text-green-500">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Claim Approved</span>
+                                  </div>
+
+                                  {claim.pickup_status && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      {claim.pickup_status === "scheduled" ? (
+                                        <>
+                                          <Clock className="w-4 h-4 text-blue-500" />
+                                          <span className="text-blue-500">
+                                            Pickup on {claim.pickup_scheduled_at ? format(new Date(claim.pickup_scheduled_at), "MMM d") : "scheduled"}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="w-4 h-4 text-green-500" />
+                                          <span className="text-green-500">Item Picked Up</span>
+                                        </>
+                                      )}
+                                    </div>
                                   )}
-                                </div>
+
+                                  {claim.replacement_order_id && (
+                                    <div className="flex items-center gap-2 text-sm text-purple-500">
+                                      <Package className="w-4 h-4" />
+                                      <span>Replacement Order #{claim.replacement_order_id.slice(0, 8)}</span>
+                                    </div>
+                                  )}
+                                </>
                               )}
 
-                              {claim.replacement_order_id && (
-                                <div className="flex items-center gap-2 text-sm text-purple-500">
-                                  <Package className="w-4 h-4" />
-                                  <span>Replacement Order #{claim.replacement_order_id.slice(0, 8)}</span>
+                              {claim.investigation_status === "resolved_false" && (
+                                <div className="flex items-center gap-2 text-sm text-red-500">
+                                  <XCircle className="w-4 h-4" />
+                                  <span>Claim Could Not Be Verified</span>
                                 </div>
                               )}
-                            </>
-                          )}
-
-                          {claim.investigation_status === "resolved_false" && (
-                            <div className="flex items-center gap-2 text-sm text-red-500">
-                              <XCircle className="w-4 h-4" />
-                              <span>Claim Could Not Be Verified</span>
                             </div>
-                          )}
-                        </div>
 
-                        {/* Coupon */}
-                        {claim.coupon_code && (
-                          <div className="p-3 bg-primary/10 rounded-lg mb-3">
-                            <div className="flex items-center gap-2">
-                              <Gift className="w-4 h-4 text-primary" />
-                              <span className="text-sm">
-                                Apology Code:{" "}
-                                <code className="font-mono font-bold">{claim.coupon_code}</code>
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                            {/* Coupon */}
+                            {claim.coupon_code && (
+                              <div className="p-3 bg-primary/10 rounded-lg mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Gift className="w-4 h-4 text-primary" />
+                                  <span className="text-sm">
+                                    Apology Code:{" "}
+                                    <code className="font-mono font-bold">{claim.coupon_code}</code>
+                                  </span>
+                                </div>
+                              </div>
+                            )}
 
-                        {/* Replacement Order Link */}
-                        {claim.replacement_order_id && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full mb-3"
-                            onClick={() => navigate("/track-order")}
-                          >
-                            <Package className="w-4 h-4 mr-2" />
-                            Track Replacement Order
-                            <ExternalLink className="w-4 h-4 ml-2" />
-                          </Button>
-                        )}
+                            {/* Replacement Order Link */}
+                            {claim.replacement_order_id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mb-3"
+                                onClick={() => navigate("/track-order")}
+                              >
+                                <Package className="w-4 h-4 mr-2" />
+                                Track Replacement Order
+                                <ExternalLink className="w-4 h-4 ml-2" />
+                              </Button>
+                            )}
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => handleContactSupport(claim.id)}
-                        >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Contact Support
-                        </Button>
-                      </Card>
-                    </motion.div>
-                  );
-                })
-              )}
-            </motion.div>
-          </div>
-
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleContactSupport(claim.id)}
+                            >
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Contact Support
+                            </Button>
+                          </Card>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </motion.div>
+              </div>
+            </TabsContent>
+          </Tabs>
           {/* Warranty Info */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

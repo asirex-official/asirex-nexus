@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package, Bell, MessageCircle } from "lucide-react";
+import { Menu, X, ShoppingCart, User, LogOut, Settings, AlertTriangle, Package, Bell, MessageCircle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -148,7 +148,15 @@ export function Header() {
             {/* Track Order - for all users */}
             <Button variant="glass" size="sm" onClick={handleTrackOrder}>
               <Package className="w-4 h-4 mr-2" />
-              Track Order
+              My Orders
+            </Button>
+            
+            {/* Warranty Claim */}
+            <Button variant="glass" size="sm" asChild>
+              <Link to="/warranty-claims">
+                <Shield className="w-4 h-4 mr-2" />
+                Warranty Claim
+              </Link>
             </Button>
             
             {/* Live Chat - for all users */}
@@ -269,10 +277,16 @@ export function Header() {
                 transition={{ delay: (navLinks.length + 1) * 0.1 }}
                 className="pt-4 flex flex-col gap-3"
               >
-                {/* Track Order and Live Chat - for all users */}
+                {/* Track Order, Warranty Claim, and Live Chat - for all users */}
                 <Button variant="glass" className="w-full justify-start" onClick={handleTrackOrder}>
                   <Package className="w-4 h-4 mr-2" />
-                  Track Order
+                  My Orders
+                </Button>
+                <Button asChild variant="glass" className="w-full justify-start">
+                  <Link to="/warranty-claims">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Warranty Claim
+                  </Link>
                 </Button>
                 <Button variant="glass" className="w-full justify-start" onClick={handleLiveChat}>
                   <MessageCircle className="w-4 h-4 mr-2" />
