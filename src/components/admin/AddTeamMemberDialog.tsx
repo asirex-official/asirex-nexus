@@ -202,7 +202,13 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
       return;
     }
 
-    await processSubmit(formData.role, formData.department, formData.coreType, formData.password, false);
+    // For predefined cards, determine login path based on role
+    const defaultLoginPath: "admin" | "manager" | null = 
+      formData.role.includes("CEO") || formData.coreType === "Founding Core" ? "admin" :
+      formData.role.includes("Head") || formData.role.includes("Lead") ? "admin" :
+      formData.coreType === "Core Pillar" ? "admin" : null;
+
+    await processSubmit(formData.role, formData.department, formData.coreType, formData.password, false, defaultLoginPath, adminPermissions);
   };
 
   const handleLoginPathConfirm = async (data: {
@@ -214,11 +220,12 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
     password: string;
     permissions: string[];
   }) => {
-    // Update form data with customized values
+    // Update form data with customized values from the selector
     const updatedRole = data.role || formData.role;
     const updatedDept = data.department || formData.department;
     const updatedCoreType = data.coreType;
     const updatedPassword = data.password;
+    const loginPath = data.loginPath as "user" | "manager" | "admin";
     
     setFormData(prev => ({
       ...prev,
@@ -230,12 +237,12 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
     setAdminPermissions(data.permissions);
 
     // Process based on login path
-    if (data.loginPath === "user") {
+    if (loginPath === "user") {
       // Regular user - no card
-      await processSubmit(updatedRole, updatedDept, "", "", false);
+      await processSubmit(updatedRole, updatedDept, "", "", false, null, []);
     } else {
-      // Manager or Admin - generate card
-      await processSubmit(updatedRole, updatedDept, updatedCoreType, updatedPassword, true);
+      // Manager or Admin - generate card with login path
+      await processSubmit(updatedRole, updatedDept, updatedCoreType, updatedPassword, true, loginPath, data.permissions);
     }
   };
 
@@ -244,7 +251,9 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
     department: string, 
     coreType: string, 
     password: string,
-    forceGenerateCard: boolean
+    forceGenerateCard: boolean,
+    loginPath: "admin" | "manager" | null = null,
+    selectedPermissions: string[] = []
   ) => {
     setIsSubmitting(true);
 
@@ -259,6 +268,15 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         role.includes("Lead") || role.includes("CEO");
       const isAdminRole = predefinedCardRoles.includes(role);
       const shouldShowIDCard = forceGenerateCard || isCorePillar || isAdminRole || isLeadershipRole;
+      
+      // Determine login path for database storage
+      const finalLoginPath = loginPath || (
+        isAdminRole || role.includes("CEO") || coreType === "Founding Core" ? "admin" :
+        isLeadershipRole || isCorePillar ? "admin" : null
+      );
+      
+      // Get permissions to store
+      const permissionsToStore = selectedPermissions.length > 0 ? selectedPermissions : adminPermissions;
 
       // Create auth account for admin/core/leadership roles
       let userId: string | null = null;
@@ -283,11 +301,11 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         } else if (authData.user) {
           userId = authData.user.id;
           
-          // Assign appropriate role based on position
+          // Assign appropriate role based on login path or position
           let roleToAssign: 'admin' | 'manager' | 'developer' | 'core_member' | 'employee' = 'employee';
-          if (role.includes("CEO") || coreType === "Founding Core") {
+          if (finalLoginPath === "admin" || role.includes("CEO") || coreType === "Founding Core") {
             roleToAssign = 'admin'; // super_admin should be manually assigned
-          } else if (role.includes("Head") || role.includes("Lead") || role.includes("Manager")) {
+          } else if (finalLoginPath === "manager" || role.includes("Head") || role.includes("Lead") || role.includes("Manager")) {
             roleToAssign = 'manager';
           } else if (role.includes("Developer") || role.includes("SWE") || role.includes("Engineer")) {
             roleToAssign = 'developer';
@@ -304,12 +322,13 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
         }
       }
 
-      // Create team member record first to get the ID
+      // Create team member record with login_path and permissions
       const { data, error } = await supabase
         .from('team_members')
         .insert({
           name: formData.name,
           email: formData.email,
+          phone: formData.phone || null,
           role: role,
           department: department,
           designation: role,
@@ -318,6 +337,8 @@ export function AddTeamMemberDialog({ open, onOpenChange, onAdd }: AddTeamMember
           is_core_pillar: isCorePillar,
           status: "active",
           user_id: userId,
+          login_path: finalLoginPath,
+          permissions: permissionsToStore,
         })
         .select()
         .single();

@@ -160,7 +160,7 @@ export default function AuthorityLogin() {
         // Use team_members table to get emails for login cards
         const { data: teamMembers, error } = await supabase
           .from("team_members")
-          .select("id, name, email, role, department, designation, serial_number, is_core_pillar, profile_image, status")
+          .select("id, name, email, role, department, designation, serial_number, is_core_pillar, profile_image, status, login_path, permissions")
           .eq("status", "active");
 
         if (error) throw error;
@@ -249,26 +249,44 @@ export default function AuthorityLogin() {
           // Skip if already matched to a template
           if (usedEmails.has(member.email)) return;
           
-          // Determine if this should be in admin or manager section based on role/designation
+          // Use login_path from database if available, otherwise determine from role
+          const memberLoginPath = (member as any).login_path;
           const roleText = (member.role || "").toLowerCase();
           const designationText = (member.designation || "").toLowerCase();
           
-          const isAdmin = member.is_core_pillar || 
-            ["ceo", "founder", "head", "lead", "director", "website admin", "swe"].some(keyword => 
-              roleText.includes(keyword) || designationText.includes(keyword)
-            );
+          // Determine section based on login_path first, then role
+          let isAdmin = memberLoginPath === "admin";
+          let isManager = memberLoginPath === "manager";
           
-          const isManager = !isAdmin && 
-            ["manager", "team lead", "senior", "core member"].some(keyword => 
-              roleText.includes(keyword) || designationText.includes(keyword)
-            );
+          // Fallback to role-based detection if no login_path
+          if (!memberLoginPath) {
+            isAdmin = member.is_core_pillar || 
+              ["ceo", "founder", "head", "lead", "director", "website admin", "swe"].some(keyword => 
+                roleText.includes(keyword) || designationText.includes(keyword)
+              );
+            
+            isManager = !isAdmin && 
+              ["manager", "team lead", "senior", "core member", "developer"].some(keyword => 
+                roleText.includes(keyword) || designationText.includes(keyword)
+              );
+          }
+          
+          // Determine core type
+          let coreType = "Manager";
+          if (member.is_core_pillar) {
+            coreType = "Core Pillar";
+          } else if (isAdmin) {
+            coreType = "Head and Lead";
+          } else if (roleText.includes("developer") || designationText.includes("developer")) {
+            coreType = "Developer";
+          }
           
           const card: RoleCard = {
             id: member.serial_number || `ASX-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`,
             title: member.designation || member.role,
             name: member.name,
             email: member.email,
-            coreType: member.is_core_pillar ? "Core Pillar" : (isAdmin ? "Head and Lead" : "Manager"),
+            coreType: coreType,
             department: member.department || "General",
             isHired: true,
             photoUrl: member.profile_image,
@@ -279,7 +297,7 @@ export default function AuthorityLogin() {
           } else if (isManager) {
             managerCards.push(card);
           }
-          // If neither admin nor manager, they don't get a card (regular user)
+          // If neither admin nor manager (no login_path set), they don't get a card (regular user)
         });
 
         setAdminRoleCards(adminCards);
