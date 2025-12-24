@@ -26,10 +26,20 @@ const themeStyles: Record<string, { bg: string; icon: string; label: string }> =
     icon: "🇮🇳",
     label: "Freedom Sale"
   },
+  republic_day: { 
+    bg: "bg-gradient-to-r from-orange-500 via-white to-green-500", 
+    icon: "🇮🇳",
+    label: "Republic Day"
+  },
   navratri: { 
     bg: "bg-gradient-to-r from-fuchsia-500 to-pink-500", 
     icon: "💃",
     label: "Navratri Sale"
+  },
+  durga_puja: { 
+    bg: "bg-gradient-to-r from-red-600 to-orange-500", 
+    icon: "🙏",
+    label: "Durga Puja"
   },
   ganesh_chaturthi: { 
     bg: "bg-gradient-to-r from-yellow-500 to-orange-500", 
@@ -51,6 +61,21 @@ const themeStyles: Record<string, { bg: string; icon: string; label: string }> =
     icon: "🌙",
     label: "Eid Sale"
   },
+  makar_sankranti: { 
+    bg: "bg-gradient-to-r from-orange-400 to-sky-500", 
+    icon: "🪁",
+    label: "Sankranti"
+  },
+  pongal: { 
+    bg: "bg-gradient-to-r from-green-500 to-yellow-500", 
+    icon: "🌾",
+    label: "Pongal Sale"
+  },
+  baisakhi: { 
+    bg: "bg-gradient-to-r from-yellow-500 to-amber-600", 
+    icon: "🌾",
+    label: "Baisakhi"
+  },
   
   // Worldwide Festivals
   christmas: { 
@@ -62,6 +87,11 @@ const themeStyles: Record<string, { bg: string; icon: string; label: string }> =
     bg: "bg-gradient-to-r from-indigo-500 to-purple-500", 
     icon: "🎆",
     label: "New Year Sale"
+  },
+  chinese_new_year: { 
+    bg: "bg-gradient-to-r from-red-600 to-yellow-500", 
+    icon: "🧧",
+    label: "Lunar New Year"
   },
   valentines: { 
     bg: "bg-gradient-to-r from-red-500 to-pink-500", 
@@ -88,10 +118,72 @@ const themeStyles: Record<string, { bg: string; icon: string; label: string }> =
     icon: "🛒",
     label: "BLACK FRIDAY"
   },
+  cyber_monday: { 
+    bg: "bg-gradient-to-r from-blue-600 to-purple-600", 
+    icon: "💻",
+    label: "CYBER MONDAY"
+  },
   st_patricks: { 
     bg: "bg-gradient-to-r from-green-500 to-emerald-500", 
     icon: "☘️",
     label: "St. Patrick's Sale"
+  },
+  mothers_day: { 
+    bg: "bg-gradient-to-r from-pink-500 to-rose-400", 
+    icon: "💐",
+    label: "Mother's Day"
+  },
+  fathers_day: { 
+    bg: "bg-gradient-to-r from-blue-500 to-indigo-500", 
+    icon: "👔",
+    label: "Father's Day"
+  },
+  memorial_day: { 
+    bg: "bg-gradient-to-r from-blue-800 to-red-600", 
+    icon: "🇺🇸",
+    label: "Memorial Day"
+  },
+  labor_day: { 
+    bg: "bg-gradient-to-r from-red-600 to-blue-600", 
+    icon: "👷",
+    label: "Labor Day"
+  },
+  mid_autumn: { 
+    bg: "bg-gradient-to-r from-amber-500 to-orange-400", 
+    icon: "🥮",
+    label: "Moon Festival"
+  },
+  oktoberfest: { 
+    bg: "bg-gradient-to-r from-amber-700 to-yellow-600", 
+    icon: "🍺",
+    label: "Oktoberfest"
+  },
+  
+  // Seasonal Themes
+  summer: { 
+    bg: "bg-gradient-to-r from-yellow-400 to-orange-500", 
+    icon: "☀️",
+    label: "Summer Sale"
+  },
+  monsoon: { 
+    bg: "bg-gradient-to-r from-sky-500 to-blue-600", 
+    icon: "🌧️",
+    label: "Monsoon Sale"
+  },
+  winter: { 
+    bg: "bg-gradient-to-r from-slate-400 to-blue-400", 
+    icon: "❄️",
+    label: "Winter Sale"
+  },
+  spring: { 
+    bg: "bg-gradient-to-r from-pink-400 to-green-400", 
+    icon: "🌸",
+    label: "Spring Sale"
+  },
+  back_to_school: { 
+    bg: "bg-gradient-to-r from-sky-500 to-indigo-500", 
+    icon: "📚",
+    label: "School Sale"
   },
 };
 

@@ -1000,29 +1000,53 @@ export function FestivalEffectsProvider({ theme }: FestivalEffectsProps) {
     case "new_year":
       return <NewYearEffects />;
     case "independence_day":
+    case "republic_day":
       return <IndependenceDayEffects />;
     case "halloween":
       return <HalloweenEffects />;
     case "valentines":
+    case "mothers_day":
       return <ValentinesEffects />;
     case "easter":
       return <EasterEffects />;
     case "st_patricks":
       return <StPatricksEffects />;
     case "black_friday":
+    case "cyber_monday":
       return <BlackFridayEffects />;
     case "thanksgiving":
       return <ThanksgivingEffects />;
     case "eid":
       return <EidEffects />;
     case "navratri":
+    case "durga_puja":
       return <NavratriEffects />;
     case "onam":
+    case "pongal":
+    case "baisakhi":
+    case "makar_sankranti":
       return <OnamEffects />;
     case "ganesh_chaturthi":
       return <GaneshEffects />;
     case "raksha_bandhan":
       return <RakshaBandhanEffects />;
+    case "chinese_new_year":
+    case "mid_autumn":
+      return <NewYearEffects />;
+    case "fathers_day":
+    case "memorial_day":
+    case "labor_day":
+      return <IndependenceDayEffects />;
+    case "oktoberfest":
+      return <ThanksgivingEffects />;
+    case "summer":
+    case "spring":
+      return <HoliEffects />;
+    case "winter":
+    case "monsoon":
+      return <ChristmasEffects />;
+    case "back_to_school":
+      return <BlackFridayEffects />;
     default:
       return null;
   }
