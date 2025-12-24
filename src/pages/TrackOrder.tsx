@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones, Download, ClipboardList, PackageX } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, MapPin, Phone, Calendar, ArrowLeft, Loader2, Search, XCircle, AlertTriangle, Ban, RotateCcw, MessageSquare, Shield, Star, Edit2, FileText, Headphones, Download, ClipboardList, PackageX, MessageCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,6 +63,7 @@ interface Order {
   notes: string | null;
   complaint_status: string | null;
   order_type: string | null;
+  refund_status?: string | null;
 }
 
 const ORDER_STATUSES = [
@@ -120,6 +121,18 @@ export default function TrackOrder() {
 
       if (error) throw error;
 
+      // Fetch refund statuses for orders
+      const orderIds = (data || []).map(o => o.id);
+      const { data: refundData } = await supabase
+        .from("refund_requests")
+        .select("order_id, status")
+        .in("order_id", orderIds);
+
+      const refundStatusMap = new Map<string, string>();
+      (refundData || []).forEach(r => {
+        refundStatusMap.set(r.order_id, r.status || "pending");
+      });
+
       const mappedOrders: Order[] = (data || []).map((order) => {
         let parsedItems: OrderItem[] = [];
         if (Array.isArray(order.items)) {
@@ -147,6 +160,7 @@ export default function TrackOrder() {
           notes: order.notes,
           complaint_status: order.complaint_status || null,
           order_type: order.order_type || null,
+          refund_status: refundStatusMap.get(order.id) || null,
         };
       });
 
@@ -221,6 +235,18 @@ export default function TrackOrder() {
           isError: true,
         };
       }
+      
+      // Check if refund is completed
+      if (order.refund_status === "completed") {
+        return {
+          text: "Refund Completed",
+          color: "bg-green-500/20 text-green-500",
+          icon: CheckCircle,
+          isSuccess: true,
+          refundDone: true,
+        };
+      }
+      
       return {
         text: "Delivery Failed – Returning to Provider",
         color: "bg-red-500/20 text-red-500",
@@ -593,6 +619,33 @@ export default function TrackOrder() {
                     {/* Status Alert */}
                     {(() => {
                       const statusDisplay = getOrderStatusDisplay(selectedOrder);
+                      if (statusDisplay.isSuccess && statusDisplay.refundDone) {
+                        const StatusIcon = statusDisplay.icon;
+                        return (
+                          <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                            <div className="flex items-center gap-3">
+                              <StatusIcon className="w-6 h-6 text-green-500" />
+                              <div className="flex-1">
+                                <p className="font-semibold text-green-500">
+                                  {statusDisplay.text}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Your refund has been processed successfully.
+                                </p>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => openChat()}
+                                className="border-green-500/30 text-green-600 hover:bg-green-500/10"
+                              >
+                                <MessageCircle className="w-4 h-4 mr-1" />
+                                Not Received? Contact Support
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      }
                       if (statusDisplay.isError || statusDisplay.isWarning) {
                         const StatusIcon = statusDisplay.icon;
                         return (
