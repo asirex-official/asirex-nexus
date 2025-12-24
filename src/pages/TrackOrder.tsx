@@ -239,6 +239,52 @@ export default function TrackOrder() {
       };
     }
 
+    // Pickup order types (Return, Replacement, Warranty pickups)
+    if (order.order_type === "return_pickup") {
+      if (order.order_status === "pickup_completed") {
+        return {
+          text: "Return Pickup Completed",
+          color: "bg-green-500/20 text-green-500",
+          icon: CheckCircle,
+        };
+      }
+      return {
+        text: "Return Pickup Scheduled",
+        color: "bg-yellow-500/20 text-yellow-500",
+        icon: RotateCcw,
+      };
+    }
+
+    if (order.order_type === "replacement_pickup") {
+      if (order.order_status === "pickup_completed") {
+        return {
+          text: "Replacement Pickup Completed",
+          color: "bg-green-500/20 text-green-500",
+          icon: CheckCircle,
+        };
+      }
+      return {
+        text: "Replacement Pickup Scheduled",
+        color: "bg-yellow-500/20 text-yellow-500",
+        icon: RotateCcw,
+      };
+    }
+
+    if (order.order_type === "warranty_pickup") {
+      if (order.order_status === "pickup_completed") {
+        return {
+          text: "Warranty Pickup Completed",
+          color: "bg-purple-500/20 text-purple-500",
+          icon: CheckCircle,
+        };
+      }
+      return {
+        text: "Warranty Pickup Scheduled",
+        color: "bg-purple-500/20 text-purple-500",
+        icon: Shield,
+      };
+    }
+
     // Regular statuses
     if (order.order_status === "cancelled") {
       return {
@@ -481,6 +527,21 @@ export default function TrackOrder() {
                               Warranty
                             </span>
                           )}
+                          {order.order_type === "return_pickup" && (
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-500/20 text-yellow-500 font-medium">
+                              Return Pickup
+                            </span>
+                          )}
+                          {order.order_type === "replacement_pickup" && (
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-500/20 text-yellow-500 font-medium">
+                              Replacement Pickup
+                            </span>
+                          )}
+                          {order.order_type === "warranty_pickup" && (
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-purple-500/20 text-purple-500 font-medium">
+                              Warranty Pickup
+                            </span>
+                          )}
                         </div>
                         <span className={`px-2 py-1 text-xs rounded-full flex items-center gap-1 ${statusDisplay.color}`}>
                           <StatusIcon className="w-3 h-3" />
@@ -491,7 +552,7 @@ export default function TrackOrder() {
                         {order.items.length} item{order.items.length > 1 ? "s" : ""}
                       </p>
                       <p className="text-lg font-bold text-primary">
-                        {order.order_type === "replacement" || order.order_type === "warranty_replacement" 
+                        {["replacement", "warranty_replacement", "return_pickup", "replacement_pickup", "warranty_pickup"].includes(order.order_type || "")
                           ? "FREE" 
                           : `₹${order.total_amount.toLocaleString()}`
                         }

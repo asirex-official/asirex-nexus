@@ -116,6 +116,17 @@ const handler = async (req: Request): Promise<Response> => {
         .from("order_cancellations")
         .update({ status: "refund_initiated" })
         .eq("id", cancellation.id);
+
+      // Create refund request for user to select payment method
+      await supabase.from("refund_requests").insert({
+        order_id: order_id,
+        user_id: user_id,
+        amount: order?.total_amount || 0,
+        payment_method: order?.payment_method || "unknown",
+        refund_method: "pending_selection",
+        reason: `Order cancelled: ${cancellation.reason}`,
+        status: "pending_user_selection",
+      });
     }
 
     // Create notification

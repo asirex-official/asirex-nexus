@@ -273,8 +273,9 @@ export default function UnifiedComplaintsManager() {
   };
 
   // Action: Schedule pickup attempt (tracks attempt number)
+  // Creates a yellow "Return Pickup" or "Replacement Pickup" order for the first attempt
   const handleSchedulePickup = async () => {
-    if (!selectedComplaint || !pickupDate) {
+    if (!selectedComplaint || !pickupDate || !selectedComplaint.order) {
       toast.error("Please select a pickup date");
       return;
     }
@@ -282,6 +283,39 @@ export default function UnifiedComplaintsManager() {
 
     try {
       const attemptNumber = (selectedComplaint.pickup_attempt_number || 0) + 1;
+
+      // On first pickup attempt, create a pickup order (yellow badge)
+      let pickupOrderId: string | null = null;
+      if (attemptNumber === 1) {
+        const orderType = selectedComplaint.complaint_type === "return" 
+          ? "return_pickup" 
+          : selectedComplaint.complaint_type === "replace" 
+            ? "replacement_pickup" 
+            : "warranty_pickup";
+        
+        const { data: pickupOrder, error: pickupError } = await supabase
+          .from("orders")
+          .insert({
+            user_id: selectedComplaint.user_id,
+            customer_name: selectedComplaint.order.customer_name,
+            customer_email: selectedComplaint.order.customer_email,
+            customer_phone: selectedComplaint.order.customer_phone,
+            shipping_address: selectedComplaint.order.shipping_address,
+            items: selectedComplaint.order.items,
+            total_amount: 0,
+            payment_status: "not_required",
+            payment_method: "pickup",
+            order_status: "pickup_scheduled",
+            order_type: orderType,
+            parent_order_id: selectedComplaint.order_id,
+            notes: `Pickup for ${selectedComplaint.complaint_type} - Attempt ${attemptNumber}`,
+          })
+          .select()
+          .single();
+
+        if (pickupError) throw pickupError;
+        pickupOrderId = pickupOrder?.id || null;
+      }
 
       // Create pickup attempt record
       await supabase.from("return_pickup_attempts").insert({
@@ -308,12 +342,14 @@ export default function UnifiedComplaintsManager() {
         pickupDate: format(new Date(pickupDate), "EEEE, MMMM d, yyyy"),
         attemptNumber,
         maxAttempts: selectedComplaint.max_pickup_attempts,
+        pickupOrderId,
       });
 
       toast.success(`Pickup attempt ${attemptNumber}/${selectedComplaint.max_pickup_attempts} scheduled`);
       fetchComplaints();
       fetchPickupAttempts(selectedComplaint.id);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to schedule pickup");
     } finally {
       setIsUpdating(false);
@@ -353,6 +389,15 @@ export default function UnifiedComplaintsManager() {
           return_status: "picked_up",
         })
         .eq("id", selectedComplaint.id);
+
+      // Update any pickup orders to completed
+      await supabase
+        .from("orders")
+        .update({
+          order_status: "pickup_completed",
+        })
+        .eq("parent_order_id", selectedComplaint.order_id)
+        .in("order_type", ["return_pickup", "replacement_pickup", "warranty_pickup"]);
 
       await sendNotification(selectedComplaint, "pickup_completed");
       toast.success("Item picked up successfully!");
