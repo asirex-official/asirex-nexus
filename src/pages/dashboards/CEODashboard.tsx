@@ -63,10 +63,13 @@ interface DashboardStats {
   teamCount: number;
   projectsCount: number;
   productsCount: number;
+  productsAddedToday: number;
   ordersCount: number;
+  ordersToday: number;
   totalRevenue: number;
   pendingOrdersValue: number;
   usersCount: number;
+  usersSignedUpToday: number;
   totalRefunds: number;
   totalProfit: number;
 }
@@ -126,10 +129,13 @@ const CEODashboard = () => {
     teamCount: 0,
     projectsCount: 0,
     productsCount: 0,
+    productsAddedToday: 0,
     ordersCount: 0,
+    ordersToday: 0,
     totalRevenue: 0,
     pendingOrdersValue: 0,
     usersCount: 0,
+    usersSignedUpToday: 0,
     totalRefunds: 0,
     totalProfit: 0,
   });
@@ -242,13 +248,20 @@ const CEODashboard = () => {
       }
 
       // Fetch stats and users
-      const [projectsRes, productsRes, ordersRes, profilesRes, allOrdersRes, refundsRes] = await Promise.all([
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      const [projectsRes, productsRes, ordersRes, profilesRes, allOrdersRes, refundsRes, productsTodayRes, ordersTodayRes, usersTodayRes] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact' }),
         supabase.from('products').select('id', { count: 'exact' }),
         supabase.from('orders').select('total_amount, order_status'),
         supabase.from('profiles').select('*'),
         supabase.from('orders').select('user_id, total_amount'),
         supabase.from('refund_requests').select('amount, status'),
+        supabase.from('products').select('id', { count: 'exact' }).gte('created_at', todayISO),
+        supabase.from('orders').select('id', { count: 'exact' }).gte('created_at', todayISO),
+        supabase.from('profiles').select('id', { count: 'exact' }).gte('created_at', todayISO),
       ]);
 
       const orders = ordersRes.data || [];
@@ -309,10 +322,13 @@ const CEODashboard = () => {
         teamCount: teamData?.length || 0,
         projectsCount: projectsRes.count || 0,
         productsCount: productsRes.count || 0,
+        productsAddedToday: productsTodayRes.count || 0,
         ordersCount: pendingOrders.length,
+        ordersToday: ordersTodayRes.count || 0,
         totalRevenue,
         pendingOrdersValue: pendingValue,
         usersCount: profiles.length,
+        usersSignedUpToday: usersTodayRes.count || 0,
         totalRefunds,
         totalProfit,
       });
@@ -706,10 +722,10 @@ const CEODashboard = () => {
   };
 
   const dashboardStats = [
-    { label: "Team Members", value: stats.teamCount.toString(), icon: Users, trend: stats.teamCount > 0 ? "Active" : "No members", color: "text-blue-500" },
+    { label: "Orders Today", value: stats.ordersToday.toString(), icon: ShoppingCart, trend: `Total: ${stats.ordersCount + stats.ordersToday}`, color: "text-blue-500", subtext: `${stats.ordersCount} pending` },
+    { label: "Users Today", value: stats.usersSignedUpToday.toString(), icon: Users, trend: `Total: ${stats.usersCount}`, color: "text-purple-500", subtext: `${stats.usersCount} users` },
+    { label: "Products Today", value: stats.productsAddedToday.toString(), icon: Package, trend: `Total: ${stats.productsCount}`, color: "text-green-500", subtext: `${stats.productsCount} products` },
     { label: "Refunds Made", value: formatMoney(stats.totalRefunds), icon: Banknote, trend: stats.totalRefunds > 0 ? "Processed" : "No refunds", color: "text-orange-500" },
-    { label: "Products Listed", value: stats.productsCount.toString(), icon: Package, trend: stats.productsCount > 0 ? "In catalog" : "Add products", color: "text-green-500" },
-    { label: "Pending Orders", value: stats.ordersCount.toString(), icon: ShoppingCart, trend: stats.pendingOrdersValue > 0 ? `₹${stats.pendingOrdersValue.toLocaleString()}` : "No pending", color: "text-amber-500" },
     { label: "Total Revenue", value: formatMoney(stats.totalRevenue), icon: DollarSign, trend: stats.totalRevenue > 0 ? "Earned" : "Start selling", color: "text-emerald-500" },
     { label: "Total Profit", value: formatMoney(stats.totalProfit), icon: TrendingUp, trend: stats.totalProfit > 0 ? "Net earnings" : "Break even", color: "text-orange-500" },
   ];
@@ -810,7 +826,12 @@ const CEODashboard = () => {
                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
                     <ArrowUpRight className="w-4 h-4 text-green-500" />
                   </div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    {'subtext' in stat && stat.subtext && (
+                      <span className="text-xs text-muted-foreground">/ {stat.subtext}</span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <p className="text-xs text-green-500 mt-1">{stat.trend}</p>
                 </CardContent>
