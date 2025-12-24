@@ -1391,6 +1391,66 @@ export type Database = {
           },
         ]
       }
+      production_tracking: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          pending_earnings: number | null
+          products_completed: number
+          products_in_production: number
+          products_shipped: number
+          team_member_id: string | null
+          total_earnings: number | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          pending_earnings?: number | null
+          products_completed?: number
+          products_in_production?: number
+          products_shipped?: number
+          team_member_id?: string | null
+          total_earnings?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          pending_earnings?: number | null
+          products_completed?: number
+          products_in_production?: number
+          products_shipped?: number
+          team_member_id?: string | null
+          total_earnings?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_tracking_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_tracking_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           badge: string | null
