@@ -1,22 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
-import { MessageSquare, Send, X, User, Bot, Headphones, Clock, CheckCircle, AlertCircle, Bell } from "lucide-react";
+import { MessageSquare, Send, X, User, Bot, Headphones, Clock, CheckCircle, AlertCircle, Bell, Image, FileText, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAdminChats } from "@/hooks/useChatMessages";
+import { useAdminChats, ChatMessage, ChatAttachment } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-
-interface ChatMessage {
-  id: string;
-  conversation_id: string;
-  sender_type: "user" | "agent" | "bot";
-  sender_id: string | null;
-  message: string;
-  created_at: string;
-}
 
 export default function ChatManager() {
   const { user } = useAuth();
@@ -127,6 +118,51 @@ export default function ChatManager() {
       default:
         return null;
     }
+  };
+
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('image/')) return <Image className="w-4 h-4" />;
+    if (type === 'application/pdf') return <FileText className="w-4 h-4" />;
+    return <File className="w-4 h-4" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const renderAttachments = (attachments: ChatAttachment[]) => {
+    return (
+      <div className="mt-2 space-y-2">
+        {attachments.map((attachment, idx) => (
+          <div key={idx} className="rounded-lg overflow-hidden">
+            {attachment.type.startsWith('image/') ? (
+              <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                <img 
+                  src={attachment.url} 
+                  alt={attachment.name}
+                  className="max-w-full max-h-48 rounded-lg object-cover hover:opacity-90 transition-opacity"
+                />
+              </a>
+            ) : (
+              <a 
+                href={attachment.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-2 bg-background/50 rounded-lg hover:bg-background/70 transition-colors"
+              >
+                {getFileIcon(attachment.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{attachment.name}</p>
+                  <p className="text-xs opacity-70">{formatFileSize(attachment.size)}</p>
+                </div>
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -247,7 +283,10 @@ export default function ChatManager() {
                               : "bg-accent/20 rounded-bl-sm"
                           }`}
                         >
-                          <p>{msg.message}</p>
+                          {msg.message && <p>{msg.message}</p>}
+                          {msg.attachments && msg.attachments.length > 0 && 
+                            renderAttachments(msg.attachments)
+                          }
                           <p className="text-xs opacity-70 mt-1">
                             {format(new Date(msg.created_at), "h:mm a")}
                           </p>

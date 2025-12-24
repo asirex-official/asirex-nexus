@@ -2,13 +2,21 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-interface ChatMessage {
+export interface ChatAttachment {
+  url: string;
+  name: string;
+  type: string;
+  size: number;
+}
+
+export interface ChatMessage {
   id: string;
   conversation_id: string;
   sender_type: "user" | "agent" | "bot";
   sender_id: string | null;
   message: string;
   created_at: string;
+  attachments?: ChatAttachment[] | null;
 }
 
 interface ChatConversation {
@@ -24,6 +32,7 @@ export function useChatMessages() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const loadMessages = useCallback(async (convId: string) => {
     const { data, error } = await supabase
@@ -33,11 +42,55 @@ export function useChatMessages() {
       .order("created_at", { ascending: true });
 
     if (!error && data) {
-      setMessages(data as ChatMessage[]);
+      setMessages(data as unknown as ChatMessage[]);
     }
   }, []);
 
-  const addMessage = useCallback(async (convId: string, text: string, senderType: "user" | "agent" | "bot", senderId?: string) => {
+  const uploadFiles = useCallback(async (files: File[]): Promise<ChatAttachment[]> => {
+    if (!user) return [];
+    
+    setUploading(true);
+    const attachments: ChatAttachment[] = [];
+    
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('media-uploads')
+          .upload(`chat-attachments/${fileName}`, file);
+        
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          continue;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from('media-uploads')
+          .getPublicUrl(`chat-attachments/${fileName}`);
+        
+        attachments.push({
+          url: urlData.publicUrl,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        });
+      }
+    } finally {
+      setUploading(false);
+    }
+    
+    return attachments;
+  }, [user]);
+
+  const addMessage = useCallback(async (
+    convId: string, 
+    text: string, 
+    senderType: "user" | "agent" | "bot", 
+    senderId?: string,
+    attachments?: ChatAttachment[]
+  ) => {
     const { data, error } = await supabase
       .from("chat_messages")
       .insert({
@@ -45,12 +98,13 @@ export function useChatMessages() {
         message: text,
         sender_type: senderType,
         sender_id: senderId || null,
+        attachments: attachments && attachments.length > 0 ? JSON.parse(JSON.stringify(attachments)) : null,
       })
       .select()
       .single();
 
     if (!error && data) {
-      setMessages((prev) => [...prev, data as ChatMessage]);
+      setMessages((prev) => [...prev, data as unknown as ChatMessage]);
     }
     return data;
   }, []);
@@ -100,10 +154,10 @@ export function useChatMessages() {
     }
   }, [user, loadMessages, addMessage]);
 
-  const sendMessage = useCallback(async (text: string) => {
-    if (!conversationId || !text.trim()) return;
+  const sendMessage = useCallback(async (text: string, attachments?: ChatAttachment[]) => {
+    if (!conversationId || (!text.trim() && (!attachments || attachments.length === 0))) return;
 
-    await addMessage(conversationId, text, "user", user?.id);
+    await addMessage(conversationId, text, "user", user?.id, attachments);
 
     // Update conversation timestamp
     await supabase
@@ -145,8 +199,10 @@ export function useChatMessages() {
     conversationId,
     messages,
     loading,
+    uploading,
     initConversation,
     sendMessage,
+    uploadFiles,
   };
 }
 
@@ -214,7 +270,7 @@ export function useAdminChats(onNewMessage?: (message: ChatMessage, userName: st
       .order("created_at", { ascending: true });
 
     if (error) throw error;
-    return data as ChatMessage[];
+    return data as unknown as ChatMessage[];
   }, []);
 
   const sendAgentReply = useCallback(async (convId: string, message: string, agentId: string) => {
