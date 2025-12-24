@@ -10,30 +10,88 @@ interface ProductSaleBadgeProps {
 }
 
 const themeStyles: Record<string, { bg: string; icon: string; label: string }> = {
+  // Indian Festivals
   diwali: { 
     bg: "bg-gradient-to-r from-orange-500 to-yellow-500", 
     icon: "🪔",
     label: "Diwali Sale"
-  },
-  christmas: { 
-    bg: "bg-gradient-to-r from-red-500 to-green-500", 
-    icon: "🎄",
-    label: "Christmas Sale"
   },
   holi: { 
     bg: "bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500", 
     icon: "🌈",
     label: "Holi Sale"
   },
+  independence_day: { 
+    bg: "bg-gradient-to-r from-orange-500 via-white to-green-500", 
+    icon: "🇮🇳",
+    label: "Freedom Sale"
+  },
+  navratri: { 
+    bg: "bg-gradient-to-r from-fuchsia-500 to-pink-500", 
+    icon: "💃",
+    label: "Navratri Sale"
+  },
+  ganesh_chaturthi: { 
+    bg: "bg-gradient-to-r from-yellow-500 to-orange-500", 
+    icon: "🐘",
+    label: "Ganesh Chaturthi"
+  },
+  onam: { 
+    bg: "bg-gradient-to-r from-yellow-400 to-green-500", 
+    icon: "🛶",
+    label: "Onam Sale"
+  },
+  raksha_bandhan: { 
+    bg: "bg-gradient-to-r from-pink-400 to-rose-500", 
+    icon: "🎀",
+    label: "Rakhi Sale"
+  },
+  eid: { 
+    bg: "bg-gradient-to-r from-teal-500 to-emerald-500", 
+    icon: "🌙",
+    label: "Eid Sale"
+  },
+  
+  // Worldwide Festivals
+  christmas: { 
+    bg: "bg-gradient-to-r from-red-500 to-green-500", 
+    icon: "🎄",
+    label: "Christmas Sale"
+  },
   new_year: { 
     bg: "bg-gradient-to-r from-indigo-500 to-purple-500", 
     icon: "🎆",
     label: "New Year Sale"
   },
-  independence_day: { 
-    bg: "bg-gradient-to-r from-orange-500 via-white to-green-500", 
-    icon: "🇮🇳",
-    label: "Freedom Sale"
+  valentines: { 
+    bg: "bg-gradient-to-r from-red-500 to-pink-500", 
+    icon: "💕",
+    label: "Valentine's Sale"
+  },
+  easter: { 
+    bg: "bg-gradient-to-r from-purple-400 to-pink-400", 
+    icon: "🐰",
+    label: "Easter Sale"
+  },
+  halloween: { 
+    bg: "bg-gradient-to-r from-orange-500 to-black", 
+    icon: "👻",
+    label: "Halloween Sale"
+  },
+  thanksgiving: { 
+    bg: "bg-gradient-to-r from-amber-600 to-orange-500", 
+    icon: "🦃",
+    label: "Thanksgiving Sale"
+  },
+  black_friday: { 
+    bg: "bg-gradient-to-r from-black to-gray-800", 
+    icon: "🛒",
+    label: "BLACK FRIDAY"
+  },
+  st_patricks: { 
+    bg: "bg-gradient-to-r from-green-500 to-emerald-500", 
+    icon: "☘️",
+    label: "St. Patrick's Sale"
   },
 };
 
