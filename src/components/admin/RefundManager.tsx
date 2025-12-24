@@ -122,12 +122,13 @@ export function RefundManager() {
         couponCode = `DELAY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         await supabase.from("coupons").insert({
           code: couponCode,
-          description: "Apology coupon for delayed refund",
+          description: "We apologize for the delay in processing your refund. As a token of our apology, please enjoy 20% off your next order. We value your patience and business.",
           discount_type: "percentage",
           discount_value: 20,
           usage_limit: 1,
           per_user_limit: 1,
           is_active: true,
+          category: "apology",
           valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
         });
       }
