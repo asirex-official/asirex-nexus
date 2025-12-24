@@ -142,6 +142,26 @@ export default function OrdersManager() {
       order_status: "delivered",
       delivered_at: new Date().toISOString()
     });
+
+    // Send unified notification for delivery
+    try {
+      await supabase.functions.invoke("send-unified-notification", {
+        body: {
+          type: "order_delivered",
+          userId: selectedOrder.user_id,
+          userEmail: selectedOrder.customer_email,
+          userName: selectedOrder.customer_name,
+          sendEmail: true,
+          sendInApp: true,
+          data: {
+            orderId: selectedOrder.id,
+            reviewUrl: `${window.location.origin}/track-order`,
+          },
+        },
+      });
+    } catch (e) {
+      console.error("Notification failed:", e);
+    }
     
     try {
       await supabase.functions.invoke('send-shipping-notification', {

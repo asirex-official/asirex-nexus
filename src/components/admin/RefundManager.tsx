@@ -167,18 +167,19 @@ export function RefundManager() {
 
       // Send email notification
       try {
-        await supabase.functions.invoke("send-complaint-notification", {
+        await supabase.functions.invoke("send-unified-notification", {
           body: {
-            notificationType: "refund_completed",
+            type: "refund_completed",
             userId: refund.user_id,
-            orderId: refund.order_id,
-            customerEmail: refund.order?.customer_email,
-            customerName: refund.order?.customer_name,
-            additionalData: {
-              refundAmount: refund.amount,
-              refundMethod: getRefundMethodLabel(refund.refund_method),
-              lateCouponCode: isLate ? couponCode : null,
+            userEmail: refund.order?.customer_email,
+            userName: refund.order?.customer_name,
+            data: {
+              amount: refund.amount,
+              method: getRefundMethodLabel(refund.refund_method),
+              giftCardCode: isLate ? couponCode : null,
             },
+            sendEmail: true,
+            sendInApp: false, // Already sent above
           },
         });
       } catch (e) {
@@ -213,7 +214,7 @@ export function RefundManager() {
 
       if (error) throw error;
 
-      // Notify user
+      // Notify user via in-app and email
       await supabase.from("notifications").insert({
         user_id: refund.user_id,
         title: "Refund Issue",
@@ -221,6 +222,23 @@ export function RefundManager() {
         type: "refund",
         link: "/track-order",
       });
+
+      // Send email
+      try {
+        await supabase.functions.invoke("send-unified-notification", {
+          body: {
+            type: "refund_rejected",
+            userId: refund.user_id,
+            userEmail: (refund as any).order?.customer_email,
+            userName: (refund as any).order?.customer_name,
+            data: { reason: adminNotes },
+            sendEmail: true,
+            sendInApp: false,
+          },
+        });
+      } catch (e) {
+        console.error("Email notification failed:", e);
+      }
 
       toast.info("Refund marked as failed. User notified.");
       setSelectedRefund(null);
