@@ -115,13 +115,13 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center justify-center flex-1 gap-8">
+          <div className="hidden lg:flex items-center justify-center flex-1 gap-2 xl:gap-6 2xl:gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
                 className={cn(
-                  "px-6 py-2 rounded-lg text-base font-semibold tracking-widest uppercase transition-all duration-300",
+                  "px-3 xl:px-5 2xl:px-6 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm 2xl:text-base font-semibold tracking-wide xl:tracking-widest uppercase transition-all duration-300 whitespace-nowrap",
                   location.pathname === link.href
                     ? "text-white bg-white/10"
                     : "text-white hover:text-white/80 hover:bg-white/5"
@@ -133,12 +133,12 @@ export function Header() {
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Button variant="glass" size="icon" className="relative" asChild>
+          <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-3">
+            <Button variant="glass" size="icon" className="relative w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10" asChild>
               <Link to="/cart">
-                <ShoppingCart className="w-4 h-4" />
+                <ShoppingCart className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 bg-accent text-accent-foreground text-[8px] xl:text-[10px] font-bold rounded-full flex items-center justify-center">
                     {totalItems > 9 ? '9+' : totalItems}
                   </span>
                 )}
@@ -146,56 +146,58 @@ export function Header() {
             </Button>
             
             {/* Track Order - for all users */}
-            <Button variant="glass" size="sm" onClick={handleTrackOrder}>
-              <Package className="w-4 h-4 mr-2" />
-              My Orders
+            <Button variant="glass" size="sm" className="text-[10px] xl:text-xs 2xl:text-sm px-2 xl:px-3 2xl:px-4 h-8 xl:h-9" onClick={handleTrackOrder}>
+              <Package className="w-3 h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 mr-1 xl:mr-1.5 2xl:mr-2 flex-shrink-0" />
+              <span className="hidden xl:inline">My Orders</span>
+              <span className="xl:hidden">Orders</span>
             </Button>
             
             {/* Warranty Claim */}
-            <Button variant="glass" size="sm" asChild>
+            <Button variant="glass" size="sm" className="text-[10px] xl:text-xs 2xl:text-sm px-2 xl:px-3 2xl:px-4 h-8 xl:h-9" asChild>
               <Link to="/warranty-claims">
-                <Shield className="w-4 h-4 mr-2" />
-                Warranty Claim
+                <Shield className="w-3 h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 mr-1 xl:mr-1.5 2xl:mr-2 flex-shrink-0" />
+                <span className="hidden xl:inline">Warranty Claim</span>
+                <span className="xl:hidden">Warranty</span>
               </Link>
             </Button>
             
             {/* Live Chat - for all users */}
-            <Button variant="glass" size="icon" onClick={handleLiveChat}>
-              <MessageCircle className="w-4 h-4" />
+            <Button variant="glass" size="icon" className="w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10" onClick={handleLiveChat}>
+              <MessageCircle className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
             </Button>
             
             {user ? (
               <>
-                <Button asChild variant="glass" size="icon" className="relative">
+                <Button asChild variant="glass" size="icon" className="relative w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10">
                   <Link to="/notifications">
-                    <Bell className="w-4 h-4" />
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <Bell className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 bg-accent text-accent-foreground text-[8px] xl:text-[10px] font-bold rounded-full flex items-center justify-center">
                       3
                     </span>
                   </Link>
                 </Button>
-                <Button asChild variant="glass" size="icon">
+                <Button asChild variant="glass" size="icon" className="w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10">
                   <Link to="/settings">
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                   </Link>
                 </Button>
                 {isStaff && (
-                  <Button asChild variant="glass" size="sm">
+                  <Button asChild variant="glass" size="sm" className="text-[10px] xl:text-xs 2xl:text-sm px-2 xl:px-3 h-8 xl:h-9">
                     <Link to="/admin">
                       Admin
                     </Link>
                   </Button>
                 )}
-                <Button variant="ghost" size="icon" onClick={() => signOut()}>
-                  <LogOut className="w-4 h-4" />
+                <Button variant="ghost" size="icon" className="w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10" onClick={() => signOut()}>
+                  <LogOut className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                 </Button>
               </>
             ) : (
-              <Button asChild variant="ghost" size="default" className="relative group overflow-hidden bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] text-white font-bold tracking-wide px-8 py-2.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-500 border-0">
+              <Button asChild variant="ghost" size="default" className="relative group overflow-hidden bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] hover:bg-[position:100%_0] text-white font-bold tracking-wide px-4 xl:px-6 2xl:px-8 py-1.5 xl:py-2 2xl:py-2.5 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-500 border-0 text-[10px] xl:text-xs 2xl:text-sm">
                 <Link to="/auth">
                   <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <User className="w-4 h-4 mr-2 relative z-10" />
-                  <span className="relative z-10">Sign up/Login</span>
+                  <User className="w-3 h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 mr-1 xl:mr-1.5 2xl:mr-2 relative z-10 flex-shrink-0" />
+                  <span className="relative z-10 whitespace-nowrap">Sign up/Login</span>
                 </Link>
               </Button>
             )}
