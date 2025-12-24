@@ -22,6 +22,8 @@ import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveFestival } from "@/hooks/useActiveFestival";
+import { ProductSaleBadge, FestivalProductTag } from "@/components/festivals/ProductSaleBadge";
 
 const categories = ["All", "AI Hardware", "Robotics", "Clean Tech", "Gadgets", "Nano Tech", "Accessories"];
 
@@ -44,11 +46,44 @@ export default function Shop() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: activeFestival } = useActiveFestival();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Check if product is in the active sale
+  const isProductOnSale = (product: Product) => {
+    if (!activeFestival) return false;
+    
+    if (activeFestival.applies_to === "all") return true;
+    if (activeFestival.applies_to === "category") {
+      return activeFestival.target_categories?.includes(product.category);
+    }
+    if (activeFestival.applies_to === "products") {
+      return activeFestival.target_product_ids?.includes(product.id);
+    }
+    return false;
+  };
+
+  // Calculate discounted price
+  const getDiscountedPrice = (product: Product) => {
+    if (!activeFestival || !isProductOnSale(product)) return null;
+    
+    let discount = 0;
+    if (activeFestival.discount_type === "percentage") {
+      discount = (product.price * activeFestival.discount_value) / 100;
+    } else {
+      discount = activeFestival.discount_value;
+    }
+    
+    if (activeFestival.max_discount_amount && discount > activeFestival.max_discount_amount) {
+      discount = activeFestival.max_discount_amount;
+    }
+    
+    return Math.max(0, product.price - discount);
+  };
 
   const handleAddToCart = (product: Product) => {
     if (!isInStock(product.stock_status)) return;
@@ -125,12 +160,31 @@ export default function Shop() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
+            {activeFestival?.festival_theme && (
+              <motion.div 
+                className="inline-block mb-4 px-4 py-2 rounded-full text-white font-semibold text-sm"
+                style={{ backgroundColor: activeFestival.banner_color || "#6366f1" }}
+                initial={{ scale: 0.9 }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {activeFestival.banner_message || `${activeFestival.name} - Up to ${activeFestival.discount_value}${activeFestival.discount_type === 'percentage' ? '%' : '₹'} OFF!`}
+              </motion.div>
+            )}
             <h1 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-              Shop <span className="gradient-text">Products</span>
+              {activeFestival ? (
+                <>
+                  <span className="gradient-text">{activeFestival.name}</span>
+                </>
+              ) : (
+                <>Shop <span className="gradient-text">Products</span></>
+              )}
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover cutting-edge technology built for the future. 
-              All products come with free shipping and 30-day returns.
+              {activeFestival 
+                ? `Special discounts on ${activeFestival.applies_to === 'all' ? 'all products' : 'selected items'}! Shop now and save.`
+                : 'Discover cutting-edge technology built for the future. All products come with free shipping and 30-day returns.'
+              }
             </p>
           </motion.div>
 
@@ -243,7 +297,12 @@ export default function Shop() {
                           : "aspect-square"
                       }`}
                     >
-                      {product.badge && (
+                      {/* Festival Tag */}
+                      {isProductOnSale(product) && activeFestival?.festival_theme && (
+                        <FestivalProductTag theme={activeFestival.festival_theme} />
+                      )}
+                      
+                      {product.badge && !isProductOnSale(product) && (
                         <span className="absolute top-3 left-3 px-2 py-1 text-xs font-semibold rounded-full bg-accent text-accent-foreground">
                           {product.badge}
                         </span>
@@ -253,6 +312,19 @@ export default function Shop() {
                           Out of Stock
                         </span>
                       )}
+                      
+                      {/* Sale Badge */}
+                      {isProductOnSale(product) && activeFestival && (
+                        <div className="absolute bottom-3 right-3 z-10">
+                          <ProductSaleBadge
+                            discountValue={activeFestival.discount_value}
+                            discountType={activeFestival.discount_type}
+                            festivalTheme={activeFestival.festival_theme}
+                            size="sm"
+                          />
+                        </div>
+                      )}
+                      
                       {product.image_url ? (
                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                       ) : (
@@ -303,9 +375,20 @@ export default function Shop() {
 
                       {/* Price */}
                       <div className="mb-3">
-                        <span className="font-display text-lg sm:text-xl font-bold">
-                          ₹{product.price.toLocaleString()}
-                        </span>
+                        {isProductOnSale(product) && getDiscountedPrice(product) !== null ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-display text-lg sm:text-xl font-bold text-green-500">
+                              ₹{getDiscountedPrice(product)!.toLocaleString()}
+                            </span>
+                            <span className="text-sm text-muted-foreground line-through">
+                              ₹{product.price.toLocaleString()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-display text-lg sm:text-xl font-bold">
+                            ₹{product.price.toLocaleString()}
+                          </span>
+                        )}
                       </div>
 
                       {/* Action Buttons - Stack on mobile */}
