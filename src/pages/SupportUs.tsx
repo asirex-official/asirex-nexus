@@ -361,7 +361,7 @@ export default function SupportUs() {
                 variant="outline" 
                 size="lg" 
                 className="gap-2"
-                onClick={() => window.location.href = '/about#contact'}
+                onClick={() => window.location.href = 'mailto:support@asirex.in'}
               >
                 <Mail className="w-5 h-5" /> Contact Us
               </Button>
