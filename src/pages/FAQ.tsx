@@ -118,7 +118,7 @@ export default function FAQ() {
       faqs: [
         {
           question: "Do I need an account to place an order?",
-          answer: "Guest checkout is available, but creating an account lets you track orders, save addresses, access exclusive offers, and earn loyalty points on future purchases."
+          answer: "Yes, an account is required to place an order. Creating an account lets you track orders, save addresses, access exclusive offers, and earn loyalty points on future purchases."
         },
         {
           question: "How do I reset my password?",
