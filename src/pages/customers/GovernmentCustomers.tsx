@@ -289,10 +289,7 @@ export default function GovernmentCustomers() {
               Partner with us to bring transformative technology to every corner of India.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg">
-                <FileText className="w-5 h-5 mr-2" /> Request Proposal
-              </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button size="lg" asChild>
                 <Link to="/about#contact">Contact Us</Link>
               </Button>
             </div>
