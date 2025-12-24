@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, MessageCircle, Users, Megaphone, Instagram, Twitter, Youtube, Mail, HandHeart, Rocket, Target, Sparkles, ArrowRight, ExternalLink, Copy, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { Heart, Share2, MessageCircle, Users, Megaphone, Instagram, Twitter, Youtube, Mail, HandHeart, Rocket, Target, Sparkles, ArrowRight, ExternalLink, Copy, CheckCircle, Facebook, Linkedin } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -49,11 +50,24 @@ const supportWays = [
   }
 ];
 
-const socialPlatforms = [
-  { icon: Instagram, name: "Instagram", handle: "@asirex.official", link: "https://instagram.com/asirex.official", color: "pink" },
-  { icon: Twitter, name: "Twitter/X", handle: "@asirex_tech", link: "https://twitter.com/asirex_tech", color: "blue" },
-  { icon: Youtube, name: "YouTube", handle: "ASIREX Tech", link: "https://youtube.com/@asirextech", color: "red" }
-];
+// Icon mapping for dynamic rendering
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Instagram,
+  Youtube,
+  MessageCircle,
+  Twitter,
+  Facebook,
+  Linkedin,
+};
+
+interface SocialLink {
+  id: string;
+  platform: string;
+  name: string;
+  handle: string;
+  link: string;
+  icon: string;
+}
 
 const whyWeNeedSupport = [
   "We are building real-life prototypes entirely on our own funds",
@@ -65,6 +79,22 @@ const whyWeNeedSupport = [
 
 export default function SupportUs() {
   const [copied, setCopied] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+
+  useEffect(() => {
+    const fetchSocialLinks = async () => {
+      const { data } = await supabase
+        .from("social_links")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      
+      if (data) {
+        setSocialLinks(data);
+      }
+    };
+    fetchSocialLinks();
+  }, []);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -237,25 +267,28 @@ export default function SupportUs() {
           </motion.div>
 
           <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {socialPlatforms.map((platform, i) => (
-              <motion.a
-                key={platform.name}
-                href={platform.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -5, scale: 1.02 }}
-                className="glass-card p-6 text-center group"
-              >
-                <platform.icon className="w-10 h-10 mx-auto mb-3 text-primary group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-1">{platform.name}</h3>
-                <p className="text-muted-foreground text-sm">{platform.handle}</p>
-                <ExternalLink className="w-4 h-4 mx-auto mt-3 text-muted-foreground group-hover:text-primary transition-colors" />
-              </motion.a>
-            ))}
+            {socialLinks.map((platform, i) => {
+              const IconComponent = iconMap[platform.icon] || Share2;
+              return (
+                <motion.a
+                  key={platform.id}
+                  href={platform.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  className="glass-card p-6 text-center group"
+                >
+                  <IconComponent className="w-10 h-10 mx-auto mb-3 text-primary group-hover:scale-110 transition-transform" />
+                  <h3 className="font-semibold mb-1">{platform.name}</h3>
+                  <p className="text-muted-foreground text-sm">{platform.handle}</p>
+                  <ExternalLink className="w-4 h-4 mx-auto mt-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                </motion.a>
+              );
+            })}
           </div>
         </div>
       </section>
