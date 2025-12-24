@@ -299,7 +299,7 @@ export function LoginPathSelector({
                   <Briefcase className="w-4 h-4" />
                   Role / Designation
                 </Label>
-                <Select value={customRole} onValueChange={setCustomRole}>
+                <Select value={customRole || undefined} onValueChange={setCustomRole}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -309,7 +309,7 @@ export function LoginPathSelector({
                         {role}
                       </SelectItem>
                     ))}
-                    {!availableDesignations.includes(currentRole) && currentRole && (
+                    {!availableDesignations.includes(currentRole) && currentRole && currentRole.trim() !== "" && (
                       <SelectItem value={currentRole}>
                         {currentRole} (current)
                       </SelectItem>
@@ -324,7 +324,7 @@ export function LoginPathSelector({
                   <Building className="w-4 h-4" />
                   Department
                 </Label>
-                <Select value={customDepartment} onValueChange={setCustomDepartment}>
+                <Select value={customDepartment || undefined} onValueChange={setCustomDepartment}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
@@ -344,7 +344,7 @@ export function LoginPathSelector({
                   <Shield className="w-4 h-4" />
                   Core Type
                 </Label>
-                <Select value={customCoreType} onValueChange={setCustomCoreType}>
+                <Select value={customCoreType || undefined} onValueChange={setCustomCoreType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select core type" />
                   </SelectTrigger>
