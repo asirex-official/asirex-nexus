@@ -67,6 +67,8 @@ interface DashboardStats {
   totalRevenue: number;
   pendingOrdersValue: number;
   usersCount: number;
+  totalRefunds: number;
+  totalProfit: number;
 }
 
 interface AppUser {
@@ -128,6 +130,8 @@ const CEODashboard = () => {
     totalRevenue: 0,
     pendingOrdersValue: 0,
     usersCount: 0,
+    totalRefunds: 0,
+    totalProfit: 0,
   });
   
   // Users management state
@@ -238,19 +242,29 @@ const CEODashboard = () => {
       }
 
       // Fetch stats and users
-      const [projectsRes, productsRes, ordersRes, profilesRes, allOrdersRes] = await Promise.all([
+      const [projectsRes, productsRes, ordersRes, profilesRes, allOrdersRes, refundsRes] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact' }),
         supabase.from('products').select('id', { count: 'exact' }),
         supabase.from('orders').select('total_amount, order_status'),
         supabase.from('profiles').select('*'),
         supabase.from('orders').select('user_id, total_amount'),
+        supabase.from('refund_requests').select('amount, status'),
       ]);
 
       const orders = ordersRes.data || [];
       const allOrders = allOrdersRes.data || [];
+      const refunds = refundsRes.data || [];
       const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
       const pendingOrders = orders.filter(o => o.order_status === 'pending');
       const pendingValue = pendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      
+      // Calculate total refunds (completed ones)
+      const totalRefunds = refunds
+        .filter(r => r.status === 'completed' || r.status === 'processed')
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+      // Calculate profit (revenue - refunds)
+      const totalProfit = totalRevenue - totalRefunds;
 
       // Fetch user roles for all profiles
       const profiles = profilesRes.data || [];
@@ -299,6 +313,8 @@ const CEODashboard = () => {
         totalRevenue,
         pendingOrdersValue: pendingValue,
         usersCount: profiles.length,
+        totalRefunds,
+        totalProfit,
       });
 
     } catch (error) {
@@ -682,13 +698,20 @@ const CEODashboard = () => {
     { label: "Security Logs", icon: ShieldCheck, color: "bg-red-500/10 text-red-500", action: () => setShowSecurityLogs(true) },
   ];
 
+  // Helper to format money - show full number if < 1 lakh, otherwise show in lakhs
+  const formatMoney = (amount: number) => {
+    if (amount === 0) return "₹0";
+    if (amount < 100000) return `₹${amount.toLocaleString()}`;
+    return `₹${(amount / 100000).toFixed(1)}L`;
+  };
+
   const dashboardStats = [
     { label: "Team Members", value: stats.teamCount.toString(), icon: Users, trend: stats.teamCount > 0 ? "Active" : "No members", color: "text-blue-500" },
-    { label: "Active Projects", value: stats.projectsCount.toString(), icon: FolderKanban, trend: stats.projectsCount > 0 ? "In progress" : "None yet", color: "text-purple-500" },
+    { label: "Refunds Made", value: formatMoney(stats.totalRefunds), icon: Banknote, trend: stats.totalRefunds > 0 ? "Processed" : "No refunds", color: "text-orange-500" },
     { label: "Products Listed", value: stats.productsCount.toString(), icon: Package, trend: stats.productsCount > 0 ? "In catalog" : "Add products", color: "text-green-500" },
-    { label: "Pending Orders", value: stats.ordersCount.toString(), icon: ShoppingCart, trend: stats.pendingOrdersValue > 0 ? `₹${stats.pendingOrdersValue.toLocaleString()}` : "No pending", color: "text-orange-500" },
-    { label: "Total Revenue", value: stats.totalRevenue > 0 ? `₹${(stats.totalRevenue / 100000).toFixed(1)}L` : "₹0", icon: DollarSign, trend: stats.totalRevenue > 0 ? "Earned" : "Start selling", color: "text-emerald-500" },
-    { label: "Registered Users", value: stats.usersCount.toString(), icon: Users, trend: stats.usersCount > 0 ? "Registered" : "No users yet", color: "text-cyan-500" },
+    { label: "Pending Orders", value: stats.ordersCount.toString(), icon: ShoppingCart, trend: stats.pendingOrdersValue > 0 ? `₹${stats.pendingOrdersValue.toLocaleString()}` : "No pending", color: "text-amber-500" },
+    { label: "Total Revenue", value: formatMoney(stats.totalRevenue), icon: DollarSign, trend: stats.totalRevenue > 0 ? "Earned" : "Start selling", color: "text-emerald-500" },
+    { label: "Total Profit", value: formatMoney(stats.totalProfit), icon: TrendingUp, trend: stats.totalProfit > 0 ? "Net earnings" : "Break even", color: "text-orange-500" },
   ];
 
   const pendingTasks = tasks.filter(t => t.status !== 'completed').slice(0, 4);
