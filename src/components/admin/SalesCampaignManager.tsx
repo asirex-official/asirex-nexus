@@ -53,22 +53,56 @@ interface Product {
 }
 
 const festivalPresets = [
+  // Indian Festivals
   { name: "Diwali Sale", message: "🪔 Diwali Special! Light up your savings!", color: "#f97316", theme: "diwali" },
-  { name: "Christmas Sale", message: "🎄 Christmas Joy! Unwrap amazing deals!", color: "#22c55e", theme: "christmas" },
-  { name: "New Year Sale", message: "🎉 New Year, New Savings! Start fresh!", color: "#6366f1", theme: "new_year" },
   { name: "Holi Sale", message: "🌈 Holi Bonanza! Colors of savings!", color: "#ec4899", theme: "holi" },
   { name: "Independence Day Sale", message: "🇮🇳 Freedom Sale! Celebrate with discounts!", color: "#f97316", theme: "independence_day" },
+  { name: "Navratri Sale", message: "💃 Navratri Special! Dance into savings!", color: "#d946ef", theme: "navratri" },
+  { name: "Ganesh Chaturthi Sale", message: "🐘 Ganesh Chaturthi Blessings! Special offers!", color: "#eab308", theme: "ganesh_chaturthi" },
+  { name: "Onam Sale", message: "🛶 Onam Celebrations! Harvest of deals!", color: "#22c55e", theme: "onam" },
+  { name: "Raksha Bandhan Sale", message: "🎀 Rakhi Special! Gifts for siblings!", color: "#f472b6", theme: "raksha_bandhan" },
+  { name: "Eid Sale", message: "🌙 Eid Mubarak! Blessed savings!", color: "#14b8a6", theme: "eid" },
+  
+  // Worldwide Festivals
+  { name: "Christmas Sale", message: "🎄 Christmas Joy! Unwrap amazing deals!", color: "#22c55e", theme: "christmas" },
+  { name: "New Year Sale", message: "🎉 New Year, New Savings! Start fresh!", color: "#6366f1", theme: "new_year" },
+  { name: "Valentine's Day Sale", message: "💕 Valentine's Special! Love & Savings!", color: "#ef4444", theme: "valentines" },
+  { name: "Easter Sale", message: "🐰 Easter Egg Hunt! Find amazing deals!", color: "#a855f7", theme: "easter" },
+  { name: "Halloween Sale", message: "👻 Spooky Savings! Frighteningly good deals!", color: "#f97316", theme: "halloween" },
+  { name: "Thanksgiving Sale", message: "🦃 Thanksgiving Special! Grateful savings!", color: "#ca8a04", theme: "thanksgiving" },
+  { name: "Black Friday Sale", message: "🛒 BLACK FRIDAY! Biggest discounts ever!", color: "#000000", theme: "black_friday" },
+  { name: "Cyber Monday Sale", message: "💻 Cyber Monday! Online exclusive deals!", color: "#3b82f6", theme: "black_friday" },
+  { name: "St. Patrick's Day Sale", message: "☘️ Lucky Day! Find your pot of gold!", color: "#22c55e", theme: "st_patricks" },
+  
+  // Generic Sales
   { name: "Flash Sale", message: "⚡ Flash Sale! Limited time only!", color: "#ef4444", theme: null },
   { name: "Weekend Special", message: "🎊 Weekend Special! Shop & Save!", color: "#8b5cf6", theme: null },
   { name: "Clearance Sale", message: "📦 Clearance! Everything must go!", color: "#f59e0b", theme: null },
+  { name: "Summer Sale", message: "☀️ Summer Sale! Hot deals, cool prices!", color: "#fbbf24", theme: null },
+  { name: "Monsoon Sale", message: "🌧️ Monsoon Sale! Shower of savings!", color: "#0ea5e9", theme: null },
+  { name: "Winter Sale", message: "❄️ Winter Sale! Warm deals, cold prices!", color: "#64748b", theme: null },
 ];
 
 const festivalThemes = [
+  // Indian Festivals
   { value: "diwali", label: "🪔 Diwali - Firecrackers & Diyas", icon: "🪔" },
-  { value: "christmas", label: "🎄 Christmas - Snow & Santa", icon: "🎄" },
   { value: "holi", label: "🌈 Holi - Colors Splash", icon: "🌈" },
+  { value: "independence_day", label: "🇮🇳 Independence Day - Tricolor & Flags", icon: "🇮🇳" },
+  { value: "navratri", label: "💃 Navratri/Durga Puja - Dandiya & Dance", icon: "💃" },
+  { value: "ganesh_chaturthi", label: "🐘 Ganesh Chaturthi - Blessings", icon: "🐘" },
+  { value: "onam", label: "🛶 Onam - Flowers & Boats", icon: "🛶" },
+  { value: "raksha_bandhan", label: "🎀 Raksha Bandhan - Rakhis", icon: "🎀" },
+  { value: "eid", label: "🌙 Eid - Moon & Stars", icon: "🌙" },
+  
+  // Worldwide Festivals
+  { value: "christmas", label: "🎄 Christmas - Snow & Santa Walking", icon: "🎄" },
   { value: "new_year", label: "🎆 New Year - Confetti & Fireworks", icon: "🎆" },
-  { value: "independence_day", label: "🇮🇳 Independence Day - Tricolor", icon: "🇮🇳" },
+  { value: "valentines", label: "💕 Valentine's Day - Floating Hearts", icon: "💕" },
+  { value: "easter", label: "🐰 Easter - Bunny & Eggs", icon: "🐰" },
+  { value: "halloween", label: "👻 Halloween - Ghosts & Pumpkins", icon: "👻" },
+  { value: "thanksgiving", label: "🦃 Thanksgiving - Turkey & Leaves", icon: "🦃" },
+  { value: "black_friday", label: "🛒 Black Friday/Cyber Monday - Shopping Frenzy", icon: "🛒" },
+  { value: "st_patricks", label: "☘️ St. Patrick's Day - Clovers & Rainbow", icon: "☘️" },
 ];
 
 const productCategories = ["AI Hardware", "Robotics", "Clean Tech", "Gadgets", "Nano Tech", "Accessories"];
