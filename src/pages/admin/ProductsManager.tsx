@@ -23,6 +23,7 @@ import {
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 import { MediaUploader } from "@/components/admin/MediaUploader";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = ["AI Hardware", "Robotics", "Clean Tech", "Developer Tools", "Energy", "IoT", "Accessories", "Gadgets"];
 const badges = ["", "NEW", "BEST SELLER", "LIMITED STOCK", "HOT", "SALE", "PREMIUM", "TRENDING"];
@@ -149,7 +150,29 @@ export default function ProductsManager() {
         toast({ title: "Product updated successfully" });
       } else {
         await createProduct.mutateAsync(productData);
-        toast({ title: "Product created successfully" });
+        
+        // Send notification for new product
+        try {
+          await supabase.functions.invoke("send-unified-notification", {
+            body: {
+              type: "new_product",
+              targetAll: true,
+              sendEmail: true,
+              sendInApp: true,
+              data: {
+                productName: form.name,
+                description: form.description,
+                price: form.price,
+                imageUrl: image_url,
+                productUrl: `${window.location.origin}/shop`,
+              },
+            },
+          });
+        } catch (e) {
+          console.error("Notification failed:", e);
+        }
+        
+        toast({ title: "Product created and users notified!" });
       }
       setIsDialogOpen(false);
     } catch (error) {

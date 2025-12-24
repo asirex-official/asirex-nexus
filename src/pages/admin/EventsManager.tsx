@@ -34,6 +34,7 @@ import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hoo
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { MediaUploader } from "@/components/admin/MediaUploader";
+import { supabase } from "@/integrations/supabase/client";
 
 const eventTypes = ["Launch", "Conference", "Workshop", "Summit", "Meetup", "Event"];
 
@@ -123,7 +124,29 @@ export default function EventsManager() {
         toast({ title: "Event updated successfully" });
       } else {
         await createEvent.mutateAsync(eventData);
-        toast({ title: "Event created successfully" });
+        
+        // Send notification for new event
+        try {
+          await supabase.functions.invoke("send-unified-notification", {
+            body: {
+              type: "new_event",
+              targetAll: true,
+              sendEmail: true,
+              sendInApp: true,
+              data: {
+                eventName: form.name,
+                description: form.description,
+                date: format(new Date(form.event_date), "PPP"),
+                location: form.location,
+                eventUrl: `${window.location.origin}/events`,
+              },
+            },
+          });
+        } catch (e) {
+          console.error("Notification failed:", e);
+        }
+        
+        toast({ title: "Event created and users notified!" });
       }
       setIsDialogOpen(false);
     } catch (error) {

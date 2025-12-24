@@ -119,7 +119,27 @@ export function CouponManager() {
 
       if (error) throw error;
 
-      toast.success("Coupon created successfully!");
+      // Send notification for new coupon
+      try {
+        await supabase.functions.invoke("send-unified-notification", {
+          body: {
+            type: "new_coupon",
+            targetAll: true,
+            sendEmail: true,
+            sendInApp: true,
+            data: {
+              code: form.code.toUpperCase().trim(),
+              discount: form.discount_value,
+              validUntil: form.valid_until ? format(new Date(form.valid_until), "PPP") : null,
+              shopUrl: `${window.location.origin}/shop`,
+            },
+          },
+        });
+      } catch (e) {
+        console.error("Notification failed:", e);
+      }
+
+      toast.success("Coupon created and users notified!");
       setShowCreateDialog(false);
       setForm(defaultForm);
       fetchCoupons();

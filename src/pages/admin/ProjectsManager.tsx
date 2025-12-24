@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProjectTeamDialog } from "@/components/admin/ProjectTeamDialog";
 import { useAllProjectAssignments } from "@/hooks/useProjectAssignments";
 import { MediaUploader } from "@/components/admin/MediaUploader";
+import { supabase } from "@/integrations/supabase/client";
 
 const statuses = ["Planning", "In Development", "Prototype Ready", "Beta Testing", "Launched"];
 
@@ -141,7 +142,27 @@ export default function ProjectsManager() {
           gallery_images: form.gallery_images,
           gallery_videos: form.gallery_videos,
         });
-        toast({ title: "Project created successfully" });
+        
+        // Send notification for new project
+        try {
+          await supabase.functions.invoke("send-unified-notification", {
+            body: {
+              type: "new_project",
+              targetAll: true,
+              sendEmail: true,
+              sendInApp: true,
+              data: {
+                projectName: form.title,
+                description: form.tagline || form.description,
+                projectUrl: `${window.location.origin}/projects`,
+              },
+            },
+          });
+        } catch (e) {
+          console.error("Notification failed:", e);
+        }
+        
+        toast({ title: "Project created and users notified!" });
       }
       setIsDialogOpen(false);
     } catch (error) {
