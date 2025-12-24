@@ -36,6 +36,7 @@ import { SecurityLogsViewer } from "@/components/admin/SecurityLogsViewer";
 import { CouponManager } from "@/components/admin/CouponManager";
 import { BulkNotificationSender } from "@/components/admin/BulkNotificationSender";
 import { SalesCampaignManager } from "@/components/admin/SalesCampaignManager";
+import { SocialLinksManager } from "@/components/admin/SocialLinksManager";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
@@ -877,6 +878,7 @@ const CEODashboard = () => {
                 <TabsTrigger value="coupons" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Ticket className="w-4 h-4" />Coupons</TabsTrigger>
                 <TabsTrigger value="notifications" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Send className="w-4 h-4" />Notify</TabsTrigger>
                 <TabsTrigger value="content" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Layers className="w-4 h-4" />Content</TabsTrigger>
+                <TabsTrigger value="social" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Share2 className="w-4 h-4" />Social</TabsTrigger>
                 <TabsTrigger value="notices" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Bell className="w-4 h-4" />Notices</TabsTrigger>
                 <TabsTrigger value="audit" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><ScrollText className="w-4 h-4" />Audit</TabsTrigger>
                 <TabsTrigger value="refunds" className="gap-1.5 px-4 data-[state=active]:shadow-md transition-all"><Banknote className="w-4 h-4" />Refunds</TabsTrigger>
@@ -905,6 +907,10 @@ const CEODashboard = () => {
 
           <TabsContent value="notifications">
             <BulkNotificationSender />
+          </TabsContent>
+
+          <TabsContent value="social">
+            <SocialLinksManager />
           </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">

@@ -2093,6 +2093,45 @@ export type Database = {
         }
         Relationships: []
       }
+      social_links: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          handle: string
+          icon: string
+          id: string
+          is_active: boolean | null
+          link: string
+          name: string
+          platform: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          handle: string
+          icon: string
+          id?: string
+          is_active?: boolean | null
+          link: string
+          name: string
+          platform: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          handle?: string
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          link?: string
+          name?: string
+          platform?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       task_comments: {
         Row: {
           comment: string
