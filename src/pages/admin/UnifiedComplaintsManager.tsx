@@ -189,15 +189,24 @@ export default function UnifiedComplaintsManager() {
       // Only generate coupon for eligible types (NOT returns)
       if (isEligibleForCoupon) {
         couponCode = `SORRY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const issueDescription = selectedComplaint.complaint_type === 'damaged' 
+          ? 'We sincerely apologize for sending a damaged product. Please accept this 20% discount on your next order.'
+          : selectedComplaint.complaint_type === 'not_received'
+          ? 'We apologize for the delivery issues you experienced. Please use this 20% discount on your next purchase.'
+          : selectedComplaint.complaint_type === 'warranty'
+          ? 'Thank you for your patience with your warranty claim. Enjoy 20% off your next order.'
+          : 'We apologize for the inconvenience caused. Please accept this 20% discount as our apology.';
+        
         await supabase.from("coupons").insert({
           code: couponCode,
-          description: "Apology coupon for order issue",
+          description: issueDescription,
           discount_type: "percentage",
           discount_value: 20,
           usage_limit: 1,
           per_user_limit: 1,
           is_active: true,
           valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+          category: "apology",
         });
       }
 

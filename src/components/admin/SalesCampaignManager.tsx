@@ -323,30 +323,38 @@ export function SalesCampaignManager() {
 
   const sendCampaignNotifications = async (campaignData: any) => {
     try {
-      // Get all users for notifications
-      const { data: users } = await supabase
-        .from("profiles")
-        .select("user_id");
+      const discountText = `${campaignData.discount_value}${campaignData.discount_type === 'percentage' ? '%' : '₹'} off`;
       
-      if (users && notifyUsers) {
-        // Create in-app notifications
-        const notifications = users.map((user) => ({
-          user_id: user.user_id,
+      // Use the unified notification edge function for both in-app and email
+      const { error } = await supabase.functions.invoke("send-unified-notification", {
+        body: {
+          type: "new_coupon",
+          targetAll: true,
+          sendEmail: notifyEmail,
+          sendInApp: notifyUsers,
           title: `🎉 ${campaignData.name}`,
-          message: campaignData.banner_message || `Get ${campaignData.discount_value}${campaignData.discount_type === 'percentage' ? '%' : '₹'} off!`,
-          type: "promotion",
+          message: campaignData.banner_message || `Get ${discountText}! Don't miss this amazing offer.`,
           link: "/shop",
-        }));
-        
-        await supabase.from("notifications").insert(notifications);
+          data: {
+            code: campaignData.name.toUpperCase().replace(/\s+/g, ''),
+            discount: campaignData.discount_value,
+            shopUrl: `${window.location.origin}/shop`,
+            validUntil: campaignData.end_date ? new Date(campaignData.end_date).toLocaleDateString() : null,
+          },
+        },
+      });
+
+      if (error) throw error;
+      
+      if (notifyUsers) {
         toast.success("In-app notifications sent to all users!");
       }
-      
       if (notifyEmail) {
-        toast.info("Email notifications will be sent via the notification service.");
+        toast.success("Email notifications sent to all users!");
       }
     } catch (error) {
       console.error("Error sending notifications:", error);
+      toast.error("Failed to send some notifications");
     }
   };
 

@@ -20,9 +20,11 @@ type NotificationType =
   | "warranty_approved"
   | "warranty_rejected"
   | "new_coupon"
+  | "apology_coupon"
   | "new_product"
   | "new_event"
   | "new_project"
+  | "sale_campaign"
   | "custom";
 
 interface NotificationRequest {
@@ -304,6 +306,46 @@ const getNotificationContent = (type: NotificationType, data: Record<string, any
             <h2 style="color:#1f2937;">${data.projectName || 'Exciting New Project'}</h2>
             <p>${data.description || 'We are excited to announce our latest project!'}</p>
             <a href="${data.projectUrl || '#'}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#14b8a6;color:white;text-decoration:none;border-radius:8px;">View Project</a>
+          </div>
+        </div>
+      `,
+    },
+    apology_coupon: {
+      title: "We're Sorry - Here's a Gift! 💝",
+      message: `We apologize for the inconvenience. Use code ${data.code || 'SORRY'} for ${data.discount || 20}% off your next order!`,
+      emailSubject: "Our Apology & A Gift For You - ASIREX",
+      emailHtml: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+          <div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);padding:30px;border-radius:12px 12px 0 0;">
+            <h1 style="color:white;margin:0;">💝 We're Sorry!</h1>
+          </div>
+          <div style="background:#f9fafb;padding:30px;text-align:center;">
+            <p style="font-size:16px;color:#4b5563;">We sincerely apologize for the inconvenience you experienced.</p>
+            <p style="font-size:16px;color:#4b5563;">As a token of our apology, please accept this special discount:</p>
+            <div style="background:#fef3c7;border:2px dashed #f97316;padding:20px;border-radius:8px;margin:20px 0;">
+              <span style="font-size:28px;font-weight:bold;color:#ea580c;">${data.code || 'SORRY'}</span>
+            </div>
+            <p style="font-size:24px;color:#f97316;font-weight:bold;">Get ${data.discount || 20}% OFF!</p>
+            <p style="color:#6b7280;font-size:14px;">Valid for your next order</p>
+            <a href="${data.shopUrl || '#'}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#f97316;color:white;text-decoration:none;border-radius:8px;">Shop Now</a>
+          </div>
+        </div>
+      `,
+    },
+    sale_campaign: {
+      title: `🎉 ${data.campaignName || 'Special Sale'}`,
+      message: data.bannerMessage || `Get ${data.discount || ''}% off! Limited time offer.`,
+      emailSubject: `${data.campaignName || 'Special Sale'} - ASIREX`,
+      emailHtml: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+          <div style="background:linear-gradient(135deg,${data.bannerColor || '#6366f1'} 0%,${data.bannerColor || '#4f46e5'} 100%);padding:30px;border-radius:12px 12px 0 0;">
+            <h1 style="color:white;margin:0;">🎉 ${data.campaignName || 'Special Sale!'}</h1>
+          </div>
+          <div style="background:#f9fafb;padding:30px;text-align:center;">
+            <p style="font-size:18px;">${data.bannerMessage || 'Don\'t miss out!'}</p>
+            <p style="font-size:32px;color:${data.bannerColor || '#6366f1'};font-weight:bold;">Get ${data.discount || ''}% OFF!</p>
+            ${data.validUntil ? `<p style="color:#6b7280;">Valid until ${data.validUntil}</p>` : ''}
+            <a href="${data.shopUrl || '#'}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:${data.bannerColor || '#6366f1'};color:white;text-decoration:none;border-radius:8px;">Shop Now</a>
           </div>
         </div>
       `,
