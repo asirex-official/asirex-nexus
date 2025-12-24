@@ -8,7 +8,8 @@ const corsHeaders = {
 };
 
 interface GiftCardRefundRequest {
-  refund_id: string;
+  refund_id?: string;
+  order_id?: string;
   user_id: string;
   amount: number;
 }
@@ -19,11 +20,23 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { refund_id, user_id, amount }: GiftCardRefundRequest = await req.json();
+    const body: GiftCardRefundRequest = await req.json();
+    console.log("Received request:", JSON.stringify(body));
+    
+    const { refund_id, order_id, user_id, amount } = body;
 
-    if (!refund_id || !user_id || !amount) {
+    if (!user_id || !amount) {
+      console.error("Missing required fields - user_id:", user_id, "amount:", amount);
       return new Response(
-        JSON.stringify({ error: "Refund ID, user ID, and amount are required" }),
+        JSON.stringify({ error: "User ID and amount are required" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!refund_id && !order_id) {
+      console.error("Missing refund_id or order_id");
+      return new Response(
+        JSON.stringify({ error: "Either refund_id or order_id is required" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -33,20 +46,75 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    let actualRefundId = refund_id;
+
+    // If order_id is provided instead of refund_id, find or create a refund request
+    if (!actualRefundId && order_id) {
+      console.log("Looking up or creating refund for order:", order_id);
+      
+      // Check if refund request already exists for this order
+      const { data: existingRefund } = await supabase
+        .from("refund_requests")
+        .select("id")
+        .eq("order_id", order_id)
+        .eq("user_id", user_id)
+        .in("status", ["pending_user_selection", "pending"])
+        .maybeSingle();
+
+      if (existingRefund) {
+        actualRefundId = existingRefund.id;
+        console.log("Found existing refund request:", actualRefundId);
+      } else {
+        // Create a new refund request
+        const { data: order } = await supabase
+          .from("orders")
+          .select("payment_method")
+          .eq("id", order_id)
+          .single();
+
+        const { data: newRefund, error: refundError } = await supabase
+          .from("refund_requests")
+          .insert({
+            order_id,
+            user_id,
+            amount,
+            payment_method: order?.payment_method || "unknown",
+            refund_method: "gift_card",
+            status: "processing",
+          })
+          .select()
+          .single();
+
+        if (refundError) {
+          console.error("Error creating refund request:", refundError);
+          return new Response(
+            JSON.stringify({ error: "Failed to create refund request" }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
+        actualRefundId = newRefund.id;
+        console.log("Created new refund request:", actualRefundId);
+      }
+    }
+
     // Call the database function to create gift card
+    console.log("Calling create_gift_card_refund with:", { user_id, amount, refund_id: actualRefundId });
     const { data, error } = await supabase.rpc("create_gift_card_refund", {
       p_user_id: user_id,
       p_amount: amount,
-      p_refund_id: refund_id,
+      p_refund_id: actualRefundId,
     });
 
     if (error) {
       console.error("Error creating gift card:", error);
       return new Response(
-        JSON.stringify({ error: "Failed to create gift card" }),
+        JSON.stringify({ error: "Failed to create gift card: " + error.message }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    console.log("Gift card created with ID:", data);
 
     // Get the created gift card
     const { data: giftCard, error: fetchError } = await supabase
@@ -59,6 +127,8 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error fetching gift card:", fetchError);
     }
 
+    console.log("Gift card details:", giftCard);
+
     // Send notification email
     const { data: authUser } = await supabase.auth.admin.getUserById(user_id);
     
@@ -67,41 +137,46 @@ const handler = async (req: Request): Promise<Response> => {
       if (RESEND_API_KEY) {
         const resend = new Resend(RESEND_API_KEY);
         
-        await resend.emails.send({
-          from: "ASIREX <onboarding@resend.dev>",
-          to: [authUser.user.email],
-          subject: "Your Gift Card Refund is Ready!",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #fff;">
-              <h2 style="color: #6366f1;">Gift Card Refund Issued</h2>
-              <p>Great news! Your refund has been processed as a gift card.</p>
-              
-              <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 30px; border-radius: 12px; text-align: center; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; opacity: 0.8;">Gift Card Code</p>
-                <div style="font-size: 28px; letter-spacing: 4px; font-weight: bold; font-family: monospace;">
-                  ${giftCard.code}
+        try {
+          await resend.emails.send({
+            from: "ASIREX <onboarding@resend.dev>",
+            to: [authUser.user.email],
+            subject: "Your Gift Card Refund is Ready!",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #fff;">
+                <h2 style="color: #6366f1;">Gift Card Refund Issued</h2>
+                <p>Great news! Your refund has been processed as a gift card.</p>
+                
+                <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 30px; border-radius: 12px; text-align: center; margin: 20px 0;">
+                  <p style="margin: 0 0 10px 0; opacity: 0.8;">Gift Card Code</p>
+                  <div style="font-size: 28px; letter-spacing: 4px; font-weight: bold; font-family: monospace;">
+                    ${giftCard.code}
+                  </div>
+                  <div style="margin-top: 20px; font-size: 24px;">
+                    ₹${amount.toLocaleString()}
+                  </div>
                 </div>
-                <div style="margin-top: 20px; font-size: 24px;">
-                  ₹${amount.toLocaleString()}
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px;">
+                  <h4 style="margin: 0 0 10px 0;">Terms & Conditions:</h4>
+                  <ul style="margin: 0; padding-left: 20px; font-size: 14px; opacity: 0.8;">
+                    <li>This gift card can only be used once</li>
+                    <li>Non-transferable to other accounts</li>
+                    <li>Valid for 1 year from issue date</li>
+                    <li>Cannot be exchanged for cash</li>
+                  </ul>
                 </div>
+                
+                <p style="color: #888; font-size: 12px; margin-top: 20px;">
+                  This gift card has been automatically credited to your account. You can use it at checkout.
+                </p>
               </div>
-              
-              <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px;">
-                <h4 style="margin: 0 0 10px 0;">Terms & Conditions:</h4>
-                <ul style="margin: 0; padding-left: 20px; font-size: 14px; opacity: 0.8;">
-                  <li>This gift card can only be used once</li>
-                  <li>Non-transferable to other accounts</li>
-                  <li>Valid for 1 year from issue date</li>
-                  <li>Cannot be exchanged for cash</li>
-                </ul>
-              </div>
-              
-              <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                This gift card has been automatically credited to your account. You can use it at checkout.
-              </p>
-            </div>
-          `,
-        });
+            `,
+          });
+          console.log("Email sent successfully");
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+        }
       }
     }
 
@@ -114,12 +189,14 @@ const handler = async (req: Request): Promise<Response> => {
         type: "refund",
         link: "/settings?tab=gift-cards",
       });
+      console.log("Notification created");
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         gift_card_id: data,
+        gift_card_code: giftCard?.code,
         code: giftCard?.code,
         message: "Gift card refund processed successfully" 
       }),
