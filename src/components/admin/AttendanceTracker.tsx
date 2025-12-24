@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { 
   Clock, LogIn, LogOut, Coffee, Play, Users, 
-  Calendar, Timer, Search, Filter
+  Calendar, Timer, Search, Filter, AlertTriangle, IndianRupee, Minus
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { 
@@ -18,6 +20,9 @@ import {
   useClockOut,
   useStartBreak,
   useEndBreak,
+  useMyDeductions,
+  useMarkAbsent,
+  useAllDeductions,
   AttendanceRecord
 } from "@/hooks/useAttendance";
 
@@ -28,16 +33,23 @@ interface AttendanceTrackerProps {
 export function AttendanceTracker({ isAdmin = false }: AttendanceTrackerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"today" | "all">("today");
+  const [viewMode, setViewMode] = useState<"today" | "all" | "deductions">("today");
+  const [showDeductionDialog, setShowDeductionDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [deductionAmount, setDeductionAmount] = useState("200");
+  const [deductionReason, setDeductionReason] = useState("absent");
 
   const { data: allAttendance, isLoading: loadingAll } = useAttendance();
   const { data: todayAttendance, isLoading: loadingToday } = useAllTodayAttendance();
   const { data: myAttendance } = useTodayAttendance();
+  const { data: myDeductions } = useMyDeductions();
+  const { data: allDeductions } = useAllDeductions();
 
   const clockIn = useClockIn();
   const clockOut = useClockOut();
   const startBreak = useStartBreak();
   const endBreak = useEndBreak();
+  const markAbsent = useMarkAbsent();
 
   const displayData = viewMode === "today" ? todayAttendance : allAttendance;
   const isLoading = viewMode === "today" ? loadingToday : loadingAll;
@@ -98,6 +110,23 @@ export function AttendanceTracker({ isAdmin = false }: AttendanceTrackerProps) {
     }
   };
 
+  const handleMarkAbsent = async () => {
+    if (!selectedMember) return;
+    try {
+      await markAbsent.mutateAsync({
+        teamMemberId: selectedMember.id,
+        date: new Date().toISOString().split("T")[0],
+        deductionAmount: parseFloat(deductionAmount),
+        reason: deductionReason,
+      });
+      toast.success("Absence recorded with salary deduction");
+      setShowDeductionDialog(false);
+      setSelectedMember(null);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to mark absent");
+    }
+  };
+
   // Calculate stats
   const stats = {
     clockedIn: todayAttendance?.filter(r => r.status === "clocked_in").length || 0,
@@ -106,83 +135,103 @@ export function AttendanceTracker({ isAdmin = false }: AttendanceTrackerProps) {
     total: todayAttendance?.length || 0,
   };
 
+  // Calculate my total deductions
+  const myTotalDeductions = myDeductions?.reduce((sum, d) => sum + d.deduction_amount, 0) || 0;
+
   return (
     <div className="space-y-6">
-      {/* Personal Clock In/Out Card */}
-      {!isAdmin && (
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              My Attendance Today
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="flex-1">
-                {myAttendance ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(myAttendance.status)}>
-                        {myAttendance.status.replace("_", " ").toUpperCase()}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Clocked in at {format(new Date(myAttendance.clock_in), "hh:mm a")}
-                      </span>
-                    </div>
-                    {myAttendance.clock_out && (
-                      <p className="text-sm">
-                        Clocked out at {format(new Date(myAttendance.clock_out), "hh:mm a")} • 
-                        Total: {myAttendance.total_hours?.toFixed(2)} hours
-                      </p>
-                    )}
-                    {!myAttendance.clock_out && (
-                      <p className="text-sm text-muted-foreground">
-                        Working for {formatDistanceToNow(new Date(myAttendance.clock_in))}
-                      </p>
-                    )}
+      {/* Personal Clock In/Out Card - Always show for team members */}
+      <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            My Attendance Today
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <div className="flex-1">
+              {myAttendance ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className={getStatusColor(myAttendance.status)}>
+                      {myAttendance.status.replace("_", " ").toUpperCase()}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Clocked in at {format(new Date(myAttendance.clock_in), "hh:mm a")}
+                    </span>
                   </div>
-                ) : (
+                  {myAttendance.clock_out && (
+                    <p className="text-sm">
+                      Clocked out at {format(new Date(myAttendance.clock_out), "hh:mm a")} • 
+                      Total: {myAttendance.total_hours?.toFixed(2)} hours
+                    </p>
+                  )}
+                  {!myAttendance.clock_out && (
+                    <p className="text-sm text-muted-foreground">
+                      Working for {formatDistanceToNow(new Date(myAttendance.clock_in))}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
                   <p className="text-muted-foreground">You haven't clocked in today</p>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                {!myAttendance ? (
-                  <Button onClick={handleClockIn} disabled={clockIn.isPending} className="gap-2">
-                    <LogIn className="w-4 h-4" />
-                    Clock In
-                  </Button>
-                ) : myAttendance.status === "clocked_in" ? (
-                  <>
-                    <Button variant="outline" onClick={handleStartBreak} disabled={startBreak.isPending} className="gap-2">
-                      <Coffee className="w-4 h-4" />
-                      Start Break
-                    </Button>
-                    <Button variant="destructive" onClick={handleClockOut} disabled={clockOut.isPending} className="gap-2">
-                      <LogOut className="w-4 h-4" />
-                      Clock Out
-                    </Button>
-                  </>
-                ) : myAttendance.status === "on_break" ? (
-                  <>
-                    <Button onClick={handleEndBreak} disabled={endBreak.isPending} className="gap-2">
-                      <Play className="w-4 h-4" />
-                      End Break
-                    </Button>
-                    <Button variant="destructive" onClick={handleClockOut} disabled={clockOut.isPending} className="gap-2">
-                      <LogOut className="w-4 h-4" />
-                      Clock Out
-                    </Button>
-                  </>
-                ) : (
-                  <Badge variant="outline" className="text-green-500">Completed for today</Badge>
-                )}
-              </div>
+                  <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Missing attendance may result in ₹200 salary deduction
+                  </p>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            <div className="flex gap-2">
+              {!myAttendance ? (
+                <Button onClick={handleClockIn} disabled={clockIn.isPending} className="gap-2">
+                  <LogIn className="w-4 h-4" />
+                  Clock In
+                </Button>
+              ) : myAttendance.status === "clocked_in" ? (
+                <>
+                  <Button variant="outline" onClick={handleStartBreak} disabled={startBreak.isPending} className="gap-2">
+                    <Coffee className="w-4 h-4" />
+                    Break
+                  </Button>
+                  <Button variant="destructive" onClick={handleClockOut} disabled={clockOut.isPending} className="gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Clock Out
+                  </Button>
+                </>
+              ) : myAttendance.status === "on_break" ? (
+                <>
+                  <Button onClick={handleEndBreak} disabled={endBreak.isPending} className="gap-2">
+                    <Play className="w-4 h-4" />
+                    End Break
+                  </Button>
+                  <Button variant="destructive" onClick={handleClockOut} disabled={clockOut.isPending} className="gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Clock Out
+                  </Button>
+                </>
+              ) : (
+                <Badge variant="outline" className="text-green-500">Completed for today</Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Show my deductions */}
+          {myDeductions && myDeductions.length > 0 && (
+            <div className="mt-4 p-3 bg-destructive/10 rounded-lg">
+              <p className="text-sm font-medium text-destructive flex items-center gap-2">
+                <Minus className="w-4 h-4" />
+                Total Deductions: ₹{myTotalDeductions}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {myDeductions.length} day(s) absent this month
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Stats for Admins */}
       {isAdmin && (

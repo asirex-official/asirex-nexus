@@ -18,7 +18,18 @@ export interface AttendanceRecord {
     name: string;
     department: string | null;
     profile_image: string | null;
+    attendance_deduction_rate?: number;
   };
+}
+
+export interface AttendanceDeduction {
+  id: string;
+  team_member_id: string;
+  date: string;
+  deduction_amount: number;
+  reason: string;
+  status: string;
+  created_at: string;
 }
 
 export function useAttendance(teamMemberId?: string) {
@@ -29,7 +40,7 @@ export function useAttendance(teamMemberId?: string) {
         .from("attendance")
         .select(`
           *,
-          team_member:team_members(name, department, profile_image)
+          team_member:team_members(name, department, profile_image, attendance_deduction_rate)
         `)
         .order("clock_in", { ascending: false });
 
@@ -56,7 +67,7 @@ export function useTodayAttendance() {
       // Get team member for this user
       const { data: teamMember } = await supabase
         .from("team_members")
-        .select("id")
+        .select("id, attendance_deduction_rate")
         .eq("user_id", user.id)
         .single();
 
@@ -79,6 +90,56 @@ export function useTodayAttendance() {
   });
 }
 
+export function useMyTeamMember() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-team-member", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from("team_members")
+        .select("*, attendance_deduction_rate, daily_salary")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useMyDeductions() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-deductions", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data: teamMember } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!teamMember) return [];
+
+      const { data, error } = await supabase
+        .from("attendance_deductions")
+        .select("*")
+        .eq("team_member_id", teamMember.id)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      return data as AttendanceDeduction[];
+    },
+    enabled: !!user?.id,
+  });
+}
+
 export function useClockIn() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -94,7 +155,7 @@ export function useClockIn() {
         .eq("user_id", user.id)
         .single();
 
-      if (tmError || !teamMember) throw new Error("Team member not found");
+      if (tmError || !teamMember) throw new Error("Team member not found. Please contact admin.");
 
       const { data, error } = await supabase
         .from("attendance")
@@ -113,6 +174,7 @@ export function useClockIn() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendance-today"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-all-today"] });
     },
   });
 }
@@ -163,6 +225,7 @@ export function useClockOut() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendance-today"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-all-today"] });
     },
   });
 }
@@ -188,6 +251,7 @@ export function useStartBreak() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendance-today"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-all-today"] });
     },
   });
 }
@@ -213,6 +277,7 @@ export function useEndBreak() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendance-today"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-all-today"] });
     },
   });
 }
@@ -227,7 +292,7 @@ export function useAllTodayAttendance() {
         .from("attendance")
         .select(`
           *,
-          team_member:team_members(name, department, profile_image, role)
+          team_member:team_members(name, department, profile_image, role, attendance_deduction_rate)
         `)
         .gte("clock_in", `${today}T00:00:00`)
         .lte("clock_in", `${today}T23:59:59`)
@@ -235,6 +300,55 @@ export function useAllTodayAttendance() {
 
       if (error) throw error;
       return data as AttendanceRecord[];
+    },
+  });
+}
+
+export function useMarkAbsent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ teamMemberId, date, deductionAmount, reason }: {
+      teamMemberId: string;
+      date: string;
+      deductionAmount: number;
+      reason: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("attendance_deductions")
+        .insert({
+          team_member_id: teamMemberId,
+          date,
+          deduction_amount: deductionAmount,
+          reason,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance-deductions"] });
+    },
+  });
+}
+
+export function useAllDeductions() {
+  return useQuery({
+    queryKey: ["attendance-deductions-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("attendance_deductions")
+        .select(`
+          *,
+          team_member:team_members(name, department)
+        `)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      return data;
     },
   });
 }

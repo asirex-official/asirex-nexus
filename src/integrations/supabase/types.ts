@@ -143,6 +143,54 @@ export type Database = {
           },
         ]
       }
+      attendance_deductions: {
+        Row: {
+          created_at: string | null
+          date: string
+          deduction_amount: number
+          id: string
+          reason: string
+          status: string | null
+          team_member_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          deduction_amount?: number
+          id?: string
+          reason?: string
+          status?: string | null
+          team_member_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          deduction_amount?: number
+          id?: string
+          reason?: string
+          status?: string | null
+          team_member_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_deductions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_deductions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auth_attempts: {
         Row: {
           attempt_type: string
@@ -372,6 +420,7 @@ export type Database = {
       }
       coupons: {
         Row: {
+          category: string | null
           code: string
           created_at: string
           created_by: string | null
@@ -391,6 +440,7 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          category?: string | null
           code: string
           created_at?: string
           created_by?: string | null
@@ -410,6 +460,7 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          category?: string | null
           code?: string
           created_at?: string
           created_by?: string | null
@@ -2277,8 +2328,10 @@ export type Database = {
       }
       team_members: {
         Row: {
+          attendance_deduction_rate: number | null
           bonus: number | null
           created_at: string
+          daily_salary: number | null
           department: string | null
           designation: string | null
           email: string
@@ -2299,8 +2352,10 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          attendance_deduction_rate?: number | null
           bonus?: number | null
           created_at?: string
+          daily_salary?: number | null
           department?: string | null
           designation?: string | null
           email: string
@@ -2321,8 +2376,10 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          attendance_deduction_rate?: number | null
           bonus?: number | null
           created_at?: string
+          daily_salary?: number | null
           department?: string | null
           designation?: string | null
           email?: string
