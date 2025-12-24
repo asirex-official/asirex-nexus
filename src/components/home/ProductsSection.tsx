@@ -1,10 +1,13 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowRight, ShoppingCart, Eye, Star, Sparkles } from "lucide-react";
+import { ArrowRight, ShoppingCart, Eye, Star, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useProducts } from "@/hooks/useSiteData";
 import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "sonner";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface ProductCardProps {
   product: any;
@@ -13,7 +16,17 @@ interface ProductCardProps {
 
 function ProductCard({ product, index }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  
+  // Get all images (main + gallery)
+  const allImages = [
+    product.image_url,
+    ...(product.gallery_images || [])
+  ].filter(Boolean);
   
   // 3D tilt effect
   const x = useMotionValue(0);
@@ -36,153 +49,265 @@ function ProductCard({ product, index }: ProductCardProps) {
     setIsHovered(false);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Navigate to product detail page
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleViewPhotos = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowGallery(true);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (product.stock_status === 'out_of_stock') return;
+    
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url || '/placeholder.svg',
+    });
+    toast.success(`${product.name} added to cart!`);
+  };
+
   return (
-    <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      className="group relative perspective-1000"
-    >
-      {/* Glow effect */}
+    <>
       <motion.div
-        className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary/30 via-accent/30 to-secondary/30 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500"
-      />
-      
-      <div className="relative glass-card p-6 overflow-hidden rounded-3xl">
-        {/* Badge */}
-        {product.badge && (
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="absolute top-4 left-4 z-20"
-          >
-            <span className="px-3 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-glow-sm">
-              {product.badge}
-            </span>
-          </motion.div>
-        )}
-
-        {/* Stock Status Badge */}
-        {product.stock_status && product.stock_status !== 'in_stock' && (
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="absolute top-4 right-4 z-20"
-          >
-            <Badge variant={product.stock_status === 'out_of_stock' ? 'destructive' : 'secondary'} className="text-xs">
-              {product.stock_status === 'out_of_stock' ? 'Out of Stock' : 'Limited Stock'}
-            </Badge>
-          </motion.div>
-        )}
-
-        {/* Image Container */}
-        <div className="relative aspect-square mb-6 rounded-2xl bg-gradient-to-br from-muted/30 to-muted/10 overflow-hidden">
-          <motion.img
-            src={product.image_url || "/placeholder.svg"}
-            alt={product.name}
-            animate={{ scale: isHovered ? 1.1 : 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="w-full h-full object-cover"
-          />
-          
-          {/* Hover Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center gap-4"
-          >
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: isHovered ? 1 : 0, rotate: isHovered ? 0 : -180 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+        ref={cardRef}
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ delay: index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleCardClick}
+        className="group relative perspective-1000 cursor-pointer"
+      >
+        {/* Glow effect */}
+        <motion.div
+          className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary/30 via-accent/30 to-secondary/30 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500"
+        />
+        
+        <div className="relative glass-card p-6 overflow-hidden rounded-3xl">
+          {/* Badge */}
+          {product.badge && (
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="absolute top-4 left-4 z-20"
             >
-              <Button variant="glass" size="icon" className="w-12 h-12 rounded-full">
-                <Eye className="w-5 h-5" />
-              </Button>
-            </motion.div>
-            <motion.div
-              initial={{ scale: 0, rotate: 180 }}
-              animate={{ scale: isHovered ? 1 : 0, rotate: isHovered ? 0 : 180 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            >
-              <Button variant="hero" size="icon" className="w-12 h-12 rounded-full">
-                <ShoppingCart className="w-5 h-5" />
-              </Button>
-            </motion.div>
-          </motion.div>
-          
-          {/* Shine effect on hover */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"
-            initial={{ x: "-100%", opacity: 0 }}
-            animate={{ x: isHovered ? "100%" : "-100%", opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.6 }}
-          />
-        </div>
-
-        {/* Category */}
-        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
-          {product.category}
-        </p>
-
-        {/* Title */}
-        <h3 className="font-display text-lg font-bold mb-2 group-hover:text-primary transition-colors duration-300">
-          {product.name}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-          {product.description}
-        </p>
-
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-5">
-          <div className="flex items-center gap-1">
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                className={`w-4 h-4 ${i < Math.floor(product.rating || 0) ? 'fill-accent text-accent' : 'text-muted'}`} 
-              />
-            ))}
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">
-            ({product.rating || 0})
-          </span>
-        </div>
-
-        {/* Price & CTA */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-display text-2xl font-black gradient-text-static">
-              ₹{product.price?.toLocaleString()}
-            </span>
-            {product.specs?.original_price && (
-              <span className="text-sm text-muted-foreground line-through">
-                ₹{Number(product.specs.original_price).toLocaleString()}
+              <span className="px-3 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-glow-sm">
+                {product.badge}
               </span>
-            )}
+            </motion.div>
+          )}
+
+          {/* Stock Status Badge */}
+          {product.stock_status && product.stock_status !== 'in_stock' && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="absolute top-4 right-4 z-20"
+            >
+              <Badge variant={product.stock_status === 'out_of_stock' ? 'destructive' : 'secondary'} className="text-xs">
+                {product.stock_status === 'out_of_stock' ? 'Out of Stock' : 'Limited Stock'}
+              </Badge>
+            </motion.div>
+          )}
+
+          {/* Image Container */}
+          <div className="relative aspect-square mb-6 rounded-2xl bg-gradient-to-br from-muted/30 to-muted/10 overflow-hidden">
+            <motion.img
+              src={product.image_url || "/placeholder.svg"}
+              alt={product.name}
+              animate={{ scale: isHovered ? 1.1 : 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Hover Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovered ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center gap-4"
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: isHovered ? 1 : 0, rotate: isHovered ? 0 : -180 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <Button 
+                  variant="glass" 
+                  size="icon" 
+                  className="w-12 h-12 rounded-full"
+                  onClick={handleViewPhotos}
+                >
+                  <Eye className="w-5 h-5" />
+                </Button>
+              </motion.div>
+              <motion.div
+                initial={{ scale: 0, rotate: 180 }}
+                animate={{ scale: isHovered ? 1 : 0, rotate: isHovered ? 0 : 180 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              >
+                <Button 
+                  variant="hero" 
+                  size="icon" 
+                  className="w-12 h-12 rounded-full"
+                  onClick={handleAddToCart}
+                  disabled={product.stock_status === 'out_of_stock'}
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            </motion.div>
+            
+            {/* Shine effect on hover */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"
+              initial={{ x: "-100%", opacity: 0 }}
+              animate={{ x: isHovered ? "100%" : "-100%", opacity: isHovered ? 1 : 0 }}
+              transition={{ duration: 0.6 }}
+            />
           </div>
-          <Button 
-            variant="glow" 
-            size="sm" 
-            className="group/btn"
-            disabled={product.stock_status === 'out_of_stock'}
-          >
-            {product.stock_status === 'out_of_stock' ? 'Sold Out' : 'Add to Cart'}
-            <ShoppingCart className="w-4 h-4 ml-1 group-hover/btn:scale-110 transition-transform" />
-          </Button>
+
+          {/* Category */}
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            {product.category}
+          </p>
+
+          {/* Title */}
+          <h3 className="font-display text-lg font-bold mb-2 group-hover:text-primary transition-colors duration-300">
+            {product.name}
+          </h3>
+
+          {/* Description */}
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            {product.description}
+          </p>
+
+          {/* Rating */}
+          <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star 
+                  key={i} 
+                  className={`w-4 h-4 ${i < Math.floor(product.rating || 0) ? 'fill-accent text-accent' : 'text-muted'}`} 
+                />
+              ))}
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              ({product.rating || 0})
+            </span>
+          </div>
+
+          {/* Price & CTA */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-display text-2xl font-black gradient-text-static">
+                ₹{product.price?.toLocaleString()}
+              </span>
+              {product.specs?.original_price && (
+                <span className="text-sm text-muted-foreground line-through">
+                  ₹{Number(product.specs.original_price).toLocaleString()}
+                </span>
+              )}
+            </div>
+            <Button 
+              variant="glow" 
+              size="sm" 
+              className="group/btn"
+              disabled={product.stock_status === 'out_of_stock'}
+              onClick={handleAddToCart}
+            >
+              {product.stock_status === 'out_of_stock' ? 'Sold Out' : 'Add to Cart'}
+              <ShoppingCart className="w-4 h-4 ml-1 group-hover/btn:scale-110 transition-transform" />
+            </Button>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      {/* Photo Gallery Dialog */}
+      <Dialog open={showGallery} onOpenChange={setShowGallery}>
+        <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-xl border-border/50 p-0">
+          <div className="relative">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 z-50"
+              onClick={() => setShowGallery(false)}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+
+            {/* Main Image */}
+            <div className="aspect-video relative bg-muted/20">
+              <img
+                src={allImages[currentImageIndex] || "/placeholder.svg"}
+                alt={product.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Thumbnail Strip */}
+            {allImages.length > 1 && (
+              <div className="flex gap-2 p-4 overflow-x-auto">
+                {allImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      currentImageIndex === idx 
+                        ? 'border-primary ring-2 ring-primary/30' 
+                        : 'border-transparent hover:border-muted-foreground/30'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Product Info */}
+            <div className="p-6 border-t border-border/50">
+              <h3 className="font-display text-xl font-bold mb-2">{product.name}</h3>
+              <p className="text-muted-foreground mb-4">{product.description}</p>
+              <div className="flex items-center justify-between">
+                <span className="font-display text-2xl font-black gradient-text-static">
+                  ₹{product.price?.toLocaleString()}
+                </span>
+                <div className="flex gap-2">
+                  <Button variant="outline" asChild>
+                    <Link to={`/product/${product.id}`} onClick={() => setShowGallery(false)}>
+                      View Details
+                    </Link>
+                  </Button>
+                  <Button 
+                    variant="hero" 
+                    onClick={(e) => {
+                      handleAddToCart(e);
+                      setShowGallery(false);
+                    }}
+                    disabled={product.stock_status === 'out_of_stock'}
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
