@@ -106,10 +106,7 @@ export default function GovernmentCustomers() {
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-4">
-              <Button size="lg">
-                <FileText className="w-5 h-5 mr-2" /> View Proposals
-              </Button>
-              <Button variant="outline" size="lg" onClick={() => window.location.href = 'mailto:partner@asirex.in'}>
+              <Button size="lg" onClick={() => window.location.href = 'mailto:partner@asirex.in'}>
                 <Handshake className="w-5 h-5 mr-2" /> Partner With Us
               </Button>
             </motion.div>
