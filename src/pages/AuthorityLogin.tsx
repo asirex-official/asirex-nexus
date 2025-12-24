@@ -348,13 +348,18 @@ export default function AuthorityLogin() {
     
     // Determine role type for routing
     let roleType = "member";
+    let dashboardPath = "/card-login";
+    
     if (card.title.toLowerCase().includes("ceo") || card.title.toLowerCase().includes("founder")) {
       roleType = "ceo";
     } else if (card.title.toLowerCase().includes("developer") || card.title.toLowerCase().includes("swe") || card.title.toLowerCase().includes("website admin")) {
       roleType = "developer";
+    } else if (card.title.toLowerCase().includes("production") && card.title.toLowerCase().includes("head")) {
+      roleType = "production";
+      dashboardPath = "/dashboard/production";
     }
     
-    // Navigate to card login page with user details including email
+    // Navigate to appropriate page with user details
     const params = new URLSearchParams({
       name: card.name || "",
       title: card.title,
@@ -363,7 +368,7 @@ export default function AuthorityLogin() {
       role: roleType,
       email: card.email || "",
     });
-    navigate(`/card-login?${params.toString()}`);
+    navigate(`${dashboardPath}?${params.toString()}`);
   };
 
   const AuthorityIcon = authority.icon;
