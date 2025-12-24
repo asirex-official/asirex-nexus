@@ -505,38 +505,63 @@ export function RefundManager() {
 
                 {/* Refund Method Details */}
                 <div className="space-y-2">
-                  <Label>Refund Method</Label>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
+                  <Label>Refund Method & Payment Details</Label>
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b border-border">
                       {(() => {
                         const Icon = getRefundMethodIcon(selectedRefund.refund_method);
                         return <Icon className="w-5 h-5 text-primary" />;
                       })()}
-                      <span className="font-medium">
+                      <span className="font-semibold text-lg">
                         {getRefundMethodLabel(selectedRefund.refund_method)}
                       </span>
                     </div>
+                    
+                    {/* UPI Details */}
                     {selectedRefund.upi_id && (
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">UPI ID:</span>{" "}
-                        <span className="font-mono font-bold text-primary">{selectedRefund.upi_id}</span>
-                      </p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">UPI ID:</span>
+                          <span className="font-mono font-bold text-primary text-lg">{selectedRefund.upi_id.split(' (')[0]}</span>
+                        </div>
+                        {selectedRefund.upi_id.includes('(') && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Name:</span>
+                            <span className="font-medium">{selectedRefund.upi_id.match(/\(([^)]+)\)/)?.[1]}</span>
+                          </div>
+                        )}
+                      </div>
                     )}
+                    
+                    {/* Bank Details */}
                     {selectedRefund.bank_account_holder && (
-                      <>
-                        <p className="text-sm">
-                          <span className="text-muted-foreground">Account Holder:</span>{" "}
-                          <span className="font-medium">{selectedRefund.bank_account_holder}</span>
-                        </p>
-                        <p className="text-sm">
-                          <span className="text-muted-foreground">Account Number:</span>{" "}
-                          <span className="font-mono">****{selectedRefund.bank_account_number_encrypted?.slice(-4)}</span>
-                        </p>
-                        <p className="text-sm">
-                          <span className="text-muted-foreground">IFSC:</span>{" "}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Account Holder:</span>
+                          <span className="font-medium">{selectedRefund.bank_account_holder.split(' | ')[0]}</span>
+                        </div>
+                        {selectedRefund.bank_account_holder.includes('Bank:') && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Bank Name:</span>
+                            <span className="font-medium">{selectedRefund.bank_account_holder.split('Bank: ')[1]}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Account Number:</span>
+                          <span className="font-mono font-bold text-primary">{selectedRefund.bank_account_number_encrypted}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">IFSC Code:</span>
                           <span className="font-mono font-bold">{selectedRefund.bank_ifsc_encrypted}</span>
-                        </p>
-                      </>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Gift Card Info */}
+                    {selectedRefund.refund_method === "gift_card" && (
+                      <p className="text-sm text-muted-foreground">
+                        Gift card will be auto-generated and credited to user's account instantly.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -561,9 +586,10 @@ export function RefundManager() {
                         <>
                           <li>Open your bank's NEFT/IMPS portal</li>
                           <li>Transfer ₹{selectedRefund.amount.toLocaleString()} to:</li>
-                          <li className="ml-4">Name: {selectedRefund.bank_account_holder}</li>
-                          <li className="ml-4">A/C: ****{selectedRefund.bank_account_number_encrypted?.slice(-4)}</li>
-                          <li className="ml-4">IFSC: {selectedRefund.bank_ifsc_encrypted}</li>
+                          <li className="ml-4">Name: <strong>{selectedRefund.bank_account_holder?.split(' | ')[0]}</strong></li>
+                          <li className="ml-4">Bank: <strong>{selectedRefund.bank_account_holder?.split('Bank: ')[1]}</strong></li>
+                          <li className="ml-4">A/C: <strong className="font-mono text-primary">{selectedRefund.bank_account_number_encrypted}</strong></li>
+                          <li className="ml-4">IFSC: <strong className="font-mono">{selectedRefund.bank_ifsc_encrypted}</strong></li>
                           <li>Save the transaction reference</li>
                           <li>Click "Mark as Completed" below</li>
                         </>

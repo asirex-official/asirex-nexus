@@ -22,23 +22,26 @@ const REFUND_METHODS = [
   {
     id: "gift_card",
     label: "Website Gift Card",
-    description: "Instant refund as store credit (Recommended)",
+    description: "Fastest – within 1 minute",
     icon: Gift,
     instant: true,
+    timing: "~1 min",
   },
   {
     id: "upi",
-    label: "UPI Refund",
-    description: "Refund to your UPI ID (2-3 business days)",
+    label: "UPI Transfer",
+    description: "Up to 24 hours",
     icon: Smartphone,
     instant: false,
+    timing: "24 hrs",
   },
   {
     id: "bank",
-    label: "Bank Account",
-    description: "Refund to bank account (5-7 business days)",
+    label: "Bank Transfer (Net Banking)",
+    description: "Up to 2 business days",
     icon: Building,
     instant: false,
+    timing: "2 days",
   },
 ];
 
@@ -53,9 +56,12 @@ export function RefundSelectionDialog({
 }: RefundSelectionDialogProps) {
   const [refundMethod, setRefundMethod] = useState("gift_card");
   const [upiId, setUpiId] = useState("");
+  const [upiName, setUpiName] = useState("");
   const [accountHolder, setAccountHolder] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
+  const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
   const [ifscCode, setIfscCode] = useState("");
+  const [bankName, setBankName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const validateUPI = (upi: string) => {
@@ -64,14 +70,24 @@ export function RefundSelectionDialog({
 
   const handleSubmit = async () => {
     // Validation
-    if (refundMethod === "upi" && !validateUPI(upiId)) {
-      toast.error("Please enter a valid UPI ID (e.g., name@upi)");
-      return;
+    if (refundMethod === "upi") {
+      if (!validateUPI(upiId)) {
+        toast.error("Please enter a valid UPI ID (e.g., name@upi)");
+        return;
+      }
+      if (!upiName.trim()) {
+        toast.error("Please enter the name linked to UPI ID");
+        return;
+      }
     }
 
     if (refundMethod === "bank") {
-      if (!accountHolder || !accountNumber || !ifscCode) {
+      if (!accountHolder || !accountNumber || !ifscCode || !bankName) {
         toast.error("Please fill all bank details");
+        return;
+      }
+      if (accountNumber !== confirmAccountNumber) {
+        toast.error("Account numbers do not match");
         return;
       }
       if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode.toUpperCase())) {
@@ -101,8 +117,8 @@ export function RefundSelectionDialog({
           amount,
           payment_method: paymentMethod,
           refund_method: refundMethod,
-          upi_id: refundMethod === "upi" ? upiId : null,
-          bank_account_holder: refundMethod === "bank" ? accountHolder : null,
+          upi_id: refundMethod === "upi" ? `${upiId} (${upiName})` : null,
+          bank_account_holder: refundMethod === "bank" ? `${accountHolder} | Bank: ${bankName}` : null,
           bank_account_number_encrypted: refundMethod === "bank" ? accountNumber : null,
           bank_ifsc_encrypted: refundMethod === "bank" ? ifscCode.toUpperCase() : null,
           status: "pending",
@@ -155,11 +171,13 @@ export function RefundSelectionDialog({
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{method.label}</p>
-                      {method.instant && (
-                        <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded">
-                          Instant
-                        </span>
-                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded ${
+                        method.instant 
+                          ? "bg-green-500/20 text-green-600" 
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        {(method as any).timing}
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">{method.description}</p>
                   </div>
@@ -170,13 +188,23 @@ export function RefundSelectionDialog({
 
           {/* UPI Details */}
           {refundMethod === "upi" && (
-            <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
-              <Label>UPI ID</Label>
-              <Input
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                placeholder="yourname@upi"
-              />
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <div className="space-y-2">
+                <Label>UPI ID <span className="text-destructive">*</span></Label>
+                <Input
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="yourname@upi"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Name (as registered with UPI) <span className="text-destructive">*</span></Label>
+                <Input
+                  value={upiName}
+                  onChange={(e) => setUpiName(e.target.value)}
+                  placeholder="Full name linked to UPI"
+                />
+              </div>
             </div>
           )}
 
@@ -184,7 +212,7 @@ export function RefundSelectionDialog({
           {refundMethod === "bank" && (
             <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
               <div className="space-y-2">
-                <Label>Account Holder Name</Label>
+                <Label>Account Holder Name <span className="text-destructive">*</span></Label>
                 <Input
                   value={accountHolder}
                   onChange={(e) => setAccountHolder(e.target.value)}
@@ -192,7 +220,15 @@ export function RefundSelectionDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Account Number</Label>
+                <Label>Bank Name <span className="text-destructive">*</span></Label>
+                <Input
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="e.g., State Bank of India"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Account Number <span className="text-destructive">*</span></Label>
                 <Input
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
@@ -201,7 +237,18 @@ export function RefundSelectionDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label>IFSC Code</Label>
+                <Label>Confirm Account Number <span className="text-destructive">*</span></Label>
+                <Input
+                  value={confirmAccountNumber}
+                  onChange={(e) => setConfirmAccountNumber(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Re-enter account number"
+                />
+                {confirmAccountNumber && accountNumber !== confirmAccountNumber && (
+                  <p className="text-xs text-destructive">Account numbers don't match</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>IFSC Code <span className="text-destructive">*</span></Label>
                 <Input
                   value={ifscCode}
                   onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
