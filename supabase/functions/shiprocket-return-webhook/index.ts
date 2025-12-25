@@ -86,145 +86,80 @@ serve(async (req) => {
         .limit(1)
         .single();
 
-      if (complaint) {
-        // Update complaint status
+      // Check if this is a replacement request
+      let isReplacement = false;
+      try {
+        const notes = JSON.parse(order.notes || "{}");
+        isReplacement = notes.is_replacement === true;
+      } catch {}
+
+      if (isReplacement && complaint) {
+        // Create replacement order on ShipRocket
+        console.log("Creating replacement order for:", order.id);
+        
+        await fetch(`${supabaseUrl}/functions/v1/shiprocket-create-order`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ 
+            orderId: order.id,
+            isReplacement: true,
+          }),
+        });
+
+        // Update complaint
         await supabase
           .from("order_complaints")
           .update({
             pickup_status: "completed",
             pickup_completed_at: new Date().toISOString(),
             return_status: "return_received",
+            investigation_status: "resolved",
+            resolution_type: "replacement",
+            admin_notes: `Return received. Replacement order created automatically.`,
             updated_at: new Date().toISOString(),
           })
           .eq("id", complaint.id);
-
-        // Check if this is a replacement
-        let isReplacement = false;
-        try {
-          const notes = JSON.parse(order.notes || "{}");
-          isReplacement = notes.is_replacement === true;
-        } catch {}
-
-        if (isReplacement) {
-          // Create replacement order on ShipRocket
-          console.log("Creating replacement order for:", order.id);
-          
-          await fetch(`${supabaseUrl}/functions/v1/shiprocket-create-order`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${supabaseKey}`,
-            },
-            body: JSON.stringify({ 
-              orderId: order.id,
-              isReplacement: true,
-            }),
-          });
-
-          // Update complaint
-          await supabase
-            .from("order_complaints")
-            .update({
-              investigation_status: "resolved",
-              resolution_type: "replacement",
-              admin_notes: `Return received. Replacement order created automatically.`,
-            })
-            .eq("id", complaint.id);
-
-          // Notify user
-          await supabase.from("notifications").insert({
-            user_id: order.user_id,
-            title: "Replacement Order Shipped",
-            message: `Your return has been received and a replacement order is being prepared for order #${order.id.slice(0, 8).toUpperCase()}.`,
-            type: "order",
-            link: "/track-order",
-          });
-
-        } else {
-          // This is a refund case - check user's preference
-          const refundMethod = complaint.refund_method;
-
-          if (refundMethod?.startsWith("gift_card")) {
-            // Create gift card coupon
-            const couponCode = `GC${Date.now().toString(36).toUpperCase()}`;
-            
-            await supabase.from("gift_cards").insert({
-              user_id: order.user_id,
-              code: couponCode,
-              amount: order.total_amount,
-              balance: order.total_amount,
-              source: "refund",
-              expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-            });
-
-            // Update complaint
-            await supabase
-              .from("order_complaints")
-              .update({
-                investigation_status: "resolved",
-                resolution_type: "refund",
-                refund_status: "completed",
-                coupon_code: couponCode,
-                admin_notes: `Return received. Gift card issued: ${couponCode}`,
-              })
-              .eq("id", complaint.id);
-
-            // Notify user
-            await supabase.from("notifications").insert({
-              user_id: order.user_id,
-              title: "Refund Issued as Store Credit",
-              message: `Your return has been received. A store credit of ₹${order.total_amount.toLocaleString()} (Code: ${couponCode}) has been added to your account.`,
-              type: "order",
-              link: "/track-order",
-            });
-
-          } else if (refundMethod && refundMethod !== "pending_selection") {
-            // Process PayU refund
-            console.log("Processing PayU refund for order:", order.id);
-            
-            await fetch(`${supabaseUrl}/functions/v1/payu-refund`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${supabaseKey}`,
-              },
-              body: JSON.stringify({ 
-                orderId: order.id,
-                amount: order.total_amount,
-              }),
-            });
-
-            // Update complaint
-            await supabase
-              .from("order_complaints")
-              .update({
-                investigation_status: "resolved",
-                resolution_type: "refund",
-                refund_status: "processing",
-                admin_notes: `Return received. Refund initiated to original payment method.`,
-              })
-              .eq("id", complaint.id);
-
-          } else {
-            // User hasn't selected refund method yet - notify them
-            await supabase.from("notifications").insert({
-              user_id: order.user_id,
-              title: "Return Received - Select Refund Method",
-              message: `Your return for order #${order.id.slice(0, 8).toUpperCase()} has been received. Please select your refund method.`,
-              type: "order",
-              link: "/track-order",
-            });
-          }
-        }
 
         // Update order
         await supabase
           .from("orders")
           .update({
-            complaint_status: "return_received",
+            complaint_status: "replacement_shipped",
             updated_at: new Date().toISOString(),
           })
           .eq("id", order.id);
+
+        // Notify user
+        await supabase.from("notifications").insert({
+          user_id: order.user_id,
+          title: "Replacement Order Shipped",
+          message: `Your return has been received and a replacement order is being prepared for order #${order.id.slice(0, 8).toUpperCase()}.`,
+          type: "order",
+          link: "/track-order",
+        });
+
+      } else {
+        // This is a refund case - use process-return-complete function
+        console.log("Processing refund for return:", order.id);
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/process-return-complete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ 
+            orderId: order.id,
+            complaintId: complaint?.id,
+            refundMethod: complaint?.refund_method,
+          }),
+        });
+
+        const result = await response.json();
+        console.log("Process return complete result:", result);
       }
     }
 

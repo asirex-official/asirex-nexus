@@ -137,3 +137,6 @@ verify_jwt = true
 
 [functions.shiprocket-return-webhook]
 verify_jwt = false
+
+[functions.process-return-complete]
+verify_jwt = true
