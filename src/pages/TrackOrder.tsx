@@ -939,8 +939,10 @@ export default function TrackOrder() {
                               : "text-yellow-500"
                           }
                         >
-                          {selectedOrder.payment_status.charAt(0).toUpperCase() +
-                            selectedOrder.payment_status.slice(1)}
+                          {selectedOrder.payment_method === 'cod' && selectedOrder.payment_status === 'pending'
+                            ? 'Pay when order arrives'
+                            : selectedOrder.payment_status.charAt(0).toUpperCase() +
+                              selectedOrder.payment_status.slice(1)}
                         </span>
                       </div>
                       <div className="flex justify-between text-lg font-bold mt-4">
