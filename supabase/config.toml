@@ -120,5 +120,8 @@ verify_jwt = true
 [functions.shiprocket-track]
 verify_jwt = false
 
-[functions.shiprocket-webhook]
+[functions.delivery-webhook]
+verify_jwt = false
+
+[functions.send-unified-notification]
 verify_jwt = false
