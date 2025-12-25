@@ -60,17 +60,41 @@ serve(async (req) => {
     const deliveryStatus = mapDeliveryStatus(current_status || '');
     console.log(`Updating order ${order_id} to status: ${deliveryStatus}`);
 
-    // Find the order by tracking number or order ID
-    let query = supabase.from('orders').select('id, order_status, delivery_status');
+    // Find the order by tracking number or notes (which stores shiprocket order info)
+    let orders = null;
+    let findError = null;
     
+    // First try by tracking_number (shipment_id)
     if (shipment_id) {
-      query = query.eq('tracking_number', shipment_id.toString());
-    } else if (order_id) {
-      // Order ID in ShipRocket might be truncated, search by prefix
-      query = query.ilike('id', `${order_id}%`);
+      const result = await supabase
+        .from('orders')
+        .select('id, order_status, delivery_status')
+        .eq('tracking_number', shipment_id.toString());
+      orders = result.data;
+      findError = result.error;
     }
-
-    const { data: orders, error: findError } = await query;
+    
+    // If not found, try by order_id in notes JSON
+    if ((!orders || orders.length === 0) && order_id) {
+      const result = await supabase
+        .from('orders')
+        .select('id, order_status, delivery_status, notes')
+        .not('notes', 'is', null);
+      
+      if (result.data) {
+        // Filter orders where notes contains the shiprocket order_id
+        orders = result.data.filter(o => {
+          try {
+            const notesData = typeof o.notes === 'string' ? JSON.parse(o.notes) : o.notes;
+            return notesData?.shiprocket_order_id?.toString() === order_id.toString() ||
+                   notesData?.channel_order_id?.toString() === order_id.toString();
+          } catch {
+            return false;
+          }
+        });
+      }
+      findError = result.error;
+    }
 
     if (findError) {
       console.error('Error finding order:', findError);
