@@ -41,7 +41,7 @@ interface CouponUsage {
   user_id: string;
   used_at: string;
   discount_applied: number;
-  user_email?: string;
+  user_label: string;
 }
 
 interface CouponForm {
@@ -221,24 +221,44 @@ export function CouponManager() {
     try {
       const { data, error } = await supabase
         .from("coupon_usages")
-        .select("*")
+        .select("id,user_id,used_at,discount_applied")
         .eq("coupon_id", couponId)
         .order("used_at", { ascending: false });
 
       if (error) throw error;
-      
-      // Fetch user emails for each usage
-      const usagesWithEmails = await Promise.all(
-        (data || []).map(async (usage) => {
-          const { data: userData } = await supabase.auth.admin.getUserById(usage.user_id).catch(() => ({ data: null }));
-          return {
-            ...usage,
-            user_email: userData?.user?.email || 'Unknown User',
-          };
-        })
-      );
-      
-      setCouponUsages(usagesWithEmails);
+
+      const rows = data || [];
+      const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+
+      // Enrich with names from profiles (email is not accessible from the client)
+      let profileMap = new Map<string, string>();
+      try {
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id,full_name")
+            .in("user_id", userIds);
+
+          (profiles || []).forEach((p) => {
+            if (p.full_name) profileMap.set(p.user_id, p.full_name);
+          });
+        }
+      } catch {
+        // ignore profile lookup failures
+      }
+
+      const usagesWithLabels: CouponUsage[] = rows.map((usage) => {
+        const label =
+          profileMap.get(usage.user_id) ||
+          `${usage.user_id.slice(0, 8)}...${usage.user_id.slice(-4)}`;
+
+        return {
+          ...usage,
+          user_label: label,
+        };
+      });
+
+      setCouponUsages(usagesWithLabels);
     } catch (error) {
       console.error("Error fetching usages:", error);
       setCouponUsages([]);
@@ -740,7 +760,7 @@ export function CouponManager() {
                       {couponUsages.map((usage) => (
                         <div key={usage.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg text-sm">
                           <div>
-                            <p className="font-medium">{usage.user_email}</p>
+                            <p className="font-medium">{usage.user_label}</p>
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(usage.used_at), 'MMM d, yyyy HH:mm')}
                             </p>
