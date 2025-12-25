@@ -38,10 +38,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="min-h-screen flex flex-col bg-background corner-glow">
         {/* Festival Effects Overlay */}
         {showFestivalEffects && activeFestival?.festival_theme && (
-          <>
-            <FestivalEffectsProvider theme={activeFestival.festival_theme} />
-            <FestivalDecorations />
-          </>
+          <FestivalEffectsProvider theme={activeFestival.festival_theme} />
         )}
         
         <Header />
