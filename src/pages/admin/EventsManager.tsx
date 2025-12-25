@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Calendar, MapPin, Users, Star, Ticket, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, MapPin, Users, Star, Ticket, Image, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,11 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hooks/useSiteData";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { MediaUploader } from "@/components/admin/MediaUploader";
 import { supabase } from "@/integrations/supabase/client";
+import { EventRegistrationsViewer } from "@/components/admin/EventRegistrationsViewer";
 
 const eventTypes = ["Launch", "Conference", "Workshop", "Summit", "Meetup", "Event"];
 
@@ -182,118 +184,140 @@ export default function EventsManager() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold mb-2">Events</h1>
-          <p className="text-muted-foreground">Manage your upcoming events</p>
+          <p className="text-muted-foreground">Manage events and view registrations</p>
         </div>
-        <Button variant="hero" onClick={openCreateDialog}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
-        </div>
-      ) : events?.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-semibold text-lg mb-2">No events yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Create your first event to get started.
-          </p>
-          <Button variant="hero" onClick={openCreateDialog}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
-        </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {events?.map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="glass-card p-4 relative"
-            >
-              {/* Featured Badge */}
-              {event.is_featured && (
-                <div className="absolute top-2 right-2 z-10">
-                  <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-                    <Star className="w-3 h-3 mr-1 fill-current" />
-                    Featured
+      <Tabs defaultValue="events" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="events" className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Events
+          </TabsTrigger>
+          <TabsTrigger value="registrations" className="flex items-center gap-2">
+            <UserCheck className="w-4 h-4" />
+            Registrations
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="events" className="mt-6">
+          <div className="flex justify-end mb-4">
+            <Button variant="hero" onClick={openCreateDialog}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Button>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
+          ) : events?.length === 0 ? (
+            <div className="glass-card p-12 text-center">
+              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">No events yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Create your first event to get started.
+              </p>
+              <Button variant="hero" onClick={openCreateDialog}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Event
+              </Button>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {events?.map((event, index) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="glass-card p-4 relative"
+                >
+                  {/* Featured Badge */}
+                  {event.is_featured && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                        <Star className="w-3 h-3 mr-1 fill-current" />
+                        Featured
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Event Image/Icon */}
+                  <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                    {event.image_url ? (
+                      <img 
+                        src={event.image_url} 
+                        alt={event.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Calendar className="w-8 h-8 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  {/* Type Badge */}
+                  <Badge className={`mb-2 ${getTypeColor((event as any).type || 'Event')}`}>
+                    {(event as any).type || 'Event'}
                   </Badge>
-                </div>
-              )}
+                  
+                  <h3 className="font-semibold mb-2 line-clamp-2">{event.name}</h3>
+                  
+                  <div className="space-y-1 mb-4 text-sm text-muted-foreground">
+                    <p className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 flex-shrink-0" />
+                      {format(new Date(event.event_date), 'MMM d, yyyy • h:mm a')}
+                    </p>
+                    {event.location && (
+                      <p className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{event.location}</span>
+                      </p>
+                    )}
+                    {event.capacity && (
+                      <p className="flex items-center gap-2">
+                        <Users className="w-4 h-4 flex-shrink-0" />
+                        Capacity: {event.capacity}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-4">
+                    <Ticket className="w-4 h-4 text-accent" />
+                    <span className="text-lg font-bold">
+                      {event.ticket_price > 0 ? `₹${event.ticket_price?.toLocaleString()}` : 'Free'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => openEditDialog(event)}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setDeleteId(event.id)}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-              {/* Event Image/Icon */}
-              <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                {event.image_url ? (
-                  <img 
-                    src={event.image_url} 
-                    alt={event.name} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Calendar className="w-8 h-8 text-muted-foreground" />
-                )}
-              </div>
-
-              {/* Type Badge */}
-              <Badge className={`mb-2 ${getTypeColor((event as any).type || 'Event')}`}>
-                {(event as any).type || 'Event'}
-              </Badge>
-              
-              <h3 className="font-semibold mb-2 line-clamp-2">{event.name}</h3>
-              
-              <div className="space-y-1 mb-4 text-sm text-muted-foreground">
-                <p className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 flex-shrink-0" />
-                  {format(new Date(event.event_date), 'MMM d, yyyy • h:mm a')}
-                </p>
-                {event.location && (
-                  <p className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{event.location}</span>
-                  </p>
-                )}
-                {event.capacity && (
-                  <p className="flex items-center gap-2">
-                    <Users className="w-4 h-4 flex-shrink-0" />
-                    Capacity: {event.capacity}
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2 mb-4">
-                <Ticket className="w-4 h-4 text-accent" />
-                <span className="text-lg font-bold">
-                  {event.ticket_price > 0 ? `₹${event.ticket_price?.toLocaleString()}` : 'Free'}
-                </span>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1"
-                  onClick={() => openEditDialog(event)}
-                >
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => setDeleteId(event.id)}
-                >
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+        <TabsContent value="registrations" className="mt-6">
+          <EventRegistrationsViewer />
+        </TabsContent>
+      </Tabs>
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
