@@ -220,6 +220,16 @@ export default function Checkout() {
         console.log('Email notification skipped:', emailError);
       }
 
+      // Auto-create ShipRocket shipment
+      try {
+        await supabase.functions.invoke('shiprocket-create-order', {
+          body: { orderId: orderData.id }
+        });
+        console.log('ShipRocket order created automatically');
+      } catch (shipError) {
+        console.log('ShipRocket order creation skipped:', shipError);
+      }
+
       clearCart();
       setOrderSuccess(true);
       toast({ title: "Order Placed Successfully!" });
