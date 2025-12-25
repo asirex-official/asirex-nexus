@@ -10,6 +10,7 @@ import { SaleBanner } from "@/components/festivals/SaleBanner";
 import { useActiveFestival } from "@/hooks/useActiveFestival";
 import { FestivalThemeProvider } from "@/components/festivals/FestivalThemeProvider";
 import { FestivalDecorations } from "@/components/festivals/FestivalDecorations";
+import { NewYearGreeting } from "@/components/festivals/NewYearGreeting";
 
 interface LayoutProps {
   children: ReactNode;
@@ -74,6 +75,7 @@ export function Layout({ children }: LayoutProps) {
         </main>
         <Footer />
         <LiveChat />
+        {showFestivalEffects && <NewYearGreeting />}
       </div>
     </FestivalThemeProvider>
   );
