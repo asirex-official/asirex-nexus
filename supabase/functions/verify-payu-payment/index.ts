@@ -130,6 +130,21 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
+      // Auto-create ShipRocket shipment
+      try {
+        const shiprocketResponse = await fetch(`${supabaseUrl}/functions/v1/shiprocket-create-order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({ orderId: order.id }),
+        });
+        console.log("ShipRocket order created:", await shiprocketResponse.json());
+      } catch (shipError) {
+        console.log("ShipRocket order creation skipped:", shipError);
+      }
+
       console.log("Payment successful for order:", order.id);
 
       // Redirect to success page
