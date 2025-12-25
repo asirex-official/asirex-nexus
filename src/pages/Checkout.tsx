@@ -563,7 +563,7 @@ export default function Checkout() {
           {payuData && (
             <form
               ref={payuFormRef}
-              action="https://secure.payu.in/_payment"
+              action="https://test.payu.in/_payment"
               method="POST"
               style={{ display: 'none' }}
             >
