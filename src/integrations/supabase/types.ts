@@ -433,6 +433,7 @@ export type Database = {
           min_order_amount: number | null
           new_users_only: boolean | null
           per_user_limit: number | null
+          source: string | null
           updated_at: string
           usage_count: number | null
           usage_limit: number | null
@@ -453,6 +454,7 @@ export type Database = {
           min_order_amount?: number | null
           new_users_only?: boolean | null
           per_user_limit?: number | null
+          source?: string | null
           updated_at?: string
           usage_count?: number | null
           usage_limit?: number | null
@@ -473,6 +475,7 @@ export type Database = {
           min_order_amount?: number | null
           new_users_only?: boolean | null
           per_user_limit?: number | null
+          source?: string | null
           updated_at?: string
           usage_count?: number | null
           usage_limit?: number | null

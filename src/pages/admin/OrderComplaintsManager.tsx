@@ -152,7 +152,7 @@ export default function OrderComplaintsManager() {
       // Generate coupon code
       const couponCode = `SORRY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-      // Create apology coupon with proper category and description
+      // Create apology coupon with proper category, description and source
       await supabase.from("coupons").insert({
         code: couponCode,
         description: "We sincerely apologize for the inconvenience caused with your order. Please accept this 20% discount on your next purchase as our apology.",
@@ -163,6 +163,7 @@ export default function OrderComplaintsManager() {
         is_active: true,
         valid_until: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
         category: "apology",
+        source: "apology_complaint",
       });
 
       // Update complaint

@@ -207,6 +207,7 @@ export default function UnifiedComplaintsManager() {
           is_active: true,
           valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
           category: "apology",
+          source: "apology_complaint",
         });
       }
 
