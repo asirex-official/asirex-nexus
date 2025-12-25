@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Ticket, Plus, Trash2, Copy, Check, Percent, IndianRupee, Users, Calendar, Clock, Eye, EyeOff, Filter, Gift, AlertCircle, Tag, Sparkles } from "lucide-react";
+import { Ticket, Plus, Trash2, Copy, Check, Percent, IndianRupee, Users, Calendar, Clock, Eye, EyeOff, Filter, Gift, AlertCircle, Tag, Sparkles, Bot, User, Info, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,6 +32,16 @@ interface Coupon {
   is_active: boolean;
   created_at: string;
   category: string;
+  created_by: string | null;
+  source: string | null;
+}
+
+interface CouponUsage {
+  id: string;
+  user_id: string;
+  used_at: string;
+  discount_applied: number;
+  user_email?: string;
 }
 
 interface CouponForm {
@@ -77,6 +89,9 @@ export function CouponManager() {
   const [creating, setCreating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [couponUsages, setCouponUsages] = useState<CouponUsage[]>([]);
+  const [loadingUsages, setLoadingUsages] = useState(false);
 
   const fetchCoupons = async () => {
     try {
@@ -130,6 +145,8 @@ export function CouponManager() {
 
     setCreating(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error } = await supabase.from("coupons").insert({
         code: form.code.toUpperCase().trim(),
         description: form.description || null,
@@ -143,6 +160,8 @@ export function CouponManager() {
         valid_until: form.valid_until || null,
         is_active: true,
         category: form.category,
+        source: 'manual',
+        created_by: user?.id || null,
       });
 
       if (error) throw error;
@@ -195,6 +214,53 @@ export function CouponManager() {
   const isExpired = (validUntil: string | null) => {
     if (!validUntil) return false;
     return new Date(validUntil) < new Date();
+  };
+
+  const fetchCouponUsages = async (couponId: string) => {
+    setLoadingUsages(true);
+    try {
+      const { data, error } = await supabase
+        .from("coupon_usages")
+        .select("*")
+        .eq("coupon_id", couponId)
+        .order("used_at", { ascending: false });
+
+      if (error) throw error;
+      
+      // Fetch user emails for each usage
+      const usagesWithEmails = await Promise.all(
+        (data || []).map(async (usage) => {
+          const { data: userData } = await supabase.auth.admin.getUserById(usage.user_id).catch(() => ({ data: null }));
+          return {
+            ...usage,
+            user_email: userData?.user?.email || 'Unknown User',
+          };
+        })
+      );
+      
+      setCouponUsages(usagesWithEmails);
+    } catch (error) {
+      console.error("Error fetching usages:", error);
+      setCouponUsages([]);
+    } finally {
+      setLoadingUsages(false);
+    }
+  };
+
+  const openCouponDetail = (coupon: Coupon) => {
+    setSelectedCoupon(coupon);
+    fetchCouponUsages(coupon.id);
+  };
+
+  const getSourceLabel = (source: string | null) => {
+    switch (source) {
+      case 'apology_complaint': return 'Auto: Complaint Resolution';
+      case 'apology_refund_delay': return 'Auto: Refund Delay';
+      case 'refund_giftcard': return 'Auto: Gift Card Refund';
+      case 'system': return 'System Generated';
+      case 'manual': return 'Manual Creation';
+      default: return source || 'Manual Creation';
+    }
   };
 
   return (
@@ -352,6 +418,15 @@ export function CouponManager() {
                       {coupon.max_discount_amount && coupon.discount_type === "percentage" && (
                         <p>Max discount: ₹{coupon.max_discount_amount}</p>
                       )}
+                      
+                      {/* Source info for auto-generated coupons */}
+                      {coupon.source && coupon.source !== 'manual' && (
+                        <div className="flex items-center gap-1 text-orange-500">
+                          <Bot className="w-3 h-3" />
+                          <span>{getSourceLabel(coupon.source)}</span>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
@@ -364,7 +439,23 @@ export function CouponManager() {
                           </span>
                         )}
                       </div>
+                      
+                      <div className="flex items-center gap-1 pt-1">
+                        <Clock className="w-3 h-3" />
+                        <span>Created {format(new Date(coupon.created_at), 'MMM d, yyyy')}</span>
+                      </div>
                     </div>
+                    
+                    {/* View Details Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2 gap-1"
+                      onClick={() => openCouponDetail(coupon)}
+                    >
+                      <Info className="w-3 h-3" />
+                      View Details & Usage
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -534,6 +625,141 @@ export function CouponManager() {
             </Button>
             <Button onClick={handleCreate} disabled={creating}>
               {creating ? "Creating..." : "Create Coupon"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Coupon Detail Dialog */}
+      <Dialog open={!!selectedCoupon} onOpenChange={() => setSelectedCoupon(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ticket className="w-5 h-5" />
+              Coupon Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedCoupon && (
+            <div className="space-y-4">
+              {/* Coupon Code */}
+              <div className="bg-muted/50 p-4 rounded-lg text-center">
+                <p className="text-2xl font-mono font-bold">{selectedCoupon.code}</p>
+                <Badge className="mt-2">
+                  {selectedCoupon.discount_type === 'percentage' 
+                    ? `${selectedCoupon.discount_value}% OFF`
+                    : `₹${selectedCoupon.discount_value} OFF`
+                  }
+                </Badge>
+              </div>
+
+              {/* Description */}
+              {selectedCoupon.description && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Description</Label>
+                  <p className="text-sm">{selectedCoupon.description}</p>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Coupon Info Grid */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Created
+                  </Label>
+                  <p>{format(new Date(selectedCoupon.created_at), 'MMM d, yyyy HH:mm')}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Expires
+                  </Label>
+                  <p>{selectedCoupon.valid_until 
+                    ? format(new Date(selectedCoupon.valid_until), 'MMM d, yyyy HH:mm')
+                    : 'Never'
+                  }</p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    {selectedCoupon.source === 'manual' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                    Source
+                  </Label>
+                  <p className={selectedCoupon.source !== 'manual' ? 'text-orange-500' : ''}>
+                    {getSourceLabel(selectedCoupon.source)}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    Usage
+                  </Label>
+                  <p>{selectedCoupon.usage_count}{selectedCoupon.usage_limit ? `/${selectedCoupon.usage_limit}` : ''} used</p>
+                </div>
+
+                {selectedCoupon.min_order_amount && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Min Order</Label>
+                    <p>₹{selectedCoupon.min_order_amount}</p>
+                  </div>
+                )}
+
+                {selectedCoupon.max_discount_amount && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Max Discount</Label>
+                    <p>₹{selectedCoupon.max_discount_amount}</p>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Usage History */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  <History className="w-4 h-4" />
+                  Usage History
+                </Label>
+                
+                {loadingUsages ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary" />
+                  </div>
+                ) : couponUsages.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground text-sm">
+                    No one has used this coupon yet
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[200px]">
+                    <div className="space-y-2">
+                      {couponUsages.map((usage) => (
+                        <div key={usage.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg text-sm">
+                          <div>
+                            <p className="font-medium">{usage.user_email}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(usage.used_at), 'MMM d, yyyy HH:mm')}
+                            </p>
+                          </div>
+                          <Badge variant="outline">
+                            ₹{usage.discount_applied} saved
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedCoupon(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

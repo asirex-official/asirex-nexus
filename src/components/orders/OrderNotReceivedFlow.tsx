@@ -98,18 +98,20 @@ export function OrderNotReceivedFlow({
       // Generate coupon code
       const couponCode = `SORRY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-      // Create coupon in database
+      // Create coupon in database with proper category and source
       const { error: couponError } = await supabase
         .from("coupons")
         .insert({
           code: couponCode,
-          description: "Apology coupon for order issue",
+          description: "We sincerely apologize for the order issue you experienced. Please accept this 20% discount on your next purchase.",
           discount_type: "percentage",
           discount_value: 20,
           usage_limit: 1,
           per_user_limit: 1,
           is_active: true,
           valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
+          category: "apology",
+          source: "apology_complaint",
         });
 
       if (couponError) throw couponError;

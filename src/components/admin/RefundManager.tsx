@@ -129,6 +129,7 @@ export function RefundManager() {
           per_user_limit: 1,
           is_active: true,
           category: "apology",
+          source: "apology_refund_delay",
           valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
         });
       }
