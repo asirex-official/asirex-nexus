@@ -92,3 +92,9 @@ verify_jwt = false
 
 [functions.send-complaint-notification]
 verify_jwt = false
+
+[functions.initiate-payu-payment]
+verify_jwt = false
+
+[functions.verify-payu-payment]
+verify_jwt = false

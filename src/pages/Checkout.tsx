@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, CreditCard, Truck, CheckCircle, Loader2, Sparkles, Tag } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -31,18 +31,19 @@ const INDIAN_STATES = [
 
 const PAYMENT_METHODS = [
   { id: "cod", label: "Cash on Delivery", description: "Pay when you receive" },
-  { id: "upi", label: "UPI", description: "GPay, PhonePe, Paytm" },
-  { id: "card", label: "Credit/Debit Card", description: "Visa, Mastercard, Rupay" },
-  { id: "netbanking", label: "Net Banking", description: "All major banks" },
+  { id: "online", label: "Pay Online", description: "UPI, Card, Net Banking" },
 ];
 
 export default function Checkout() {
   const { items, totalPrice, appliedCoupon, couponInfo, discount: couponDiscount, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const payuFormRef = useRef<HTMLFormElement>(null);
+  const [payuData, setPayuData] = useState<any>(null);
 
   // Fetch active sales campaigns
   const { data: salesCampaigns = [] } = useActiveSalesCampaigns();
@@ -60,6 +61,32 @@ export default function Checkout() {
     notes: "",
     paymentMethod: "cod",
   });
+
+  // Handle PayU callback
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const orderId = searchParams.get("order_id");
+    const message = searchParams.get("message");
+
+    if (status === "success" && orderId) {
+      clearCart();
+      setOrderSuccess(true);
+      toast({ title: "Payment Successful! Order Placed." });
+    } else if (status === "failed") {
+      toast({ 
+        title: "Payment Failed", 
+        description: message || "Please try again or use Cash on Delivery.",
+        variant: "destructive" 
+      });
+    }
+  }, [searchParams, clearCart, toast]);
+
+  // Submit PayU form when data is ready
+  useEffect(() => {
+    if (payuData && payuFormRef.current) {
+      payuFormRef.current.submit();
+    }
+  }, [payuData]);
 
   const subtotal = items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
@@ -119,6 +146,7 @@ export default function Checkout() {
         image_url: item.image_url,
       }));
 
+      // Create order first
       const { data: orderData, error } = await supabase.from('orders').insert({
         user_id: user.id,
         customer_name: form.fullName,
@@ -128,7 +156,7 @@ export default function Checkout() {
         items: orderItems,
         total_amount: finalPrice,
         payment_method: form.paymentMethod,
-        payment_status: form.paymentMethod === 'cod' ? 'pending' : 'pending',
+        payment_status: form.paymentMethod === 'cod' ? 'pending' : 'awaiting',
         order_status: 'pending',
         notes: form.notes || null,
       }).select('id').single();
@@ -143,9 +171,31 @@ export default function Checkout() {
           .eq('id', activeSale.id);
       }
 
-      if (error) throw error;
+      // For online payment, initiate PayU
+      if (form.paymentMethod === 'online') {
+        const productInfo = items.map(i => i.name).join(', ').substring(0, 100);
+        
+        const { data: payuResponse, error: payuError } = await supabase.functions.invoke('initiate-payu-payment', {
+          body: {
+            order_id: orderData.id,
+            amount: finalPrice,
+            product_info: productInfo || 'ASIREX Products',
+            customer_name: form.fullName,
+            customer_email: form.email || user.email,
+            customer_phone: form.phone,
+          }
+        });
 
-      // Send order notification email (non-blocking)
+        if (payuError || !payuResponse) {
+          throw new Error(payuError?.message || 'Failed to initiate payment');
+        }
+
+        // Set PayU data to trigger form submission
+        setPayuData(payuResponse);
+        return; // Don't continue, form will submit automatically
+      }
+
+      // For COD, send notification and complete
       try {
         await supabase.functions.invoke('send-order-notification', {
           body: {
@@ -155,7 +205,7 @@ export default function Checkout() {
             customerPhone: form.phone,
             shippingAddress: shippingAddress,
             items: orderItems,
-            totalAmount: totalPrice,
+            totalAmount: finalPrice,
             paymentMethod: form.paymentMethod,
           }
         });
@@ -395,9 +445,9 @@ export default function Checkout() {
                     ))}
                   </RadioGroup>
 
-                  {form.paymentMethod !== 'cod' && (
-                    <p className="text-sm text-muted-foreground mt-4 p-3 bg-yellow-500/10 rounded-lg">
-                      Note: Online payment integration coming soon. Please select Cash on Delivery for now.
+                  {form.paymentMethod === 'online' && (
+                    <p className="text-sm text-muted-foreground mt-4 p-3 bg-primary/10 rounded-lg">
+                      You will be redirected to PayU secure payment gateway to complete your payment.
                     </p>
                   )}
                 </motion.div>
@@ -508,6 +558,27 @@ export default function Checkout() {
               </div>
             </div>
           </form>
+
+          {/* PayU Hidden Form - Outside main form to avoid nesting */}
+          {payuData && (
+            <form
+              ref={payuFormRef}
+              action="https://secure.payu.in/_payment"
+              method="POST"
+              style={{ display: 'none' }}
+            >
+              <input type="hidden" name="key" value={payuData.key} />
+              <input type="hidden" name="txnid" value={payuData.txnid} />
+              <input type="hidden" name="amount" value={payuData.amount} />
+              <input type="hidden" name="productinfo" value={payuData.productinfo} />
+              <input type="hidden" name="firstname" value={payuData.firstname} />
+              <input type="hidden" name="email" value={payuData.email} />
+              <input type="hidden" name="phone" value={payuData.phone} />
+              <input type="hidden" name="surl" value={payuData.surl} />
+              <input type="hidden" name="furl" value={payuData.furl} />
+              <input type="hidden" name="hash" value={payuData.hash} />
+            </form>
+          )}
         </div>
       </section>
     </Layout>
