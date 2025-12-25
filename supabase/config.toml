@@ -110,3 +110,15 @@ verify_jwt = false
 
 [functions.verify-event-otp]
 verify_jwt = false
+
+[functions.shiprocket-auth]
+verify_jwt = true
+
+[functions.shiprocket-create-order]
+verify_jwt = true
+
+[functions.shiprocket-track]
+verify_jwt = false
+
+[functions.shiprocket-webhook]
+verify_jwt = false
