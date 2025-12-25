@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useLiveChat } from "@/hooks/useLiveChat";
+import { useUserNotifications } from "@/hooks/useUserNotifications";
 import { toast } from "@/hooks/use-toast";
 
 const navLinks = [
@@ -24,6 +25,7 @@ export function Header() {
   const { user, isStaff, signOut } = useAuth();
   const { totalItems } = useCart();
   const { openChat } = useLiveChat();
+  const { unreadCount } = useUserNotifications();
 
   const handleTrackOrder = () => {
     if (!user) {
@@ -171,9 +173,11 @@ export function Header() {
                 <Button asChild variant="glass" size="icon" className="relative w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10">
                   <Link to="/notifications">
                     <Bell className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 bg-accent text-accent-foreground text-[8px] xl:text-[10px] font-bold rounded-full flex items-center justify-center">
-                      3
-                    </span>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 bg-accent text-accent-foreground text-[8px] xl:text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </Link>
                 </Button>
                 <Button asChild variant="glass" size="icon" className="w-8 h-8 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10">
