@@ -98,3 +98,15 @@ verify_jwt = false
 
 [functions.verify-payu-payment]
 verify_jwt = false
+
+[functions.initiate-event-payment]
+verify_jwt = false
+
+[functions.verify-event-payment]
+verify_jwt = false
+
+[functions.send-event-otp]
+verify_jwt = false
+
+[functions.verify-event-otp]
+verify_jwt = false

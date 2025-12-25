@@ -67,6 +67,7 @@ export default function Checkout() {
     const status = searchParams.get("status");
     const orderId = searchParams.get("order_id");
     const message = searchParams.get("message");
+    const paymentStatus = searchParams.get("payment_status");
 
     if (status === "success" && orderId) {
       clearCart();
@@ -77,6 +78,12 @@ export default function Checkout() {
         title: "Payment Failed", 
         description: message || "Please try again or use Cash on Delivery.",
         variant: "destructive" 
+      });
+    } else if (paymentStatus === "pending" && orderId) {
+      // Payment pending status
+      toast({ 
+        title: "Payment Pending", 
+        description: "Your payment is being processed. We'll notify you once confirmed.",
       });
     }
   }, [searchParams, clearCart, toast]);
@@ -228,6 +235,48 @@ export default function Checkout() {
     }
   };
 
+  // Check for payment pending from URL
+  const paymentPending = searchParams.get("payment_status") === "pending";
+  const pendingOrderId = searchParams.get("order_id");
+
+  if (paymentPending && pendingOrderId) {
+    return (
+      <Layout>
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md mx-auto text-center"
+            >
+              <div className="w-20 h-20 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-6">
+                <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
+              </div>
+              <h1 className="font-display text-3xl font-bold mb-4">Payment Pending</h1>
+              <p className="text-muted-foreground mb-8">
+                Your payment is being processed. We'll notify you via email once the payment is confirmed.
+                Please do not place another order.
+              </p>
+              <div className="glass-card p-4 mb-6 bg-yellow-500/10 border border-yellow-500/20">
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                  Order ID: {pendingOrderId.slice(0, 8).toUpperCase()}
+                </p>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <Button variant="outline" onClick={() => navigate("/track-order")}>
+                  Track Order
+                </Button>
+                <Button variant="hero" onClick={() => navigate("/")}>
+                  Go Home
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
   if (orderSuccess) {
     return (
       <Layout>
@@ -242,10 +291,15 @@ export default function Checkout() {
                 <CheckCircle className="w-10 h-10 text-green-500" />
               </div>
               <h1 className="font-display text-3xl font-bold mb-4">Order Placed!</h1>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-muted-foreground mb-4">
                 Thank you for your order. We'll send you a confirmation email shortly.
                 {form.paymentMethod === 'cod' && ' Please keep cash ready for delivery.'}
               </p>
+              <div className="glass-card p-4 mb-6 bg-accent/10 border border-accent/20">
+                <p className="text-sm text-accent">
+                  Estimated Delivery: 5-7 business days
+                </p>
+              </div>
               <div className="flex gap-4 justify-center">
                 <Button variant="outline" onClick={() => navigate("/shop")}>
                   Continue Shopping
