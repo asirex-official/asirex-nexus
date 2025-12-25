@@ -533,25 +533,49 @@ export type Database = {
       }
       event_registrations: {
         Row: {
+          amount_paid: number | null
+          email: string | null
           event_id: string
           id: string
+          otp_expires_at: string | null
+          otp_hash: string | null
+          otp_verified: boolean | null
+          payment_id: string | null
+          payment_status: string | null
           registered_at: string
           status: string | null
           user_id: string
+          verification_code: string | null
         }
         Insert: {
+          amount_paid?: number | null
+          email?: string | null
           event_id: string
           id?: string
+          otp_expires_at?: string | null
+          otp_hash?: string | null
+          otp_verified?: boolean | null
+          payment_id?: string | null
+          payment_status?: string | null
           registered_at?: string
           status?: string | null
           user_id: string
+          verification_code?: string | null
         }
         Update: {
+          amount_paid?: number | null
+          email?: string | null
           event_id?: string
           id?: string
+          otp_expires_at?: string | null
+          otp_hash?: string | null
+          otp_verified?: boolean | null
+          payment_id?: string | null
+          payment_status?: string | null
           registered_at?: string
           status?: string | null
           user_id?: string
+          verification_code?: string | null
         }
         Relationships: [
           {

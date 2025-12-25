@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users, Clock, Filter, ArrowRight, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Filter, ArrowRight, CheckCircle, XCircle, PartyPopper } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,8 @@ import { useEventRegistration } from "@/hooks/useEventRegistration";
 import { useEventRegistrationCounts } from "@/hooks/useEventRegistrationCounts";
 import { useEvents } from "@/hooks/useSiteData";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { PaidEventRegistrationDialog } from "@/components/events/PaidEventRegistrationDialog";
 
 import {
   Select,
@@ -59,24 +61,56 @@ const getEventIcon = (name: string): string => {
 
 export default function Events() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isRegistered, registerForEvent, unregisterFromEvent, loading: registering } = useEventRegistration();
+  const { isRegistered, registerForEvent, unregisterFromEvent, loading: registering, refetch } = useEventRegistration();
   const { getCount } = useEventRegistrationCounts();
-  const { data: dbEvents, isLoading } = useEvents();
+  const { data: dbEvents, isLoading, refetch: refetchEvents } = useEvents();
   const [selectedCity, setSelectedCity] = useState("All Locations");
   const [selectedType, setSelectedType] = useState("All Types");
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [paidEventDialog, setPaidEventDialog] = useState<any | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successVerificationCode, setSuccessVerificationCode] = useState<string | null>(null);
 
-  // Auto-register after login redirect
+  // Handle payment callback
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const eventId = searchParams.get("event_id");
+    const verificationCode = searchParams.get("verification_code");
+    const message = searchParams.get("message");
+
+    if (status === "success" && eventId) {
+      setSuccessVerificationCode(verificationCode);
+      setShowSuccessModal(true);
+      refetch();
+      refetchEvents();
+      // Clear URL params
+      window.history.replaceState({}, "", "/events");
+    } else if (status === "failed" && eventId) {
+      toast.error(message || "Payment failed. Please try again.");
+      window.history.replaceState({}, "", "/events");
+    } else if (status === "error") {
+      toast.error(message || "Something went wrong. Please try again.");
+      window.history.replaceState({}, "", "/events");
+    }
+  }, [searchParams, refetch, refetchEvents]);
+
+  // Auto-register after login redirect (only for free events)
   useEffect(() => {
     const pendingEventId = sessionStorage.getItem("pendingEventRegistration");
     if (user && pendingEventId) {
       sessionStorage.removeItem("pendingEventRegistration");
-      if (!isRegistered(pendingEventId)) {
+      // Find the event to check if it's paid
+      const event = dbEvents?.find((e: any) => e.id === pendingEventId);
+      if (event && event.ticket_price > 0) {
+        // Open paid registration dialog
+        setPaidEventDialog(event);
+      } else if (!isRegistered(pendingEventId)) {
         registerForEvent(pendingEventId);
       }
     }
-  }, [user, isRegistered, registerForEvent]);
+  }, [user, isRegistered, registerForEvent, dbEvents]);
 
   const filteredEvents = (dbEvents || []).filter((event: any) => {
     const eventType = event.type || getEventType(event.name);
@@ -85,20 +119,28 @@ export default function Events() {
     return cityMatch && typeMatch;
   });
 
-  const handleRegister = async (e: React.MouseEvent, eventId: string) => {
+  const handleRegister = async (e: React.MouseEvent, event: any) => {
     e.stopPropagation();
     
     if (!user) {
-      sessionStorage.setItem("pendingEventRegistration", eventId);
+      sessionStorage.setItem("pendingEventRegistration", event.id);
       navigate("/auth");
       return;
     }
 
-    if (isRegistered(eventId)) {
+    if (isRegistered(event.id)) {
       return;
     }
 
-    await registerForEvent(eventId);
+    // Check if it's a paid event
+    if (event.ticket_price > 0) {
+      setPaidEventDialog(event);
+      setSelectedEvent(null); // Close the detail modal if open
+      return;
+    }
+
+    // Free event - register directly
+    await registerForEvent(event.id);
   };
 
   const getAvailability = (event: any) => {
@@ -209,6 +251,7 @@ export default function Events() {
                 const eventType = event.type || getEventType(event.name);
                 const tags = getEventTags(event);
                 const icon = getEventIcon(event.name);
+                const isPaidEvent = event.ticket_price > 0;
                 
                 return (
                   <motion.div
@@ -252,6 +295,11 @@ export default function Events() {
                                   {tag}
                                 </span>
                               ))}
+                              {isPaidEvent && (
+                                <span className="px-2 py-1 text-xs rounded-full bg-primary/20 text-primary font-medium">
+                                  Paid Event
+                                </span>
+                              )}
                             </div>
 
                             <h3 className="font-display text-xl lg:text-2xl font-semibold mb-3 group-hover:text-accent transition-colors">
@@ -345,10 +393,10 @@ export default function Events() {
                                 variant="hero" 
                                 size="sm"
                                 className="text-xs sm:text-sm"
-                                onClick={(e) => handleRegister(e, event.id)}
+                                onClick={(e) => handleRegister(e, event)}
                                 disabled={registering}
                               >
-                                Register
+                                {isPaidEvent ? "Buy Ticket" : "Register"}
                                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                               </Button>
                             )}
@@ -382,9 +430,16 @@ export default function Events() {
                     )}
                   </div>
                   <div>
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/20 text-secondary">
-                      {selectedEvent.type || getEventType(selectedEvent.name)}
-                    </span>
+                    <div className="flex gap-2 mb-1">
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/20 text-secondary">
+                        {selectedEvent.type || getEventType(selectedEvent.name)}
+                      </span>
+                      {selectedEvent.ticket_price > 0 && (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/20 text-primary">
+                          Paid Event
+                        </span>
+                      )}
+                    </div>
                     <DialogTitle className="font-display text-xl lg:text-2xl mt-2">
                       {selectedEvent.name}
                     </DialogTitle>
@@ -465,6 +520,8 @@ export default function Events() {
                   </div>
                   {(() => {
                     const modalAvailability = getAvailability(selectedEvent);
+                    const isPaidEvent = selectedEvent.ticket_price > 0;
+                    
                     if (isRegistered(selectedEvent.id)) {
                       return (
                         <div className="flex gap-2">
@@ -504,10 +561,10 @@ export default function Events() {
                         <Button 
                           variant="hero" 
                           size="lg"
-                          onClick={(e) => handleRegister(e, selectedEvent.id)}
+                          onClick={(e) => handleRegister(e, selectedEvent)}
                           disabled={registering}
                         >
-                          Register Now
+                          {isPaidEvent ? "Buy Ticket" : "Register Now"}
                           <ArrowRight className="w-5 h-5 ml-2" />
                         </Button>
                       );
@@ -517,6 +574,53 @@ export default function Events() {
               </div>
             </motion.div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Paid Event Registration Dialog */}
+      {paidEventDialog && (
+        <PaidEventRegistrationDialog
+          open={!!paidEventDialog}
+          onOpenChange={(open) => !open && setPaidEventDialog(null)}
+          event={paidEventDialog}
+          onSuccess={() => {
+            refetch();
+            refetchEvents();
+          }}
+        />
+      )}
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md glass-card border-border text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-6">
+              <PartyPopper className="w-10 h-10 text-accent" />
+            </div>
+            <DialogTitle className="font-display text-2xl mb-4">
+              Registration Successful! 🎉
+            </DialogTitle>
+            <p className="text-muted-foreground mb-4">
+              You're all set! We'll send you event details via email and call you a day before the event.
+            </p>
+            {successVerificationCode && (
+              <div className="glass-card p-4 bg-accent/10 border border-accent/20 mb-6">
+                <div className="text-sm text-muted-foreground mb-1">Your Verification Code</div>
+                <div className="font-mono text-2xl font-bold text-accent tracking-widest">
+                  {successVerificationCode}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Show this code at the event entrance
+                </p>
+              </div>
+            )}
+            <Button variant="hero" className="w-full" onClick={() => setShowSuccessModal(false)}>
+              Got it!
+            </Button>
+          </motion.div>
         </DialogContent>
       </Dialog>
     </Layout>
