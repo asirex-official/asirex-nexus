@@ -125,3 +125,15 @@ verify_jwt = false
 
 [functions.send-unified-notification]
 verify_jwt = false
+
+[functions.shiprocket-cancel-order]
+verify_jwt = true
+
+[functions.shiprocket-create-return]
+verify_jwt = true
+
+[functions.payu-refund]
+verify_jwt = true
+
+[functions.shiprocket-return-webhook]
+verify_jwt = false

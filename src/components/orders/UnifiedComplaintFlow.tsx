@@ -47,9 +47,8 @@ const RETURN_REASONS = [
 ];
 
 const REFUND_METHODS = [
-  { id: "upi", label: "UPI Transfer", description: "Up to 24 hours", icon: Smartphone },
-  { id: "bank", label: "Bank Transfer", description: "Up to 2 business days", icon: Building2 },
-  { id: "gift_card", label: "Store Credit", description: "Instant (within 1 minute after approval)", icon: Gift },
+  { id: "gift_card", label: "Store Credit (Coupon)", description: "Instant - Get a coupon code for your next order", icon: Gift },
+  { id: "original_payment", label: "Original Payment Method", description: "5-7 business days - Refund to source you paid from", icon: CreditCard },
 ];
 
 export function UnifiedComplaintFlow({
@@ -77,15 +76,6 @@ export function UnifiedComplaintFlow({
   const [images, setImages] = useState<string[]>([]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [selectedRefundMethod, setSelectedRefundMethod] = useState<string | null>(null);
-  
-  // Refund details states
-  const [upiId, setUpiId] = useState("");
-  const [upiName, setUpiName] = useState("");
-  const [bankAccountHolder, setBankAccountHolder] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [bankAccountNumber, setBankAccountNumber] = useState("");
-  const [bankAccountConfirm, setBankAccountConfirm] = useState("");
-  const [bankIfsc, setBankIfsc] = useState("");
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -273,22 +263,13 @@ export function UnifiedComplaintFlow({
   const finishComplaint = async (cId?: string) => {
     setIsLoading(true);
     try {
-      // Build refund details based on method
-      let refundMethodDetails = selectedRefundMethod;
-      if (selectedRefundMethod === "upi") {
-        refundMethodDetails = `upi:${upiId}:${upiName}`;
-      } else if (selectedRefundMethod === "bank") {
-        refundMethodDetails = `bank:${bankAccountHolder}:${bankName}:${bankAccountNumber}:${bankIfsc}`;
-      }
-      
       // Update complaint with refund method if selected
       await supabase
         .from("order_complaints")
         .update({
-          refund_method: refundMethodDetails || null,
+          refund_method: selectedRefundMethod || null,
           resolution_type: complaintType === "return" ? "refund" : 
                           complaintType === "replace" ? "replacement" : null,
-          // No coupon code - admin will add if eligible and approved
         })
         .eq("id", cId || complaintId);
 
@@ -303,43 +284,6 @@ export function UnifiedComplaintFlow({
 
   const handleRefundMethodSelect = () => {
     if (!selectedRefundMethod) return;
-    
-    // Validate UPI details
-    if (selectedRefundMethod === "upi") {
-      if (!upiId.trim()) {
-        toast.error("Please enter your UPI ID");
-        return;
-      }
-      if (!upiName.trim()) {
-        toast.error("Please enter account holder name");
-        return;
-      }
-    }
-    
-    // Validate Bank details
-    if (selectedRefundMethod === "bank") {
-      if (!bankAccountHolder.trim()) {
-        toast.error("Please enter account holder name");
-        return;
-      }
-      if (!bankName.trim()) {
-        toast.error("Please enter bank name");
-        return;
-      }
-      if (!bankAccountNumber.trim()) {
-        toast.error("Please enter account number");
-        return;
-      }
-      if (bankAccountNumber !== bankAccountConfirm) {
-        toast.error("Account numbers do not match");
-        return;
-      }
-      if (!bankIfsc.trim()) {
-        toast.error("Please enter IFSC code");
-        return;
-      }
-    }
-    
     finishComplaint(complaintId!);
   };
 
@@ -592,97 +536,6 @@ export function UnifiedComplaintFlow({
               })}
             </div>
 
-            {/* UPI Details Form */}
-            {selectedRefundMethod === "upi" && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="space-y-3 p-4 bg-muted/50 rounded-lg border"
-              >
-                <p className="text-sm font-medium flex items-center gap-2">
-                  <Smartphone className="w-4 h-4" />
-                  UPI Details
-                </p>
-                <div className="space-y-2">
-                  <Label htmlFor="upi-id">UPI ID *</Label>
-                  <Input
-                    id="upi-id"
-                    placeholder="example@upi"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="upi-name">Account Holder Name *</Label>
-                  <Input
-                    id="upi-name"
-                    placeholder="Full name as per UPI account"
-                    value={upiName}
-                    onChange={(e) => setUpiName(e.target.value)}
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {/* Bank Transfer Details Form */}
-            {selectedRefundMethod === "bank" && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="space-y-3 p-4 bg-muted/50 rounded-lg border"
-              >
-                <p className="text-sm font-medium flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  Bank Account Details
-                </p>
-                <div className="space-y-2">
-                  <Label htmlFor="bank-holder">Account Holder Name *</Label>
-                  <Input
-                    id="bank-holder"
-                    placeholder="Full name as per bank account"
-                    value={bankAccountHolder}
-                    onChange={(e) => setBankAccountHolder(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bank-name">Bank Name *</Label>
-                  <Input
-                    id="bank-name"
-                    placeholder="e.g., State Bank of India"
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bank-account">Account Number *</Label>
-                  <Input
-                    id="bank-account"
-                    placeholder="Enter account number"
-                    value={bankAccountNumber}
-                    onChange={(e) => setBankAccountNumber(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bank-account-confirm">Confirm Account Number *</Label>
-                  <Input
-                    id="bank-account-confirm"
-                    placeholder="Re-enter account number"
-                    value={bankAccountConfirm}
-                    onChange={(e) => setBankAccountConfirm(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bank-ifsc">IFSC Code *</Label>
-                  <Input
-                    id="bank-ifsc"
-                    placeholder="e.g., SBIN0001234"
-                    value={bankIfsc}
-                    onChange={(e) => setBankIfsc(e.target.value.toUpperCase())}
-                  />
-                </div>
-              </motion.div>
-            )}
-
             {/* Store Credit Info */}
             {selectedRefundMethod === "gift_card" && (
               <motion.div
@@ -693,7 +546,23 @@ export function UnifiedComplaintFlow({
                 <p className="text-sm flex items-center gap-2">
                   <Gift className="w-4 h-4 text-green-500" />
                   <span>
-                    <strong>Fastest option!</strong> Once approved by admin, you'll receive a store credit coupon code instantly (within 1 minute) that you can use on your next order.
+                    <strong>Fastest option!</strong> Once approved, you'll receive a store credit coupon code instantly that you can use on your next order.
+                  </span>
+                </p>
+              </motion.div>
+            )}
+
+            {/* Original Payment Info */}
+            {selectedRefundMethod === "original_payment" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20"
+              >
+                <p className="text-sm flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-blue-500" />
+                  <span>
+                    Once approved and return pickup completed, the refund will be credited back to your original payment method (the source you paid from) within 5-7 business days.
                   </span>
                 </p>
               </motion.div>
