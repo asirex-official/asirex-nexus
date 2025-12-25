@@ -38,9 +38,9 @@ export function NewYearGreeting() {
   return (
     <>
       {showBanner && (
-        <div className="fixed top-0 left-0 right-0 z-[60]">
-          <div className="bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700 py-2.5 text-center">
-            <span className="text-white font-semibold text-sm tracking-wide">
+        <div className="w-full mt-20">
+          <div className="bg-gradient-to-r from-amber-900 via-yellow-800 to-amber-900 py-2.5 text-center">
+            <span className="text-amber-200 font-semibold text-sm tracking-wide">
               Happy New Year 2026 — Enjoy 15% Off on All Orders
             </span>
           </div>
