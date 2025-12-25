@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/useAuth";
 
 export function NewYearGreeting() {
   const [showGreeting, setShowGreeting] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
+  const { user } = useAuth();
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User";
 
   useEffect(() => {
     const today = new Date().toDateString();
@@ -33,42 +37,63 @@ export function NewYearGreeting() {
 
   return (
     <>
-      {/* Top Banner */}
       {showBanner && (
         <div className="fixed top-0 left-0 right-0 z-[60]">
-          <div className="bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 py-3 text-center">
-            <span className="text-white font-bold text-lg tracking-wide">
-              🎆 Happy New Year 2026! 🎆
+          <div className="bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700 py-2.5 text-center">
+            <span className="text-white font-semibold text-sm tracking-wide">
+              Happy New Year 2026 — Enjoy 15% Off on All Orders
             </span>
           </div>
         </div>
       )}
 
-      {/* Greeting Popup */}
       <Dialog open={showGreeting} onOpenChange={setShowGreeting}>
-        <DialogContent className="sm:max-w-md border-2 border-yellow-500/50 bg-gradient-to-br from-yellow-900 via-amber-800 to-yellow-900 p-0 overflow-hidden">
-          <div className="p-8 text-center space-y-6">
-            <h1 className="text-4xl font-bold text-yellow-300">
-              🎆 Happy New Year! 🎆
+        <DialogContent className="sm:max-w-lg border border-amber-500/30 bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 p-0 overflow-hidden">
+          <div className="relative">
+            <img 
+              src="https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=800&q=80" 
+              alt="New Year Celebration"
+              className="w-full h-48 object-cover opacity-60"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-950" />
+          </div>
+          
+          <div className="px-8 pb-8 pt-2 text-center space-y-5">
+            <p className="text-amber-300/80 text-sm uppercase tracking-widest">
+              Wishing You a Prosperous
+            </p>
+            
+            <h1 className="text-4xl font-bold text-amber-100 tracking-tight">
+              Happy New Year 2026
             </h1>
 
-            <p className="text-lg text-yellow-100/90">
-              Wishing you a wonderful year ahead filled with joy, success, and endless possibilities!
+            <p className="text-xl text-amber-200">
+              {userName}
             </p>
 
-            <div className="text-5xl font-bold text-yellow-400">
-              2026
+            <div className="py-4">
+              <div className="inline-block bg-amber-800/50 border border-amber-600/40 rounded-lg px-6 py-3">
+                <p className="text-amber-300/70 text-xs uppercase tracking-wider mb-1">
+                  Exclusive Offer
+                </p>
+                <p className="text-3xl font-bold text-amber-100">
+                  15% OFF
+                </p>
+                <p className="text-amber-300/60 text-xs mt-1">
+                  On All Orders
+                </p>
+              </div>
             </div>
 
-            <p className="text-yellow-200/70 text-sm">
-              Thank you for being with us!
+            <p className="text-amber-300/60 text-sm">
+              Thank you for being with us this year
             </p>
 
             <Button
               onClick={handleThankYou}
-              className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold px-8 py-3 rounded-full text-lg"
+              className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-medium px-10 py-2.5 rounded-full"
             >
-              Thank You!
+              Thank You
             </Button>
           </div>
         </DialogContent>
