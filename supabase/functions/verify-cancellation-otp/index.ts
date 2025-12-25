@@ -97,6 +97,24 @@ const handler = async (req: Request): Promise<Response> => {
       })
       .eq("id", cancellation.id);
 
+    // Cancel order on ShipRocket
+    console.log("Cancelling order on ShipRocket:", order_id);
+    try {
+      const shiprocketResponse = await fetch(`${supabaseUrl}/functions/v1/shiprocket-cancel-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({ orderId: order_id }),
+      });
+      const shiprocketResult = await shiprocketResponse.json();
+      console.log("ShipRocket cancel result:", shiprocketResult);
+    } catch (shipError) {
+      console.error("ShipRocket cancellation error:", shipError);
+      // Continue even if ShipRocket fails
+    }
+
     // Update order status
     await supabase
       .from("orders")
@@ -106,18 +124,18 @@ const handler = async (req: Request): Promise<Response> => {
       })
       .eq("id", order_id);
 
-    // Determine if refund is needed
+    // Determine if refund is needed (paid online orders only)
     const needsRefund = order?.payment_method?.toLowerCase() !== "cod" && 
                         order?.payment_status === "paid";
 
     if (needsRefund) {
-      // Update cancellation to indicate refund needed
+      // Update cancellation to indicate refund selection needed
       await supabase
         .from("order_cancellations")
-        .update({ status: "refund_initiated" })
+        .update({ status: "awaiting_refund_selection" })
         .eq("id", cancellation.id);
 
-      // Create refund request for user to select payment method
+      // Create refund request with pending selection
       await supabase.from("refund_requests").insert({
         order_id: order_id,
         user_id: user_id,
@@ -133,7 +151,7 @@ const handler = async (req: Request): Promise<Response> => {
     await supabase.from("notifications").insert({
       user_id,
       title: "Order Cancelled",
-      message: `Your order #${order_id.slice(0, 8).toUpperCase()} has been cancelled successfully.${needsRefund ? " Refund will be processed shortly." : ""}`,
+      message: `Your order #${order_id.slice(0, 8).toUpperCase()} has been cancelled successfully.${needsRefund ? " Please select your refund method." : ""}`,
       type: "order",
       link: "/track-order",
     });
@@ -162,9 +180,13 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               ${needsRefund ? `
-                <div style="background: #10b981; padding: 15px; border-radius: 8px;">
-                  <p style="margin: 0; font-weight: bold;">Refund Information</p>
-                  <p style="margin: 5px 0 0 0;">A refund of ₹${order?.total_amount?.toLocaleString()} will be initiated. You will be contacted to select your preferred refund method.</p>
+                <div style="background: #6366f1; padding: 15px; border-radius: 8px;">
+                  <p style="margin: 0; font-weight: bold;">Refund Required</p>
+                  <p style="margin: 5px 0 0 0;">Please visit your order page to select your refund method:</p>
+                  <ul style="margin: 10px 0 0 0;">
+                    <li><strong>Store Credit:</strong> Instant - Use on your next order</li>
+                    <li><strong>Original Payment Method:</strong> 5-7 business days</li>
+                  </ul>
                 </div>
               ` : `
                 <p style="color: #888;">No refund is required as this was a Cash on Delivery order.</p>
