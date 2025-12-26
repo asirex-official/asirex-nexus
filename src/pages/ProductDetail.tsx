@@ -716,7 +716,7 @@ export default function ProductDetail() {
                     <li>All applicable taxes are your responsibility</li>
                     <li>The seller is not liable for any misuse or legal consequences</li>
                     <li>You will use this product in compliance with all applicable laws</li>
-                    <li>No refunds will be provided once the product is shipped</li>
+                    
                   </ul>
                   <a 
                     href="/terms-and-conditions" 
