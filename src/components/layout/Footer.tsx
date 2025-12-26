@@ -45,6 +45,13 @@ export function Footer() {
   const whatsappNumber = companyInfo?.whatsapp_number || "919876543210";
   const whatsappComingSoon = companyInfo?.whatsapp_coming_soon === "true";
 
+  const legalName = companyInfo?.legal_name || "SHIVRAM";
+  const contactEmail = companyInfo?.contact_email || "asirex.official@gmail.com";
+  const contactPhone = companyInfo?.phone_coming_soon === "true"
+    ? "Coming Soon"
+    : (companyInfo?.contact_phone || "+91 9792944295");
+  const address = companyInfo?.address || "Rangmahal Flats 7,8, Camp Colony, Faridabad, Haryana - 121102, India";
+
   const socialLinks: SocialLink[] = [
     { 
       image: whatsappLogo, 
@@ -77,10 +84,10 @@ export function Footer() {
               Future Tech. India's future depends on ASIREX. Pioneering AI, robotics, and clean-tech solutions for tomorrow.
             </p>
             <div className="text-muted-foreground text-xs space-y-1 mb-6">
-              <p><strong>Legal Name:</strong> SHIVRAM</p>
-              <p><strong>Email:</strong> asirex.official@gmail.com</p>
-              <p><strong>Phone:</strong> +91 9792944295</p>
-              <p><strong>Address:</strong> Rangmahal Flats 7,8, Camp Colony, Faridabad, Haryana - 121102, India</p>
+              <p><strong>Legal Name:</strong> {legalName}</p>
+              <p><strong>Email:</strong> {contactEmail}</p>
+              <p><strong>Phone:</strong> {contactPhone}</p>
+              <p><strong>Address:</strong> {address}</p>
             </div>
             <div className="flex gap-3">
               {socialLinks.map((social) => (

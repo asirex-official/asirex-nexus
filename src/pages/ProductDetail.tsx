@@ -275,7 +275,11 @@ export default function ProductDetail() {
                           : "border-border/50 hover:border-primary/50 opacity-70 hover:opacity-100"
                       }`}
                     >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={img}
+                        alt={`${product.name} thumbnail ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
                     </motion.button>
                   ))}
                 </div>
@@ -450,7 +454,7 @@ export default function ProductDetail() {
                   className="p-5 rounded-2xl bg-muted/30 border border-border/30"
                 >
                   <h3 className="text-sm font-bold uppercase tracking-wide text-foreground mb-3">About this product</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                     {product.description}
                   </p>
                 </motion.div>
