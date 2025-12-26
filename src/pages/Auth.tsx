@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, AlertTriangle, ShieldAlert, KeyRound, Fingerprint } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, ArrowLeft, Shield, Users, Briefcase, HelpCircle, ChevronDown, AlertTriangle, ShieldAlert, KeyRound, Fingerprint, Phone, MessageSquare } from "lucide-react";
 import { DialDatePicker } from "@/components/ui/dial-date-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 const loginBenefits = [
   "Track your orders in real-time",
   "Access exclusive member discounts",
@@ -59,6 +60,8 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpMethod, setOtpMethod] = useState<'email' | 'sms'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAdminOptions, setShowAdminOptions] = useState(false);
@@ -404,23 +407,61 @@ export default function Auth() {
   const sendOTP = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { email, fullName }
-      });
+      if (otpMethod === 'sms') {
+        // Validate phone number
+        if (!phoneNumber || phoneNumber.length < 10) {
+          toast({
+            title: "Invalid phone number",
+            description: "Please enter a valid 10-digit phone number",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
 
-      if (error) {
-        toast({
-          title: "Failed to send verification code",
-          description: error.message,
-          variant: "destructive",
+        const { data, error } = await supabase.functions.invoke('send-sms-otp', {
+          body: { 
+            phone_number: phoneNumber, 
+            purpose: 'signup',
+            email,
+            full_name: fullName 
+          }
         });
-        return;
+
+        if (error || data?.error) {
+          toast({
+            title: "Failed to send OTP",
+            description: data?.error || error?.message || "Could not send SMS OTP",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "OTP sent to your phone!",
+          description: `We've sent a 6-digit code to +91 ${phoneNumber}`,
+        });
+      } else {
+        // Email OTP
+        const { data, error } = await supabase.functions.invoke('send-otp', {
+          body: { email, fullName }
+        });
+
+        if (error) {
+          toast({
+            title: "Failed to send verification code",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Verification code sent!",
+          description: `We've sent a 6-digit code to ${email}`,
+        });
       }
 
-      toast({
-        title: "Verification code sent!",
-        description: `We've sent a 6-digit code to ${email}`,
-      });
       setShowOTPVerification(true);
       setResendCooldown(60); // 60 seconds cooldown
     } catch (err: any) {
@@ -446,9 +487,17 @@ export default function Auth() {
 
     setOtpLoading(true);
     try {
-      const response = await supabase.functions.invoke('verify-signup-otp', {
-        body: { email, otp: otpValue }
-      });
+      let response;
+      
+      if (otpMethod === 'sms') {
+        response = await supabase.functions.invoke('verify-sms-otp', {
+          body: { phone_number: phoneNumber, otp: otpValue }
+        });
+      } else {
+        response = await supabase.functions.invoke('verify-signup-otp', {
+          body: { email, otp: otpValue }
+        });
+      }
 
       // Check for error in response data (edge function returns error in body with 400 status)
       if (response.error || response.data?.error) {
@@ -780,12 +829,20 @@ export default function Auth() {
             >
               <div className="text-center mb-4">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                  <KeyRound className="w-8 h-8 text-primary" />
+                  {otpMethod === 'sms' ? (
+                    <MessageSquare className="w-8 h-8 text-primary" />
+                  ) : (
+                    <KeyRound className="w-8 h-8 text-primary" />
+                  )}
                 </div>
-                <h2 className="text-xl font-semibold text-foreground">Verify Your Email</h2>
+                <h2 className="text-xl font-semibold text-foreground">
+                  Verify Your {otpMethod === 'sms' ? 'Phone' : 'Email'}
+                </h2>
                 <p className="text-sm text-muted-foreground mt-2">
                   We've sent a 6-digit verification code to<br />
-                  <span className="font-medium text-foreground">{email}</span>
+                  <span className="font-medium text-foreground">
+                    {otpMethod === 'sms' ? `+91 ${phoneNumber}` : email}
+                  </span>
                 </p>
               </div>
 
@@ -876,6 +933,64 @@ export default function Auth() {
                       required
                       max={new Date().toISOString().split('T')[0]}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
+                    <div className="relative flex gap-2">
+                      <div className="flex items-center gap-1 px-3 bg-muted rounded-md border h-10">
+                        <span className="text-sm text-muted-foreground">+91</span>
+                      </div>
+                      <div className="relative flex-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="phoneNumber"
+                          type="tel"
+                          placeholder="Enter 10-digit number"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          maxLength={10}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Add phone for SMS OTP and account recovery
+                    </p>
+                  </div>
+
+                  {/* OTP Method Selection */}
+                  <div className="space-y-3">
+                    <Label>Receive verification code via</Label>
+                    <RadioGroup
+                      value={otpMethod}
+                      onValueChange={(v) => setOtpMethod(v as 'email' | 'sms')}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="email" id="otp-email" />
+                        <Label htmlFor="otp-email" className="flex items-center gap-2 cursor-pointer font-normal">
+                          <Mail className="w-4 h-4" />
+                          Email
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem 
+                          value="sms" 
+                          id="otp-sms" 
+                          disabled={!phoneNumber || phoneNumber.length < 10}
+                        />
+                        <Label 
+                          htmlFor="otp-sms" 
+                          className={`flex items-center gap-2 cursor-pointer font-normal ${
+                            !phoneNumber || phoneNumber.length < 10 ? 'text-muted-foreground' : ''
+                          }`}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          SMS
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </>
               )}
