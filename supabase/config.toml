@@ -140,3 +140,12 @@ verify_jwt = false
 
 [functions.process-return-complete]
 verify_jwt = true
+
+[functions.shiprocket-generate-awb]
+verify_jwt = true
+
+[functions.shiprocket-schedule-pickup]
+verify_jwt = true
+
+[functions.shiprocket-full-automation]
+verify_jwt = true

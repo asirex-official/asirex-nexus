@@ -220,14 +220,14 @@ export default function Checkout() {
         console.log('Email notification skipped:', emailError);
       }
 
-      // Auto-create ShipRocket shipment
+      // Auto-create ShipRocket shipment with full automation (AWB + Pickup)
       try {
-        await supabase.functions.invoke('shiprocket-create-order', {
+        await supabase.functions.invoke('shiprocket-full-automation', {
           body: { orderId: orderData.id }
         });
-        console.log('ShipRocket order created automatically');
+        console.log('ShipRocket full automation triggered');
       } catch (shipError) {
-        console.log('ShipRocket order creation skipped:', shipError);
+        console.log('ShipRocket automation skipped:', shipError);
       }
 
       clearCart();
