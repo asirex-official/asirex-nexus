@@ -73,9 +73,14 @@ export function Footer() {
                 ASIREX
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4 max-w-xs">
               Future Tech. India's future depends on ASIREX. Pioneering AI, robotics, and clean-tech solutions for tomorrow.
             </p>
+            <div className="text-muted-foreground text-xs space-y-1 mb-6">
+              <p><strong>Legal Name:</strong> SHIVRAM</p>
+              <p><strong>Email:</strong> asirex.official@gmail.com</p>
+              <p><strong>Phone:</strong> +91 9792944295</p>
+            </div>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
                 <a
