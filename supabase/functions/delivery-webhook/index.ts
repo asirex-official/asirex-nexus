@@ -6,23 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Map ShipRocket status to our delivery status
+// Map ShipRocket status to internal status
 function mapDeliveryStatus(srStatus: string): string {
   const statusMap: Record<string, string> = {
-    'PICKUP SCHEDULED': 'processing',
-    'PICKUP QUEUED': 'processing',
-    'PICKED UP': 'shipped',
+    'PICKUP SCHEDULED': 'pickup_scheduled',
+    'PICKUP QUEUED': 'pickup_scheduled',
+    'PICKED UP': 'picked_up',
     'IN TRANSIT': 'in_transit',
     'OUT FOR DELIVERY': 'out_for_delivery',
     'DELIVERED': 'delivered',
-    'UNDELIVERED': 'failed_delivery',
-    'RTO INITIATED': 'returning',
-    'RTO DELIVERED': 'returned',
+    'RTO INITIATED': 'rto_initiated',
+    'RTO IN TRANSIT': 'rto_in_transit',
+    'RTO DELIVERED': 'rto_delivered',
     'CANCELLED': 'cancelled',
     'LOST': 'lost',
+    'DAMAGED': 'damaged',
+    'UNDELIVERED': 'undelivered',
+    'PENDING': 'pending',
+    'SHIPPED': 'shipped',
   };
+  return statusMap[srStatus?.toUpperCase()] || srStatus?.toLowerCase() || 'unknown';
+}
 
-  return statusMap[srStatus.toUpperCase()] || 'processing';
+// Map to order status
+function mapToOrderStatus(srStatus: string): string | null {
+  const status = srStatus?.toUpperCase();
+  if (status === 'DELIVERED') return 'delivered';
+  if (status === 'CANCELLED' || status === 'RTO DELIVERED') return 'cancelled';
+  if (['PICKED UP', 'IN TRANSIT', 'OUT FOR DELIVERY', 'SHIPPED'].includes(status)) return 'shipped';
+  if (status === 'RTO INITIATED' || status === 'RTO IN TRANSIT' || status === 'UNDELIVERED') return 'shipped';
+  return null;
 }
 
 serve(async (req) => {
@@ -32,142 +45,271 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
-    console.log('ShipRocket webhook received:', JSON.stringify(payload, null, 2));
+    console.log('ShipRocket webhook received:', JSON.stringify(payload));
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Extract data from webhook
-    const {
-      order_id,
-      awb,
-      current_status,
-      current_status_id,
-      shipment_id,
-      etd,
-      courier_name,
-    } = payload;
+    const orderId = payload.order_id?.toString();
+    const awb = payload.awb?.toString();
+    const currentStatus = payload.current_status || payload.status;
+    const courierName = payload.courier_name;
+    const etd = payload.etd;
+    const shipmentId = payload.shipment_id?.toString();
 
-    if (!order_id && !shipment_id) {
-      console.log('No order_id or shipment_id in webhook');
+    console.log('Processing status update:', { orderId, awb, currentStatus, shipmentId });
+
+    if (!orderId && !awb && !shipmentId) {
+      console.log('No identifiers in webhook');
       return new Response(
-        JSON.stringify({ success: true, message: 'No order to update' }),
+        JSON.stringify({ success: true, message: 'No order identifiers' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const deliveryStatus = mapDeliveryStatus(current_status || '');
-    console.log(`Updating order ${order_id} to status: ${deliveryStatus}`);
-
-    // Find the order by tracking number or notes (which stores shiprocket order info)
-    let orders = null;
-    let findError = null;
+    // Find order by AWB, shipment ID, or order ID
+    let order = null;
     
-    // First try by tracking_number (shipment_id)
-    if (shipment_id) {
-      const result = await supabase
+    // Try by tracking number (AWB)
+    if (awb) {
+      const { data } = await supabase
         .from('orders')
-        .select('id, order_status, delivery_status')
-        .eq('tracking_number', shipment_id.toString());
-      orders = result.data;
-      findError = result.error;
+        .select('*')
+        .eq('tracking_number', awb)
+        .single();
+      order = data;
     }
-    
-    // If not found, try by order_id in notes JSON
-    if ((!orders || orders.length === 0) && order_id) {
-      const result = await supabase
+
+    // Try by shipment ID in tracking_number
+    if (!order && shipmentId) {
+      const { data } = await supabase
         .from('orders')
-        .select('id, order_status, delivery_status, notes')
-        .not('notes', 'is', null);
+        .select('*')
+        .eq('tracking_number', shipmentId)
+        .single();
+      order = data;
+    }
+
+    // Try by order ID in notes
+    if (!order && orderId) {
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .ilike('notes', `%"shiprocket_order_id":${orderId}%`)
+        .maybeSingle();
+      order = data;
       
-      if (result.data) {
-        // Filter orders where notes contains the shiprocket order_id
-        orders = result.data.filter(o => {
-          try {
-            const notesData = typeof o.notes === 'string' ? JSON.parse(o.notes) : o.notes;
-            return notesData?.shiprocket_order_id?.toString() === order_id.toString() ||
-                   notesData?.channel_order_id?.toString() === order_id.toString();
-          } catch {
-            return false;
-          }
-        });
+      if (!order) {
+        const { data: data2 } = await supabase
+          .from('orders')
+          .select('*')
+          .ilike('notes', `%"shiprocket_order_id":"${orderId}"%`)
+          .maybeSingle();
+        order = data2;
       }
-      findError = result.error;
     }
 
-    if (findError) {
-      console.error('Error finding order:', findError);
-      throw findError;
+    // Try by order ID prefix
+    if (!order && orderId) {
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .ilike('id', `${orderId}%`)
+        .maybeSingle();
+      order = data;
     }
 
-    if (!orders || orders.length === 0) {
-      console.log('No matching order found');
+    if (!order) {
+      console.log('Order not found for webhook:', { orderId, awb, shipmentId });
       return new Response(
-        JSON.stringify({ success: true, message: 'No matching order found' }),
+        JSON.stringify({ success: false, message: 'Order not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const orderToUpdate = orders[0];
+    console.log('Found order:', order.id, 'Current status:', order.order_status);
 
-    // Update order status
-    const updateData: any = {
+    // Map status
+    const deliveryStatus = mapDeliveryStatus(currentStatus);
+    const orderStatus = mapToOrderStatus(currentStatus);
+
+    // Prepare update
+    const updates: Record<string, any> = {
       delivery_status: deliveryStatus,
       updated_at: new Date().toISOString(),
     };
 
-    if (awb) {
-      updateData.tracking_number = awb;
+    if (awb && !order.tracking_number) {
+      updates.tracking_number = awb;
     }
 
-    if (deliveryStatus === 'delivered') {
-      updateData.delivered_at = new Date().toISOString();
-      updateData.order_status = 'completed';
-    } else if (deliveryStatus === 'shipped' || deliveryStatus === 'in_transit') {
-      updateData.order_status = 'shipped';
-      if (!orderToUpdate.order_status || orderToUpdate.order_status === 'processing') {
-        updateData.shipped_at = new Date().toISOString();
+    if (courierName && (!order.tracking_provider || order.tracking_provider === 'ShipRocket')) {
+      updates.tracking_provider = courierName;
+    }
+
+    // Handle DELIVERED
+    if (currentStatus?.toUpperCase() === 'DELIVERED') {
+      updates.order_status = 'delivered';
+      updates.delivered_at = new Date().toISOString();
+      
+      // Send delivery notification
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/send-shipping-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+            customerName: order.customer_name,
+            customerEmail: order.customer_email,
+            trackingNumber: order.tracking_number || awb,
+            trackingProvider: order.tracking_provider || courierName,
+            items: order.items,
+            totalAmount: order.total_amount,
+            shippingAddress: order.shipping_address,
+            status: 'delivered',
+          }),
+        });
+        console.log('Delivery notification sent');
+      } catch (e) {
+        console.log('Delivery notification failed:', e);
       }
-    } else if (deliveryStatus === 'cancelled' || deliveryStatus === 'returned') {
-      updateData.order_status = 'cancelled';
+
+      // Create in-app notification
+      if (order.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: order.user_id,
+          title: 'Order Delivered! 📦',
+          message: `Your order has been delivered successfully. We hope you enjoy your purchase!`,
+          type: 'order',
+          link: '/track-order',
+        });
+      }
     }
 
+    // Handle RTO (Return to Origin)
+    if (['RTO INITIATED', 'RTO IN TRANSIT'].includes(currentStatus?.toUpperCase())) {
+      updates.returning_to_provider = true;
+      updates.return_reason = 'Delivery failed - returning to sender';
+      
+      if (order.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: order.user_id,
+          title: 'Delivery Issue ⚠️',
+          message: `Your order could not be delivered and is being returned. Please contact support for assistance.`,
+          type: 'order',
+          link: '/track-order',
+        });
+      }
+    }
+
+    // Handle RTO Delivered (package returned to seller)
+    if (currentStatus?.toUpperCase() === 'RTO DELIVERED') {
+      updates.order_status = 'cancelled';
+      updates.returning_to_provider = false;
+      updates.return_reason = 'Returned to sender - delivery failed';
+
+      // For prepaid orders, initiate refund
+      if (order.payment_method !== 'cod' && order.payment_status === 'paid') {
+        console.log('RTO Delivered for prepaid order - initiating refund');
+        
+        await supabase.from('order_complaints').insert({
+          order_id: order.id,
+          user_id: order.user_id,
+          complaint_type: 'auto_rto_refund',
+          description: 'Order returned to sender - automatic refund initiated',
+          refund_status: 'pending',
+          refund_method: 'original_method',
+        });
+
+        if (order.user_id) {
+          await supabase.from('notifications').insert({
+            user_id: order.user_id,
+            title: 'Refund Initiated 💰',
+            message: `Your order was returned to us. A refund of ₹${order.total_amount} has been initiated and will be processed within 5-7 business days.`,
+            type: 'refund',
+            link: '/track-order',
+          });
+        }
+      } else if (order.payment_method === 'cod') {
+        if (order.user_id) {
+          await supabase.from('notifications').insert({
+            user_id: order.user_id,
+            title: 'Order Cancelled',
+            message: `Your COD order was returned to us after delivery attempts failed. No charges were applied.`,
+            type: 'order',
+            link: '/track-order',
+          });
+        }
+      }
+    }
+
+    // Handle UNDELIVERED - record failed attempt
+    if (currentStatus?.toUpperCase() === 'UNDELIVERED') {
+      const existingAttempts = await supabase
+        .from('delivery_attempts')
+        .select('attempt_number')
+        .eq('order_id', order.id)
+        .order('attempt_number', { ascending: false })
+        .limit(1);
+
+      const attemptNumber = (existingAttempts.data?.[0]?.attempt_number || 0) + 1;
+
+      await supabase.from('delivery_attempts').insert({
+        order_id: order.id,
+        attempt_number: attemptNumber,
+        scheduled_date: new Date().toISOString().split('T')[0],
+        status: 'failed',
+        failure_reason: payload.comment || payload.scans?.[0]?.location || 'Delivery attempt failed',
+        attempted_at: new Date().toISOString(),
+      });
+
+      updates.delivery_status = 'failed';
+
+      if (order.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: order.user_id,
+          title: 'Delivery Attempt Failed',
+          message: `Delivery attempt #${attemptNumber} was unsuccessful. The courier will try again.`,
+          type: 'order',
+          link: '/track-order',
+        });
+      }
+    }
+
+    // Update order status if mapped
+    if (orderStatus && !updates.order_status) {
+      updates.order_status = orderStatus;
+    }
+
+    // Merge with existing notes
+    const existingNotes = order.notes ? JSON.parse(order.notes) : {};
+    updates.notes = JSON.stringify({
+      ...existingNotes,
+      last_webhook_status: currentStatus,
+      last_webhook_at: new Date().toISOString(),
+      etd: etd || existingNotes.etd,
+    });
+
+    // Update order
     const { error: updateError } = await supabase
       .from('orders')
-      .update(updateData)
-      .eq('id', orderToUpdate.id);
+      .update(updates)
+      .eq('id', order.id);
 
     if (updateError) {
       console.error('Error updating order:', updateError);
       throw updateError;
     }
 
-    console.log(`Order ${orderToUpdate.id} updated successfully to ${deliveryStatus}`);
-
-    // Send notification to user about status update
-    try {
-      const { data: order } = await supabase
-        .from('orders')
-        .select('user_id, customer_email')
-        .eq('id', orderToUpdate.id)
-        .single();
-
-      if (order?.user_id) {
-        await supabase.from('notifications').insert({
-          user_id: order.user_id,
-          title: 'Order Update',
-          message: `Your order status: ${current_status}`,
-          type: 'order',
-          link: `/track-order?orderId=${orderToUpdate.id}`,
-        });
-      }
-    } catch (e) {
-      console.error('Failed to send notification:', e);
-    }
+    console.log('Order updated successfully:', order.id, 'Status:', deliveryStatus);
 
     return new Response(
-      JSON.stringify({ success: true, updated_order: orderToUpdate.id }),
+      JSON.stringify({ success: true, order_id: order.id, status: deliveryStatus }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
