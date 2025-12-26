@@ -34,9 +34,24 @@ serve(async (req) => {
   }
 
   try {
+    let shipmentId: string | null = null;
+    let orderId: string | null = null;
+
+    // Support both query params and JSON body
     const url = new URL(req.url);
-    const shipmentId = url.searchParams.get('shipment_id');
-    const orderId = url.searchParams.get('order_id');
+    shipmentId = url.searchParams.get('shipment_id');
+    orderId = url.searchParams.get('order_id');
+
+    // If not in query params, try JSON body
+    if (!shipmentId && !orderId && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        shipmentId = body.shipment_id || null;
+        orderId = body.order_id || null;
+      } catch {
+        // Body parsing failed, continue with null values
+      }
+    }
 
     if (!shipmentId && !orderId) {
       throw new Error('Either shipment_id or order_id is required');
