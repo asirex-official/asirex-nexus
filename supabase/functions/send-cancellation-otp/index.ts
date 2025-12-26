@@ -113,52 +113,108 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("user_id", user_id)
       .single();
 
+    // Get profile phone as fallback
+    const { data: profilePhone } = await supabase
+      .from("profiles")
+      .select("phone")
+      .eq("user_id", user_id)
+      .single();
+
+    const phoneToUse = userPhone?.phone_number || profilePhone?.phone;
+
+    let smsSent = false;
+    let emailSent = false;
+
+    // Try to send SMS via MSG91
+    if (phoneToUse) {
+      const MSG91_AUTH_KEY = Deno.env.get("MSG91_AUTH_KEY");
+      const MSG91_TEMPLATE_ID = Deno.env.get("MSG91_TEMPLATE_ID");
+      const MSG91_SENDER_ID = Deno.env.get("MSG91_SENDER_ID") || "ASIREX";
+
+      if (MSG91_AUTH_KEY && MSG91_TEMPLATE_ID) {
+        let formattedPhone = phoneToUse.replace(/\D/g, '');
+        if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+          formattedPhone = '91' + formattedPhone;
+        }
+
+        try {
+          const smsResponse = await fetch(`https://control.msg91.com/api/v5/otp`, {
+            method: 'POST',
+            headers: {
+              'authkey': MSG91_AUTH_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              template_id: MSG91_TEMPLATE_ID,
+              mobile: formattedPhone,
+              otp: otp,
+              sender: MSG91_SENDER_ID,
+              otp_length: 6,
+              otp_expiry: 5,
+            }),
+          });
+
+          const smsResult = await smsResponse.json();
+          console.log("MSG91 cancellation OTP response:", smsResult);
+          smsSent = smsResult.type === 'success' || smsResponse.ok;
+        } catch (smsError) {
+          console.error("SMS sending failed:", smsError);
+        }
+      }
+
+      // Log for mock mode if SMS not configured
+      if (!smsSent) {
+        console.log(`[MOCK SMS] Cancellation OTP for ${phoneToUse}: ${otp}`);
+      }
+    }
+
     // Send OTP via email
     if (authUser?.user?.email) {
       const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
       if (RESEND_API_KEY) {
         const resend = new Resend(RESEND_API_KEY);
         
-        await resend.emails.send({
-          from: "ASIREX <onboarding@resend.dev>",
-          to: [authUser.user.email],
-          subject: "Order Cancellation OTP",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #fff;">
-              <h2 style="color: #ef4444;">Order Cancellation Request</h2>
-              <p>You have requested to cancel your order. Please use the OTP below to confirm:</p>
-              
-              <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-                <div style="font-size: 32px; letter-spacing: 8px; font-weight: bold; font-family: monospace;">
-                  ${otp}
+        try {
+          await resend.emails.send({
+            from: "ASIREX <onboarding@resend.dev>",
+            to: [authUser.user.email],
+            subject: "Order Cancellation OTP",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #fff;">
+                <h2 style="color: #ef4444;">Order Cancellation Request</h2>
+                <p>You have requested to cancel your order. Please use the OTP below to confirm:</p>
+                
+                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                  <div style="font-size: 32px; letter-spacing: 8px; font-weight: bold; font-family: monospace;">
+                    ${otp}
+                  </div>
                 </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                  <p style="margin: 0;"><strong>Order ID:</strong> ${order_id.slice(0, 8).toUpperCase()}</p>
+                  <p style="margin: 5px 0 0 0;"><strong>Reason:</strong> ${reason}</p>
+                </div>
+                
+                <p style="color: #888; font-size: 12px; margin-top: 20px;">
+                  This OTP is valid for 5 minutes. If you didn't request this, please ignore this email.
+                </p>
               </div>
-              
-              <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
-                <p style="margin: 0;"><strong>Order ID:</strong> ${order_id.slice(0, 8).toUpperCase()}</p>
-                <p style="margin: 5px 0 0 0;"><strong>Reason:</strong> ${reason}</p>
-              </div>
-              
-              <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                This OTP is valid for 5 minutes. If you didn't request this, please ignore this email.
-              </p>
-            </div>
-          `,
-        });
+            `,
+          });
+          emailSent = true;
+        } catch (emailError) {
+          console.error("Email sending failed:", emailError);
+        }
       }
-    }
-
-    // Log for SMS (mock mode)
-    if (userPhone?.phone_number) {
-      console.log(`[MOCK SMS] Cancellation OTP for ${userPhone.phone_number}: ${otp}`);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "OTP sent to your email and registered phone number",
-        email_sent: !!authUser?.user?.email,
-        phone_sent: !!userPhone?.phone_number,
+        message: "OTP sent to your registered contact methods",
+        email_sent: emailSent,
+        sms_sent: smsSent,
+        phone_registered: !!phoneToUse,
         // Development only
         ...(Deno.env.get("DENO_DEPLOYMENT_ID") ? {} : { test_otp: otp })
       }),

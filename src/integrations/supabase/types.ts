@@ -2157,7 +2157,9 @@ export type Database = {
           full_name: string | null
           id: string
           otp_hash: string
+          otp_method: string | null
           password_hash: string | null
+          phone_number: string | null
           verified: boolean
         }
         Insert: {
@@ -2169,7 +2171,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           otp_hash: string
+          otp_method?: string | null
           password_hash?: string | null
+          phone_number?: string | null
           verified?: boolean
         }
         Update: {
@@ -2181,7 +2185,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           otp_hash?: string
+          otp_method?: string | null
           password_hash?: string | null
+          phone_number?: string | null
           verified?: boolean
         }
         Relationships: []
