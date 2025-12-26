@@ -80,6 +80,7 @@ export function Footer() {
               <p><strong>Legal Name:</strong> SHIVRAM</p>
               <p><strong>Email:</strong> asirex.official@gmail.com</p>
               <p><strong>Phone:</strong> +91 9792944295</p>
+              <p><strong>Address:</strong> Rangmahal Flats 7,8, Camp Colony, Faridabad, Haryana - 121102, India</p>
             </div>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
