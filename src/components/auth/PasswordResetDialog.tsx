@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowLeft, Shield, CheckCircle, Eye, EyeOff, Phone, MessageSquare } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Shield, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,6 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
@@ -26,13 +25,11 @@ interface PasswordResetDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "method" | "otp" | "newPassword" | "success";
+type Step = "email" | "otp" | "newPassword" | "success";
 
 export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogProps) {
-  const [step, setStep] = useState<Step>("method");
+  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otpMethod, setOtpMethod] = useState<'email' | 'sms'>('email');
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -50,7 +47,7 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
   }, [resendCooldown]);
 
   const handleSendOTP = async () => {
-    if (otpMethod === 'email' && !email) {
+    if (!email) {
       toast({
         title: "Email required",
         description: "Please enter your email address.",
@@ -59,58 +56,25 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
       return;
     }
 
-    if (otpMethod === 'sms' && (!phoneNumber || phoneNumber.length < 10)) {
-      toast({
-        title: "Phone required",
-        description: "Please enter a valid 10-digit phone number.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      if (otpMethod === 'sms') {
-        const { data, error } = await supabase.functions.invoke('send-sms-otp', {
-          body: { 
-            phone_number: phoneNumber, 
-            purpose: 'password_reset',
-            email: email || undefined
-          }
-        });
+      const { data, error } = await supabase.functions.invoke('send-password-reset-otp', {
+        body: { email }
+      });
 
-        if (error || data?.error) {
-          toast({
-            title: "Error",
-            description: data?.error || "Failed to send SMS OTP. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
+      if (error) {
         toast({
-          title: "OTP Sent",
-          description: `We've sent a 6-digit code to +91 ${phoneNumber}`,
+          title: "Error",
+          description: "Failed to send reset code. Please try again.",
+          variant: "destructive",
         });
-      } else {
-        const { data, error } = await supabase.functions.invoke('send-password-reset-otp', {
-          body: { email }
-        });
-
-        if (error) {
-          toast({
-            title: "Error",
-            description: "Failed to send reset code. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        toast({
-          title: "Reset Code Sent",
-          description: `We've sent a 6-digit code to ${email}`,
-        });
+        return;
       }
+
+      toast({
+        title: "Reset Code Sent",
+        description: `We've sent a 6-digit code to ${email}`,
+      });
 
       setStep("otp");
       setResendCooldown(60);
@@ -140,7 +104,6 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
       return;
     }
 
-    // Move to password entry step
     setStep("newPassword");
   };
 
@@ -165,46 +128,9 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
 
     setLoading(true);
     try {
-      let response;
-      
-      if (otpMethod === 'sms') {
-        // First verify SMS OTP
-        const verifyResponse = await supabase.functions.invoke('verify-sms-otp', {
-          body: { phone_number: phoneNumber, otp }
-        });
-
-        if (verifyResponse.error || verifyResponse.data?.error) {
-          const errorMessage = verifyResponse.data?.error || "Invalid code. Please try again.";
-          toast({
-            title: "Error",
-            description: errorMessage,
-            variant: "destructive",
-          });
-          if (errorMessage.includes("expired") || errorMessage.includes("attempts")) {
-            setStep("method");
-            setOtp("");
-          }
-          return;
-        }
-
-        // If SMS OTP verified, update password via email if provided
-        if (email) {
-          response = await supabase.functions.invoke('verify-password-reset-otp', {
-            body: { email, otp, newPassword, skipOtpVerify: true }
-          });
-        } else {
-          toast({
-            title: "Email Required",
-            description: "Please provide an email to update password.",
-            variant: "destructive",
-          });
-          return;
-        }
-      } else {
-        response = await supabase.functions.invoke('verify-password-reset-otp', {
-          body: { email, otp, newPassword }
-        });
-      }
+      const response = await supabase.functions.invoke('verify-password-reset-otp', {
+        body: { email, otp, newPassword }
+      });
 
       if (response?.error || response?.data?.error) {
         const errorMessage = response.data?.error || "Invalid code. Please try again.";
@@ -214,7 +140,7 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
           variant: "destructive",
         });
         if (errorMessage.includes("expired") || errorMessage.includes("attempts")) {
-          setStep("method");
+          setStep("email");
           setOtp("");
         }
         return;
@@ -237,10 +163,8 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
   };
 
   const handleClose = () => {
-    setStep("method");
+    setStep("email");
     setEmail("");
-    setPhoneNumber("");
-    setOtpMethod('email');
     setOtp("");
     setNewPassword("");
     setConfirmPassword("");
@@ -257,102 +181,36 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
             Reset Password
           </DialogTitle>
           <DialogDescription>
-            {step === "method" && "Choose how to receive your reset code."}
-            {step === "otp" && `Enter the 6-digit code sent to your ${otpMethod === 'sms' ? 'phone' : 'email'}.`}
+            {step === "email" && "Enter your email to receive a reset code."}
+            {step === "otp" && "Enter the 6-digit code sent to your email."}
             {step === "newPassword" && "Create your new password."}
             {step === "success" && "Password reset complete!"}
           </DialogDescription>
         </DialogHeader>
 
         <AnimatePresence mode="wait">
-          {step === "method" && (
+          {step === "email" && (
             <motion.div
-              key="method"
+              key="email"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               className="space-y-4"
             >
-              <div className="space-y-3">
-                <Label>Receive reset code via</Label>
-                <RadioGroup
-                  value={otpMethod}
-                  onValueChange={(v) => setOtpMethod(v as 'email' | 'sms')}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="email" id="reset-email-method" />
-                    <Label htmlFor="reset-email-method" className="flex items-center gap-2 cursor-pointer font-normal">
-                      <Mail className="w-4 h-4" />
-                      Email
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="sms" id="reset-sms-method" />
-                    <Label htmlFor="reset-sms-method" className="flex items-center gap-2 cursor-pointer font-normal">
-                      <MessageSquare className="w-4 h-4" />
-                      SMS
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {otpMethod === 'email' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="reset-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="reset-phone">Phone Number</Label>
-                    <div className="relative flex gap-2">
-                      <div className="flex items-center gap-1 px-3 bg-muted rounded-md border h-10">
-                        <span className="text-sm text-muted-foreground">+91</span>
-                      </div>
-                      <div className="relative flex-1">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="reset-phone"
-                          type="tel"
-                          placeholder="Enter 10-digit number"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                          maxLength={10}
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reset-email-sms">Email (for password update)</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="reset-email-sms"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Required to update your password
-                    </p>
-                  </div>
-                </>
-              )}
+              </div>
 
               <Button
                 onClick={handleSendOTP}
@@ -391,7 +249,7 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
                   </InputOTP>
                 </div>
                 <p className="text-sm text-muted-foreground text-center">
-                  Code sent to {otpMethod === 'sms' ? `+91 ${phoneNumber}` : email}
+                  Code sent to {email}
                 </p>
                 <div className="text-center">
                   <button
@@ -407,7 +265,7 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setStep("method")}
+                  onClick={() => setStep("email")}
                   className="flex-1"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -498,17 +356,19 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-6"
+              className="py-6 text-center space-y-4"
             >
-              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-500" />
+              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Password Reset Complete!</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Your password has been successfully updated. You can now log in with your new password.
-              </p>
+              <div>
+                <h3 className="font-semibold text-lg">Password Reset Successful!</h3>
+                <p className="text-muted-foreground text-sm mt-1">
+                  You can now sign in with your new password.
+                </p>
+              </div>
               <Button onClick={handleClose} className="w-full">
-                Back to Login
+                Back to Sign In
               </Button>
             </motion.div>
           )}
