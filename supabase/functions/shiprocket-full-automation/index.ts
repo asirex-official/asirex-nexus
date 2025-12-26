@@ -10,6 +10,8 @@ async function getShiprocketToken(): Promise<string> {
   const email = Deno.env.get('SHIPROCKET_EMAIL');
   const password = Deno.env.get('SHIPROCKET_TOKEN');
 
+  console.log('Attempting ShipRocket auth with email:', email);
+
   if (!email || !password) {
     throw new Error('ShipRocket credentials not configured');
   }
@@ -20,11 +22,14 @@ async function getShiprocketToken(): Promise<string> {
     body: JSON.stringify({ email, password }),
   });
 
+  const responseText = await response.text();
+  console.log('ShipRocket auth response:', response.status, responseText);
+
   if (!response.ok) {
-    throw new Error(`ShipRocket authentication failed: ${response.status}`);
+    throw new Error(`ShipRocket authentication failed: ${response.status} - ${responseText}`);
   }
 
-  const data = await response.json();
+  const data = JSON.parse(responseText);
   return data.token;
 }
 
