@@ -178,8 +178,8 @@ export default function Checkout() {
           .eq('id', activeSale.id);
       }
 
-      // For online payment, initiate PayU
-      if (form.paymentMethod === 'online') {
+      // For online payment, initiate PayU (skip if amount is 0 - fully discounted order)
+      if (form.paymentMethod === 'online' && finalPrice > 0) {
         const productInfo = items.map(i => i.name).join(', ').substring(0, 100);
         
         const { data: payuResponse, error: payuError } = await supabase.functions.invoke('initiate-payu-payment', {
@@ -200,6 +200,14 @@ export default function Checkout() {
         // Set PayU data to trigger form submission
         setPayuData(payuResponse);
         return; // Don't continue, form will submit automatically
+      }
+
+      // If order is fully discounted (finalPrice = 0), mark as paid and skip payment gateway
+      if (finalPrice === 0) {
+        await supabase.from('orders').update({ 
+          payment_status: 'paid',
+          order_status: 'confirmed'
+        }).eq('id', orderData.id);
       }
 
       // For COD, send notification and complete
