@@ -18,13 +18,14 @@ export default function ContentManager() {
     // About
     about_us: "",
     mission_statement: "",
-    
+
     // Main Contact
+    legal_name: "",
     contact_email: "",
     contact_phone: "",
     address: "",
     whatsapp_number: "",
-    
+
     // Department Emails
     email_support: "",
     email_sales: "",
@@ -32,7 +33,7 @@ export default function ContentManager() {
     email_careers: "",
     email_partnerships: "",
     email_press: "",
-    
+
     // Coming Soon Toggles (stored as "true"/"false" strings)
     phone_coming_soon: "false",
     whatsapp_coming_soon: "false",
@@ -42,7 +43,7 @@ export default function ContentManager() {
     email_careers_coming_soon: "false",
     email_partnerships_coming_soon: "false",
     email_press_coming_soon: "false",
-    
+
     // Social Links
     social_twitter: "",
     social_linkedin: "",
@@ -55,6 +56,7 @@ export default function ContentManager() {
       setForm({
         about_us: companyInfo.about_us || "",
         mission_statement: companyInfo.mission_statement || "",
+        legal_name: companyInfo.legal_name || "",
         contact_email: companyInfo.contact_email || "",
         contact_phone: companyInfo.contact_phone || "",
         address: companyInfo.address || "",
@@ -165,6 +167,18 @@ export default function ContentManager() {
         </h2>
 
         <div className="grid sm:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              Legal Name
+            </Label>
+            <Input
+              value={form.legal_name}
+              onChange={(e) => setForm({ ...form, legal_name: e.target.value })}
+              placeholder="Your legal business name (as per PayU)"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
